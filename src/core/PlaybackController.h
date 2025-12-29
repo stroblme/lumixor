@@ -18,6 +18,7 @@ public:
     void play();
     void pause();
     void stop();
+    bool isPlaying() const { return m_player.state() == QMediaPlayer::PlayingState; }
 
 signals:
     void mediaFinished();

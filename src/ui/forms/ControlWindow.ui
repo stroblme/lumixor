@@ -16,7 +16,24 @@
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout">
     <item>
-     <widget class="QListWidget" name="listWidget"/>
+     <widget class="QLabel" name="labelImages">
+      <property name="text">
+       <string>Images</string>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QListWidget" name="listWidgetImages"/>
+    </item>
+    <item>
+     <widget class="QLabel" name="labelVideos">
+      <property name="text">
+       <string>Videos</string>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QListWidget" name="listWidgetVideos"/>
     </item>
     <item>
      <layout class="QHBoxLayout" name="buttonLayout">
@@ -106,6 +123,19 @@
        </widget>
       </item>
      </layout>
+    </item>
+    <item>
+     <widget class="QPushButton" name="btnBlackout">
+      <property name="minimumSize">
+       <size>
+        <width>0</width>
+        <height>40</height>
+       </size>
+      </property>
+      <property name="text">
+       <string>Blackout</string>
+      </property>
+     </widget>
     </item>
     <item>
      <widget class="QLabel" name="statusLabel">

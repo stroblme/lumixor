@@ -22,6 +22,9 @@ public:
                   QWidget *parent = nullptr);
     ~ControlWindow();
 
+protected:
+    void closeEvent(QCloseEvent *event) override;
+
 private slots:
     void onAddMedia();
     void onPlaySelected();
@@ -30,9 +33,12 @@ private slots:
 
     void onStartSlideshow(); // must exist in .cpp
     void onStopSlideshow();  // must exist in .cpp
+    void onBlackoutClicked();
 
 private:
-    void refreshList();
+    void refreshImageList();
+    void refreshVideoList();
+    void refreshLists();
 
     Ui::ControlWindow *ui;
     MediaManager *m_mediaManager;

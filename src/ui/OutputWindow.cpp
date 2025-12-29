@@ -63,3 +63,24 @@ void OutputWindow::showImage(const QString &path)
         pix.scaled(size(), Qt::KeepAspectRatio, Qt::SmoothTransformation));
     ui->stackedLayout->setCurrentWidget(ui->imageLabel);
 }
+
+void OutputWindow::setBlackout(bool enable)
+{
+    if (enable)
+    {
+        ui->stackedLayout->setCurrentWidget(ui->blackoutWidget);
+    }
+    else
+    {
+        // Use non-deprecated overload
+        QPixmap pixmap = ui->imageLabel->pixmap(Qt::ReturnByValue);
+        if (!pixmap.isNull())
+        {
+            ui->stackedLayout->setCurrentWidget(ui->imageLabel);
+        }
+        else
+        {
+            ui->stackedLayout->setCurrentWidget(ui->videoWidget);
+        }
+    }
+}

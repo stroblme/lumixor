@@ -21,6 +21,7 @@ public:
 public slots:
     void showVideo();
     void showImage(const QString &path);
+    void setBlackout(bool enable);
 
 private:
     Ui::OutputWindow *ui;

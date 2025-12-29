@@ -2,8 +2,10 @@
 #include "ControlWindow.h"
 #include "forms/ui_ControlWindow.h"
 
+#include <QCloseEvent>
 #include <QFileDialog>
 #include <QFileInfo>
+#include <QListWidget>
 
 ControlWindow::ControlWindow(MediaManager *mediaManager,
                              PlaybackController *playbackController,
@@ -14,16 +16,16 @@ ControlWindow::ControlWindow(MediaManager *mediaManager,
       m_mediaManager(mediaManager),
       m_playbackController(playbackController),
       m_outputWindow(outputWindow),
-      m_slideshow(mediaManager, nullptr, this)
+      m_slideshow(mediaManager, outputWindow, this)
 {
     ui->setupUi(this);
-
-    // After ui->setupUi(this);
     setMinimumSize(500, 400); // avoid too cramped UI
 
-    // Optionally bump row size in the list:
-    ui->listWidget->setIconSize(QSize(0, 32)); // just to increase row height
-    ui->listWidget->setSpacing(2);
+    // Set icon size and spacing for both lists
+    ui->listWidgetImages->setIconSize(QSize(0, 32));
+    ui->listWidgetImages->setSpacing(2);
+    ui->listWidgetVideos->setIconSize(QSize(0, 32));
+    ui->listWidgetVideos->setSpacing(2);
 
     connect(ui->btnAdd, &QPushButton::clicked,
             this, &ControlWindow::onAddMedia);
@@ -31,6 +33,7 @@ ControlWindow::ControlWindow(MediaManager *mediaManager,
             this, &ControlWindow::onPlaySelected);
     connect(ui->btnStop, &QPushButton::clicked,
             this, &ControlWindow::onStop);
+    connect(ui->btnBlackout, &QPushButton::clicked, this, &ControlWindow::onBlackoutClicked);
 
     connect(m_playbackController, &PlaybackController::mediaFinished,
             this, &ControlWindow::onMediaFinished);
@@ -40,6 +43,8 @@ ControlWindow::ControlWindow(MediaManager *mediaManager,
             this, &ControlWindow::onStartSlideshow);
     connect(ui->btnSlideshowStop, &QPushButton::clicked,
             this, &ControlWindow::onStopSlideshow);
+
+    refreshLists();
 }
 
 ControlWindow::~ControlWindow()
@@ -58,31 +63,41 @@ void ControlWindow::onAddMedia()
     {
         m_mediaManager->addMedia(p);
     }
-    refreshList();
+    refreshLists();
 }
 
-void ControlWindow::refreshList()
+void ControlWindow::refreshImageList()
 {
-    ui->listWidget->clear();
+    ui->listWidgetImages->clear();
     const auto &items = m_mediaManager->items();
     for (const auto &item : items)
     {
-        QString typeStr;
-        switch (item.type)
+        if (item.type == MediaType::Image)
         {
-        case MediaType::Video:
-            typeStr = "VIDEO";
-            break;
-        case MediaType::Image:
-            typeStr = "IMAGE";
-            break;
-        default:
-            typeStr = "UNKNOWN";
-            break;
+            QListWidgetItem *listItem = new QListWidgetItem(item.path);
+            ui->listWidgetImages->addItem(listItem);
         }
-        QFileInfo fi(item.path);
-        ui->listWidget->addItem(typeStr + ": " + fi.fileName());
     }
+}
+
+void ControlWindow::refreshVideoList()
+{
+    ui->listWidgetVideos->clear();
+    const auto &items = m_mediaManager->items();
+    for (const auto &item : items)
+    {
+        if (item.type == MediaType::Video)
+        {
+            QListWidgetItem *listItem = new QListWidgetItem(item.path);
+            ui->listWidgetVideos->addItem(listItem);
+        }
+    }
+}
+
+void ControlWindow::refreshLists()
+{
+    refreshImageList();
+    refreshVideoList();
 }
 
 void ControlWindow::onPlaySelected()
@@ -91,7 +106,7 @@ void ControlWindow::onPlaySelected()
     if (m_slideshow.isRunning())
         m_slideshow.stop();
 
-    int row = ui->listWidget->currentRow();
+    int row = ui->listWidgetVideos->currentRow();
     if (row < 0)
         return;
 
@@ -145,4 +160,44 @@ void ControlWindow::onStopSlideshow()
 {
     m_slideshow.stop();
     ui->statusLabel->setText(tr("Slideshow stopped"));
+}
+
+void ControlWindow::onBlackoutClicked()
+{
+    static bool isBlack = false;
+    static bool wasVideoPlaying = false;
+    static bool wasSlideshowRunning = false;
+    isBlack = !isBlack;
+
+    if (isBlack)
+    {
+        // Pause video if playing
+        wasVideoPlaying = m_playbackController->isPlaying();
+        if (wasVideoPlaying)
+            m_playbackController->pause();
+        // Pause slideshow if running
+        wasSlideshowRunning = m_slideshow.isRunning();
+        if (wasSlideshowRunning)
+            m_slideshow.stop();
+    }
+    else
+    {
+        // Resume video if it was playing
+        if (wasVideoPlaying)
+            m_playbackController->play();
+        // Resume slideshow if it was running
+        if (wasSlideshowRunning)
+            m_slideshow.start(ui->spinSlideshowSeconds->value() * 1000);
+    }
+    m_outputWindow->setBlackout(isBlack);
+    ui->btnBlackout->setText(isBlack ? "Unblackout" : "Blackout");
+}
+
+void ControlWindow::closeEvent(QCloseEvent *event)
+{
+    if (m_outputWindow)
+    {
+        m_outputWindow->close();
+    }
+    QMainWindow::closeEvent(event);
 }
