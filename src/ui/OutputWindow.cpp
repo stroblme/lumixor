@@ -1,0 +1,66 @@
+#include "OutputWindow.h"
+#include "forms/ui_OutputWindow.h"
+
+#include <QApplication>
+#include <QScreen>
+#include <QPixmap>
+#include <QDebug>
+
+OutputWindow::OutputWindow(PlaybackController *playbackController,
+                           QWidget *parent)
+    : QMainWindow(parent),
+      ui(new Ui::OutputWindow),
+      m_playbackController(playbackController)
+{
+    ui->setupUi(this);
+
+    // Set video output to the videoWidget created in the .ui
+    m_playbackController->player()->setVideoOutput(ui->videoWidget);
+
+    // Optional: some initial styles
+    ui->imageLabel->setScaledContents(false);
+}
+
+OutputWindow::~OutputWindow()
+{
+    delete ui;
+}
+
+void OutputWindow::fullscreenOnScreen(int screenIndex)
+{
+    const auto screens = qApp->screens();
+    if (screens.isEmpty())
+        return;
+
+    QScreen *target = nullptr;
+    if (screenIndex >= 0 && screenIndex < screens.size())
+    {
+        target = screens.at(screenIndex);
+    }
+    else
+    {
+        target = screens.at(0);
+    }
+
+    QRect geo = target->geometry();
+    move(geo.topLeft());
+    showFullScreen();
+}
+
+void OutputWindow::showVideo()
+{
+    ui->stackedLayout->setCurrentWidget(ui->videoWidget);
+}
+
+void OutputWindow::showImage(const QString &path)
+{
+    QPixmap pix(path);
+    if (pix.isNull())
+    {
+        qWarning() << "Failed to load image:" << path;
+        return;
+    }
+    ui->imageLabel->setPixmap(
+        pix.scaled(size(), Qt::KeepAspectRatio, Qt::SmoothTransformation));
+    ui->stackedLayout->setCurrentWidget(ui->imageLabel);
+}

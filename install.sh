@@ -1,0 +1,1 @@
+sudo zypper install libqt5-qtbase-devel libqt5-qtmultimedia-devel
