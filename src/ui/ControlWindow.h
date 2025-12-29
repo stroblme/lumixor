@@ -4,6 +4,7 @@
 
 #include "../core/MediaManager.h"
 #include "../core/PlaybackController.h"
+#include "../core/SlideshowController.h"
 #include "OutputWindow.h"
 
 namespace Ui
@@ -19,13 +20,16 @@ public:
                   PlaybackController *playbackController,
                   OutputWindow *outputWindow,
                   QWidget *parent = nullptr);
-    ~ControlWindow(); // <-- explicitly declared
+    ~ControlWindow();
 
 private slots:
     void onAddMedia();
     void onPlaySelected();
     void onStop();
     void onMediaFinished();
+
+    void onStartSlideshow(); // must exist in .cpp
+    void onStopSlideshow();  // must exist in .cpp
 
 private:
     void refreshList();
@@ -34,4 +38,6 @@ private:
     MediaManager *m_mediaManager;
     PlaybackController *m_playbackController;
     OutputWindow *m_outputWindow;
+
+    SlideshowController m_slideshow;
 };

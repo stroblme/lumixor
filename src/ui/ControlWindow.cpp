@@ -13,7 +13,8 @@ ControlWindow::ControlWindow(MediaManager *mediaManager,
       ui(new Ui::ControlWindow),
       m_mediaManager(mediaManager),
       m_playbackController(playbackController),
-      m_outputWindow(outputWindow)
+      m_outputWindow(outputWindow),
+      m_slideshow(mediaManager, outputWindow, this)
 {
     ui->setupUi(this);
 
@@ -26,6 +27,12 @@ ControlWindow::ControlWindow(MediaManager *mediaManager,
 
     connect(m_playbackController, &PlaybackController::mediaFinished,
             this, &ControlWindow::onMediaFinished);
+
+    // slideshow buttons
+    connect(ui->btnSlideshowStart, &QPushButton::clicked,
+            this, &ControlWindow::onStartSlideshow);
+    connect(ui->btnSlideshowStop, &QPushButton::clicked,
+            this, &ControlWindow::onStopSlideshow);
 }
 
 ControlWindow::~ControlWindow()
@@ -47,8 +54,36 @@ void ControlWindow::onAddMedia()
     refreshList();
 }
 
+void ControlWindow::refreshList()
+{
+    ui->listWidget->clear();
+    const auto &items = m_mediaManager->items();
+    for (const auto &item : items)
+    {
+        QString typeStr;
+        switch (item.type)
+        {
+        case MediaType::Video:
+            typeStr = "VIDEO";
+            break;
+        case MediaType::Image:
+            typeStr = "IMAGE";
+            break;
+        default:
+            typeStr = "UNKNOWN";
+            break;
+        }
+        QFileInfo fi(item.path);
+        ui->listWidget->addItem(typeStr + ": " + fi.fileName());
+    }
+}
+
 void ControlWindow::onPlaySelected()
 {
+    // Stop slideshow if running (manual override)
+    if (m_slideshow.isRunning())
+        m_slideshow.stop();
+
     int row = ui->listWidget->currentRow();
     if (row < 0)
         return;
@@ -85,26 +120,22 @@ void ControlWindow::onMediaFinished()
     ui->statusLabel->setText("Media finished");
 }
 
-void ControlWindow::refreshList()
+void ControlWindow::onStartSlideshow()
 {
-    ui->listWidget->clear();
-    const auto &items = m_mediaManager->items();
-    for (const auto &item : items)
-    {
-        QString typeStr;
-        switch (item.type)
-        {
-        case MediaType::Video:
-            typeStr = "VIDEO";
-            break;
-        case MediaType::Image:
-            typeStr = "IMAGE";
-            break;
-        default:
-            typeStr = "UNKNOWN";
-            break;
-        }
-        QFileInfo fi(item.path);
-        ui->listWidget->addItem(typeStr + ": " + fi.fileName());
-    }
+    int seconds = ui->spinSlideshowSeconds->value();
+    if (seconds < 1)
+        seconds = 1;
+
+    // stop any video
+    m_playbackController->stop();
+
+    m_slideshow.start(seconds * 1000);
+    ui->statusLabel->setText(
+        tr("Slideshow started (%1 s per image)").arg(seconds));
+}
+
+void ControlWindow::onStopSlideshow()
+{
+    m_slideshow.stop();
+    ui->statusLabel->setText(tr("Slideshow stopped"));
 }

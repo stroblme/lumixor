@@ -1,3 +1,4 @@
+// src/util/Application.cpp
 #include "Application.h"
 #include <QPalette>
 #include <QFile>
@@ -10,36 +11,39 @@ Application::Application(int &argc, char **argv)
 
 void Application::applyDarkTheme()
 {
-    // Not used now; keep if you want both themes later
-}
+    QPalette darkPalette;
 
-void Application::applyIOSLightTheme()
-{
-    // Light palette
-    QPalette pal;
+    QColor windowColor(0x12, 0x12, 0x12);
+    QColor baseColor(0x1E, 0x1E, 0x1E);
+    QColor textColor(0xE0, 0xE0, 0xE0);
+    QColor disabledText(0x60, 0x60, 0x60);
+    QColor accentColor(0x42, 0xA5, 0xF5); // blue
 
-    pal.setColor(QPalette::Window, QColor("#F2F2F7")); // iOS system grouped background
-    pal.setColor(QPalette::WindowText, QColor("#000000"));
-    pal.setColor(QPalette::Base, QColor("#FFFFFF"));
-    pal.setColor(QPalette::AlternateBase, QColor("#F2F2F7"));
-    pal.setColor(QPalette::ToolTipBase, QColor("#FFFFFF"));
-    pal.setColor(QPalette::ToolTipText, QColor("#000000"));
-    pal.setColor(QPalette::Text, QColor("#000000"));
-    pal.setColor(QPalette::Button, QColor("#FFFFFF"));
-    pal.setColor(QPalette::ButtonText, QColor("#007AFF")); // iOS blue
-    pal.setColor(QPalette::BrightText, QColor("#FF3B30")); // iOS red
-    pal.setColor(QPalette::Highlight, QColor("#007AFF"));
-    pal.setColor(QPalette::HighlightedText, QColor("#FFFFFF"));
+    darkPalette.setColor(QPalette::Window, windowColor);
+    darkPalette.setColor(QPalette::WindowText, textColor);
+    darkPalette.setColor(QPalette::Base, baseColor);
+    darkPalette.setColor(QPalette::AlternateBase, QColor(0x25, 0x25, 0x25));
+    darkPalette.setColor(QPalette::ToolTipBase, baseColor);
+    darkPalette.setColor(QPalette::ToolTipText, textColor);
+    darkPalette.setColor(QPalette::Text, textColor);
+    darkPalette.setColor(QPalette::Button, baseColor);
+    darkPalette.setColor(QPalette::ButtonText, textColor);
+    darkPalette.setColor(QPalette::BrightText, Qt::red);
+    darkPalette.setColor(QPalette::Highlight, accentColor);
+    darkPalette.setColor(QPalette::HighlightedText, QColor(0x12, 0x12, 0x12));
 
-    setPalette(pal);
+    darkPalette.setColor(QPalette::Disabled, QPalette::Text, disabledText);
+    darkPalette.setColor(QPalette::Disabled, QPalette::ButtonText, disabledText);
+    darkPalette.setColor(QPalette::Disabled, QPalette::WindowText, disabledText);
 
     setStyle("Fusion");
+    setPalette(darkPalette);
 
-    QFile f("src/ui/style/ios_light.qss");
+    // Load dark QSS
+    QFile f("src/ui/style/dark_theme.qss");
     if (f.open(QIODevice::ReadOnly | QIODevice::Text))
     {
         QTextStream in(&f);
-        const QString qss = in.readAll();
-        setStyleSheet(qss);
+        setStyleSheet(in.readAll());
     }
 }

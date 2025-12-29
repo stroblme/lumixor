@@ -15,15 +15,17 @@ set(SRC
     src/util/Application.cpp
     src/core/MediaManager.cpp
     src/core/PlaybackController.cpp
+    src/core/SlideshowController.cpp
     src/ui/OutputWindow.cpp
     src/ui/ControlWindow.cpp
-)
-
-set(HDR
+    )
+    
+    set(HDR
     src/util/Application.h
     src/core/MediaItem.h
     src/core/MediaManager.h
     src/core/PlaybackController.h
+    src/core/SlideshowController.h
     src/ui/OutputWindow.h
     src/ui/ControlWindow.h
 )

@@ -14,11 +14,10 @@ OutputWindow::OutputWindow(PlaybackController *playbackController,
 {
     ui->setupUi(this);
 
-    // Set video output to the videoWidget created in the .ui
-    m_playbackController->player()->setVideoOutput(ui->videoWidget);
+    // Ensure the label’s object name is "imageLabel" (matches QSS)
+    ui->imageLabel->setObjectName("imageLabel");
 
-    // Optional: some initial styles
-    ui->imageLabel->setScaledContents(false);
+    m_playbackController->player()->setVideoOutput(ui->videoWidget);
 }
 
 OutputWindow::~OutputWindow()

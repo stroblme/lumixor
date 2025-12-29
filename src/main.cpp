@@ -1,6 +1,8 @@
+// src/main.cpp
 #include "util/Application.h"
 #include "core/MediaManager.h"
 #include "core/PlaybackController.h"
+#include "core/SlideshowController.h"
 #include "ui/OutputWindow.h"
 #include "ui/ControlWindow.h"
 
@@ -9,7 +11,7 @@
 int main(int argc, char *argv[])
 {
     Application app(argc, argv);
-    app.applyIOSLightTheme();
+    app.applyDarkTheme();
 
     MediaManager mediaManager;
     PlaybackController playbackController;

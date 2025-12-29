@@ -6,15 +6,15 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>480</width>
-    <height>360</height>
+    <width>726</width>
+    <height>488</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Lumixor Control</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QVBoxLayout" name="verticalLayout">
+      <layout class="QVBoxLayout" name="verticalLayout">
     <item>
      <widget class="QListWidget" name="listWidget"/>
     </item>
@@ -43,6 +43,43 @@
       </item>
      </layout>
     </item>
+
+    <!-- NEW: slideshow controls -->
+    <item>
+     <layout class="QHBoxLayout" name="slideshowLayout">
+      <item>
+       <widget class="QPushButton" name="btnSlideshowStart">
+        <property name="text">
+         <string>Start Slideshow</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="btnSlideshowStop">
+        <property name="text">
+         <string>Stop Slideshow</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QSpinBox" name="spinSlideshowSeconds">
+        <property name="minimum">
+         <number>1</number>
+        </property>
+        <property name="maximum">
+         <number>3600</number>
+        </property>
+        <property name="value">
+         <number>5</number>
+        </property>
+        <property name="suffix">
+         <string> s</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+
     <item>
      <widget class="QLabel" name="statusLabel">
       <property name="text">
