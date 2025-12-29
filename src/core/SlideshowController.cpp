@@ -27,7 +27,7 @@ void SlideshowController::start(int intervalMs)
         return;
 
     const MediaItem &item = items[m_currentIndex];
-    m_outputWindow->showImage(item.path);
+    m_outputWindow->fadeToImage(item.path);
 
     m_timer.start(intervalMs);
 }
@@ -51,7 +51,7 @@ void SlideshowController::advance()
         return;
 
     const MediaItem &item = items[m_currentIndex];
-    m_outputWindow->showImage(item.path);
+    m_outputWindow->fadeToImage(item.path);
 }
 
 int SlideshowController::findNextImageIndex(int from) const

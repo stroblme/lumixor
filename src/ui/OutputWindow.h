@@ -1,5 +1,7 @@
 #pragma once
 #include <QMainWindow>
+#include <QGraphicsOpacityEffect>
+#include <QPropertyAnimation>
 
 #include "../core/PlaybackController.h"
 
@@ -21,9 +23,13 @@ public:
 public slots:
     void showVideo();
     void showImage(const QString &path);
+    void fadeToImage(const QString &path);
     void setBlackout(bool enable);
 
 private:
     Ui::OutputWindow *ui;
     PlaybackController *m_playbackController;
+    QGraphicsOpacityEffect *m_opacityEffect = nullptr;
+    QPropertyAnimation *m_fadeAnim = nullptr;
+    QString m_nextImagePath;
 };
