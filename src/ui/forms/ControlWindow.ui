@@ -14,7 +14,7 @@
    <string>Lumixor Control</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-      <layout class="QVBoxLayout" name="verticalLayout">
+   <layout class="QVBoxLayout" name="verticalLayout">
     <item>
      <widget class="QListWidget" name="listWidget"/>
     </item>
@@ -22,6 +22,12 @@
      <layout class="QHBoxLayout" name="buttonLayout">
       <item>
        <widget class="QPushButton" name="btnAdd">
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>40</height>
+         </size>
+        </property>
         <property name="text">
          <string>Add Media</string>
         </property>
@@ -29,6 +35,12 @@
       </item>
       <item>
        <widget class="QPushButton" name="btnPlay">
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>40</height>
+         </size>
+        </property>
         <property name="text">
          <string>Play / Show</string>
         </property>
@@ -36,6 +48,12 @@
       </item>
       <item>
        <widget class="QPushButton" name="btnStop">
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>40</height>
+         </size>
+        </property>
         <property name="text">
          <string>Stop</string>
         </property>
@@ -43,12 +61,16 @@
       </item>
      </layout>
     </item>
-
-    <!-- NEW: slideshow controls -->
     <item>
      <layout class="QHBoxLayout" name="slideshowLayout">
       <item>
        <widget class="QPushButton" name="btnSlideshowStart">
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>40</height>
+         </size>
+        </property>
         <property name="text">
          <string>Start Slideshow</string>
         </property>
@@ -56,6 +78,12 @@
       </item>
       <item>
        <widget class="QPushButton" name="btnSlideshowStop">
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>40</height>
+         </size>
+        </property>
         <property name="text">
          <string>Stop Slideshow</string>
         </property>
@@ -63,6 +91,9 @@
       </item>
       <item>
        <widget class="QSpinBox" name="spinSlideshowSeconds">
+        <property name="suffix">
+         <string> s</string>
+        </property>
         <property name="minimum">
          <number>1</number>
         </property>
@@ -72,14 +103,10 @@
         <property name="value">
          <number>5</number>
         </property>
-        <property name="suffix">
-         <string> s</string>
-        </property>
        </widget>
       </item>
      </layout>
     </item>
-
     <item>
      <widget class="QLabel" name="statusLabel">
       <property name="text">

@@ -14,9 +14,16 @@ ControlWindow::ControlWindow(MediaManager *mediaManager,
       m_mediaManager(mediaManager),
       m_playbackController(playbackController),
       m_outputWindow(outputWindow),
-      m_slideshow(mediaManager, outputWindow, this)
+      m_slideshow(mediaManager, nullptr, this)
 {
     ui->setupUi(this);
+
+    // After ui->setupUi(this);
+    setMinimumSize(500, 400); // avoid too cramped UI
+
+    // Optionally bump row size in the list:
+    ui->listWidget->setIconSize(QSize(0, 32)); // just to increase row height
+    ui->listWidget->setSpacing(2);
 
     connect(ui->btnAdd, &QPushButton::clicked,
             this, &ControlWindow::onAddMedia);
