@@ -503,23 +503,52 @@ Window {
                     Layout.fillHeight: true
 
                     MouseArea {
+                        id: splitterMouseArea
                         anchors.fill: parent
                         hoverEnabled: true
                         cursorShape: Qt.SizeHorCursor
-                        property real startMouseX
-                        property real startRightWidth
+                        property real dragStartX: 0
+                        property real startRightWidth: 0
+                        property real pendingWidth: 0
+                        property real splitterStartX: 0
 
-                        onPressed: {
-                            startMouseX = mouse.x;
+                        onPressed: function (mouse) {
+                            // Capture the splitter's initial position in window coordinates
+                            splitterStartX = rightSplitter.mapToItem(controlRoot.contentItem, 0, 0).x;
+                            // Store where we clicked relative to the splitter
+                            dragStartX = mouse.x;
                             startRightWidth = controlRoot.rightSideWidth;
+                            pendingWidth = startRightWidth;
                         }
-                        onPositionChanged: {
+                        onPositionChanged: function (mouse) {
                             if (!pressed)
                                 return;
-                            var delta = mouse.x - startMouseX;
+                            // Calculate how far the mouse has moved from initial click position
+                            // mouse.x is relative to the MouseArea, which stays with the splitter
+                            // So we need to account for how much the splitter itself has moved
+                            var splitterCurrentX = rightSplitter.mapToItem(controlRoot.contentItem, 0, 0).x;
+                            var splitterDelta = splitterCurrentX - splitterStartX;
+                            var mouseDelta = mouse.x - dragStartX;
+                            // Total movement = how much splitter moved + mouse movement within splitter
+                            var totalDelta = splitterDelta + mouseDelta;
                             var maxWidth = controlRoot.width / 2;
-                            var newWidth = startRightWidth - delta;
-                            controlRoot.rightSideWidth = Math.max(220, Math.min(maxWidth, newWidth));
+                            pendingWidth = Math.max(120, Math.min(maxWidth, startRightWidth - totalDelta));
+                        }
+                        onReleased: {
+                            controlRoot.rightSideWidth = pendingWidth;
+                        }
+                    }
+
+                    // Throttled update timer for smooth dragging
+                    Timer {
+                        id: splitterUpdateTimer
+                        interval: 16  // ~60fps
+                        repeat: true
+                        running: splitterMouseArea.pressed
+                        onTriggered: {
+                            if (Math.abs(controlRoot.rightSideWidth - splitterMouseArea.pendingWidth) > 1) {
+                                controlRoot.rightSideWidth = splitterMouseArea.pendingWidth;
+                            }
                         }
                     }
                 }
@@ -529,7 +558,7 @@ Window {
                     id: rightSide
                     Layout.fillHeight: true
                     Layout.preferredWidth: controlRoot.rightSideWidth
-                    Layout.minimumWidth: 220
+                    Layout.minimumWidth: 120
                     Layout.maximumWidth: controlRoot.width / 2
                     spacing: 8
 
