@@ -15,6 +15,7 @@ public:
     Q_INVOKABLE QString pathAt(int index) const;
     Q_INVOKABLE QString typeAt(int index) const; // "video" or "image"
     Q_INVOKABLE void addMedia(const QString &path);
+    Q_INVOKABLE int addMediaFromFolder(const QString &folderPath);
 
     // Return a QVariantList suitable for binding from QML
     QVariantList qmlItems() const;
@@ -25,5 +26,6 @@ signals:
     void itemsChanged();
 
 private:
+    void scanFolderRecursively(const QString &folderPath, QStringList &files);
     QVector<MediaItem> m_items;
 };

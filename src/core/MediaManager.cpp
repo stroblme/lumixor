@@ -1,5 +1,7 @@
 #include "MediaManager.h"
 #include <QFileInfo>
+#include <QDir>
+#include <QDirIterator>
 
 MediaManager::MediaManager(QObject *parent)
     : QObject(parent)
@@ -70,4 +72,45 @@ QVariantList MediaManager::qmlItems() const
         list.append(m);
     }
     return list;
+}
+
+void MediaManager::scanFolderRecursively(const QString &folderPath, QStringList &files)
+{
+    static const QStringList imageExtensions = {"jpg", "jpeg", "png", "bmp"};
+    static const QStringList videoExtensions = {"mp4", "mov", "mkv", "avi"};
+
+    QStringList allExtensions;
+    for (const QString &ext : imageExtensions)
+        allExtensions << "*." + ext;
+    for (const QString &ext : videoExtensions)
+        allExtensions << "*." + ext;
+
+    QDirIterator it(folderPath, allExtensions, QDir::Files, QDirIterator::Subdirectories);
+    while (it.hasNext())
+    {
+        files.append(it.next());
+    }
+}
+
+int MediaManager::addMediaFromFolder(const QString &folderPath)
+{
+    if (folderPath.isEmpty())
+        return 0;
+
+    QStringList files;
+    scanFolderRecursively(folderPath, files);
+
+    // Sort files for consistent ordering
+    files.sort(Qt::CaseInsensitive);
+
+    int addedCount = 0;
+    for (const QString &file : files)
+    {
+        int prevCount = m_items.size();
+        addMedia(file);
+        if (m_items.size() > prevCount)
+            addedCount++;
+    }
+
+    return addedCount;
 }

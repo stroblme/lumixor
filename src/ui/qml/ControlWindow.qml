@@ -643,11 +643,12 @@ Window {
                             // First row: Add Media button
                             RowLayout {
                                 Layout.fillWidth: true
+                                spacing: 8
 
                                 Button {
                                     id: btnAdd
-                                    text: "Add Media"
-                                    Layout.preferredWidth: 120
+                                    text: "Add Files"
+                                    Layout.preferredWidth: 100
                                     background: Rectangle {
                                         radius: 6
                                         implicitHeight: 32
@@ -670,6 +671,35 @@ Window {
 
                                     ToolTip.visible: hovered
                                     ToolTip.text: qsTr("Add images or videos to the media list")
+                                }
+
+                                Button {
+                                    id: btnAddFolder
+                                    text: "Add Folder"
+                                    Layout.preferredWidth: 100
+                                    background: Rectangle {
+                                        radius: 6
+                                        implicitHeight: 32
+                                        border.color: borderColor
+                                        color: btnAddFolder.down || btnAddFolder.checked ? accentColor : btnAddFolder.hovered ? Qt.lighter(panelColor, 1.25) : panelColor
+                                    }
+                                    contentItem: Text {
+                                        text: btnAddFolder.text
+                                        color: textColor
+                                        horizontalAlignment: Text.AlignHCenter
+                                        verticalAlignment: Text.AlignVCenter
+                                        elide: Text.ElideRight
+                                    }
+                                    onClicked: {
+                                        var folder = controlBridge.openFolderDialog();
+                                        if (folder !== "") {
+                                            var count = mediaManager.addMediaFromFolder(folder);
+                                            statusText = qsTr("Added %1 media files from folder").arg(count);
+                                        }
+                                    }
+
+                                    ToolTip.visible: hovered
+                                    ToolTip.text: qsTr("Recursively scan a folder for images and videos")
                                 }
 
                                 Item {

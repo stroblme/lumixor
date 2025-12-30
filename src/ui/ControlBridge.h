@@ -9,4 +9,5 @@ public:
     explicit ControlBridge(QObject *parent = nullptr);
 
     Q_INVOKABLE QStringList openFileDialog(const QString &caption = "Select media");
+    Q_INVOKABLE QString openFolderDialog(const QString &caption = "Select folder");
 };
