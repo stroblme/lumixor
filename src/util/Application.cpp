@@ -3,10 +3,44 @@
 #include <QPalette>
 #include <QFile>
 #include <QTextStream>
+#include <QCommandLineParser>
 
 Application::Application(int &argc, char **argv)
     : QApplication(argc, argv)
 {
+    loadConfigFromCommandLine();
+}
+
+void Application::loadConfigFromCommandLine()
+{
+    QCommandLineParser parser;
+    parser.setApplicationDescription("Lumixor Qt presenter");
+    parser.addHelpOption();
+
+    QCommandLineOption configOpt(QStringList() << "c" << "config",
+                                 "Path to workspace configuration JSON file.",
+                                 "file");
+    parser.addOption(configOpt);
+
+    parser.process(*this);
+
+    if (parser.isSet(configOpt))
+    {
+        m_configPath = parser.value(configOpt);
+    }
+    else
+    {
+        m_configPath.clear();
+    }
+
+    bool ok = false;
+    m_config = AppConfig::loadFromFile(m_configPath, &ok);
+    if (!ok)
+    {
+        // fall back to defaults
+        m_config = AppConfig();
+        m_configPath.clear();
+    }
 }
 
 void Application::applyDarkTheme()

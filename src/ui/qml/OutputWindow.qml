@@ -9,7 +9,7 @@ Window {
     visible: true
     width: 800
     height: 600
-    color: "black"
+    color: "#000000"
 
     property bool isFading: false
     property string pendingImage: ""
@@ -62,7 +62,7 @@ Window {
     Rectangle {
         id: blackoutRect
         anchors.fill: parent
-        color: "black"
+        color: "#000000"
         visible: false
         z: 1000
     }

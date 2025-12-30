@@ -6,6 +6,9 @@
 #include <QFileDialog>
 #include <QFileInfo>
 #include <QListWidget>
+#include <QCoreApplication>
+
+#include "../util/Application.h"
 
 ControlWindow::ControlWindow(MediaManager *mediaManager,
                              PlaybackController *playbackController,
@@ -142,7 +145,9 @@ void ControlWindow::onPlayToggle(bool checked)
 
 void ControlWindow::onSlideshowToggle(bool checked)
 {
-    constexpr int seconds = 5; // Hard-coded interval
+    Application *app = qobject_cast<Application *>(QCoreApplication::instance());
+    int seconds = app ? app->config().slideshowIntervalSeconds : 5;
+
     if (checked)
     {
         // Only pause video if not already paused
@@ -170,6 +175,9 @@ void ControlWindow::onMediaFinished()
 
 void ControlWindow::onBlackoutClicked()
 {
+    Application *app = qobject_cast<Application *>(QCoreApplication::instance());
+    int seconds = app ? app->config().slideshowIntervalSeconds : 5;
+
     static bool isBlack = false;
     static bool wasVideoPlaying = false;
     static bool wasSlideshowRunning = false;
@@ -193,7 +201,7 @@ void ControlWindow::onBlackoutClicked()
             m_playbackController->play();
         // Resume slideshow if it was running
         if (wasSlideshowRunning)
-            m_slideshow.start(5000); // Hard-coded 5 seconds
+            m_slideshow.start(seconds * 1000);
     }
     m_outputWindow->setBlackout(isBlack);
     ui->btnBlackout->setText(isBlack ? "Unblackout" : "Blackout");

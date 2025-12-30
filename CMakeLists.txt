@@ -14,16 +14,19 @@ find_package(Qt5 COMPONENTS Widgets Multimedia MultimediaWidgets Quick Qml Quick
 set(SRC
     src/main.cpp
     src/util/Application.cpp
+    src/util/AppConfig.cpp
     src/core/MediaManager.cpp
     src/core/PlaybackController.cpp
     src/core/SlideshowController.cpp
     src/ui/OutputWindow.cpp
     src/ui/ControlBridge.cpp
     src/ui/ExifImageProvider.cpp
+    src/ui/PreferencesController.cpp
 )
 
 set(HDR
     src/util/Application.h
+    src/util/AppConfig.h
     src/core/MediaItem.h
     src/core/MediaManager.h
     src/core/PlaybackController.h
@@ -31,6 +34,7 @@ set(HDR
     src/ui/OutputWindow.h
     src/ui/ControlBridge.h
     src/ui/ExifImageProvider.h
+    src/ui/PreferencesController.h
 )
 
 # QML resources
