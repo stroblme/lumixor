@@ -29,20 +29,15 @@ ControlWindow::ControlWindow(MediaManager *mediaManager,
 
     connect(ui->btnAdd, &QPushButton::clicked,
             this, &ControlWindow::onAddMedia);
-    connect(ui->btnPlay, &QPushButton::clicked,
-            this, &ControlWindow::onPlaySelected);
-    connect(ui->btnStop, &QPushButton::clicked,
-            this, &ControlWindow::onStop);
     connect(ui->btnBlackout, &QPushButton::clicked, this, &ControlWindow::onBlackoutClicked);
-
     connect(m_playbackController, &PlaybackController::mediaFinished,
             this, &ControlWindow::onMediaFinished);
 
-    // slideshow buttons
-    connect(ui->btnSlideshowStart, &QPushButton::clicked,
-            this, &ControlWindow::onStartSlideshow);
-    connect(ui->btnSlideshowStop, &QPushButton::clicked,
-            this, &ControlWindow::onStopSlideshow);
+    // New toggle buttons
+    connect(ui->btnPlayToggle, &QPushButton::toggled,
+            this, &ControlWindow::onPlayToggle);
+    connect(ui->btnSlideshowToggle, &QPushButton::toggled,
+            this, &ControlWindow::onSlideshowToggle);
 
     refreshLists();
 }
@@ -100,66 +95,77 @@ void ControlWindow::refreshLists()
     refreshVideoList();
 }
 
-void ControlWindow::onPlaySelected()
+// Add member variable to track loaded video index
+int m_loadedVideoIndex = -1;
+
+void ControlWindow::onPlayToggle(bool checked)
 {
-    // Stop slideshow if running (manual override)
-    if (m_slideshow.isRunning())
-        m_slideshow.stop();
-
-    int row = ui->listWidgetVideos->currentRow();
-    if (row < 0)
-        return;
-
-    const auto &items = m_mediaManager->items();
-    if (row >= items.size())
-        return;
-
-    const MediaItem &item = items[row];
-
-    if (item.type == MediaType::Video)
+    if (checked)
     {
-        m_playbackController->loadMedia(item);
-        m_outputWindow->showVideo();
+        int row = ui->listWidgetVideos->currentRow();
+        if (row < 0)
+        {
+            ui->btnPlayToggle->setChecked(false);
+            return;
+        }
+        // Only load media if a new video is selected
+        if (row != m_loadedVideoIndex)
+        {
+            const auto &items = m_mediaManager->items();
+            int videoIdx = 0;
+            for (const auto &item : items)
+            {
+                if (item.type == MediaType::Video)
+                {
+                    if (videoIdx == row)
+                    {
+                        m_playbackController->loadMedia(item);
+                        m_outputWindow->showVideo();
+                        m_loadedVideoIndex = row;
+                        ui->statusLabel->setText("Playing video: " + item.path);
+                        break;
+                    }
+                    videoIdx++;
+                }
+            }
+        }
         m_playbackController->play();
-        ui->statusLabel->setText("Playing video: " + item.path);
+        ui->btnPlayToggle->setText("Pause");
     }
-    else if (item.type == MediaType::Image)
+    else
     {
-        m_playbackController->stop();
-        m_outputWindow->showImage(item.path);
-        ui->statusLabel->setText("Showing image: " + item.path);
+        m_playbackController->pause();
+        ui->statusLabel->setText("Video paused");
+        ui->btnPlayToggle->setText("Resume");
     }
 }
 
-void ControlWindow::onStop()
+void ControlWindow::onSlideshowToggle(bool checked)
 {
-    m_playbackController->stop();
-    ui->statusLabel->setText("Stopped");
+    constexpr int seconds = 5; // Hard-coded interval
+    if (checked)
+    {
+        // Only pause video if not already paused
+        if (m_playbackController->isPlaying())
+            m_playbackController->pause();
+        m_slideshow.start(seconds * 1000);
+        ui->statusLabel->setText(tr("Slideshow started (%1 s per image)").arg(seconds));
+        ui->btnSlideshowToggle->setText("Pause Slideshow");
+    }
+    else
+    {
+        m_slideshow.pause();
+        ui->statusLabel->setText(tr("Slideshow paused"));
+        ui->btnSlideshowToggle->setText("Resume Slideshow");
+    }
 }
 
 void ControlWindow::onMediaFinished()
 {
     ui->statusLabel->setText("Media finished");
-}
-
-void ControlWindow::onStartSlideshow()
-{
-    int seconds = ui->spinSlideshowSeconds->value();
-    if (seconds < 1)
-        seconds = 1;
-
-    // stop any video
-    m_playbackController->stop();
-
-    m_slideshow.start(seconds * 1000);
-    ui->statusLabel->setText(
-        tr("Slideshow started (%1 s per image)").arg(seconds));
-}
-
-void ControlWindow::onStopSlideshow()
-{
-    m_slideshow.stop();
-    ui->statusLabel->setText(tr("Slideshow stopped"));
+    ui->btnPlayToggle->setChecked(false);
+    ui->btnPlayToggle->setText("Play");
+    m_loadedVideoIndex = -1;
 }
 
 void ControlWindow::onBlackoutClicked()
@@ -187,7 +193,7 @@ void ControlWindow::onBlackoutClicked()
             m_playbackController->play();
         // Resume slideshow if it was running
         if (wasSlideshowRunning)
-            m_slideshow.start(ui->spinSlideshowSeconds->value() * 1000);
+            m_slideshow.start(5000); // Hard-coded 5 seconds
     }
     m_outputWindow->setBlackout(isBlack);
     ui->btnBlackout->setText(isBlack ? "Unblackout" : "Blackout");

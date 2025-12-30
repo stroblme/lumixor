@@ -15,6 +15,7 @@ public:
 
     void start(int intervalMs);
     void stop();
+    void pause();
     bool isRunning() const { return m_timer.isActive(); }
 
 private slots:

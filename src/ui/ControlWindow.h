@@ -27,12 +27,9 @@ protected:
 
 private slots:
     void onAddMedia();
-    void onPlaySelected();
-    void onStop();
+    void onPlayToggle(bool checked);
+    void onSlideshowToggle(bool checked);
     void onMediaFinished();
-
-    void onStartSlideshow(); // must exist in .cpp
-    void onStopSlideshow();  // must exist in .cpp
     void onBlackoutClicked();
 
 private:

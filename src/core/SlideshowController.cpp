@@ -21,18 +21,27 @@ void SlideshowController::start(int intervalMs)
     if (items.isEmpty())
         return;
 
-    // Start from first image
-    m_currentIndex = findNextImageIndex(-1);
-    if (m_currentIndex < 0)
-        return;
-
-    const MediaItem &item = items[m_currentIndex];
-    m_outputWindow->fadeToImage(item.path);
+    // Resume from last image if paused, otherwise start from first image
+    if (m_currentIndex < 0 || m_currentIndex >= items.size())
+    {
+        m_currentIndex = findNextImageIndex(-1);
+    }
+    // Show current image if not already shown
+    if (m_currentIndex >= 0 && m_currentIndex < items.size())
+    {
+        const MediaItem &item = items[m_currentIndex];
+        m_outputWindow->fadeToImage(item.path);
+    }
 
     m_timer.start(intervalMs);
 }
 
 void SlideshowController::stop()
+{
+    m_timer.stop();
+}
+
+void SlideshowController::pause()
 {
     m_timer.stop();
 }
