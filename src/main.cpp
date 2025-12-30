@@ -56,16 +56,15 @@ int main(int argc, char *argv[])
             QWindow *w = qobject_cast<QWindow *>(root);
             if (w)
             {
-                w->setWidth(cfg.controlWidth);
-                w->setHeight(cfg.controlHeight);
-
+                // Position on primary screen but let it start maximized
                 if (!screens.isEmpty())
                 {
                     QRect primaryGeo = screens[0]->geometry();
+                    w->setScreen(screens[0]);
                     w->setX(primaryGeo.x());
                     w->setY(primaryGeo.y());
                 }
-                w->show();
+                w->showMaximized();
             }
         }
         else if (root->objectName() == "outputRoot")
