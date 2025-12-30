@@ -7,10 +7,12 @@ class PlaybackController : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(QString source READ source NOTIFY sourceChanged)
+    Q_PROPERTY(QString currentMediaPath READ currentMediaPath NOTIFY currentMediaPathChanged)
 public:
     explicit PlaybackController(QObject *parent = nullptr);
 
     QString source() const { return m_source; }
+    QString currentMediaPath() const { return m_currentMediaPath; }
 
     Q_INVOKABLE void loadMediaPath(const QString &path);
     Q_INVOKABLE void loadMedia(const MediaItem &item) { loadMediaPath(item.path); }
@@ -25,11 +27,13 @@ signals:
     void pauseRequested();
     void stopRequested();
     void sourceChanged();
+    void currentMediaPathChanged();
 
 public slots:
     Q_INVOKABLE void notifyMediaFinished();
 
 private:
     QString m_source;
+    QString m_currentMediaPath;
     bool m_isPlaying = false;
 };

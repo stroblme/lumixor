@@ -33,6 +33,8 @@ void SlideshowController::start(int intervalMs)
     {
         const MediaItem &item = items[m_currentIndex];
         qDebug() << "Slideshow showing image index" << m_currentIndex << ":" << item.path;
+        m_currentImagePath = item.path;
+        emit currentImagePathChanged();
         m_outputWindow->fadeToImage(item.path);
     }
 
@@ -66,6 +68,8 @@ void SlideshowController::advance()
 
     const MediaItem &item = items[m_currentIndex];
     qDebug() << "Slideshow advance to" << m_currentIndex << ":" << item.path;
+    m_currentImagePath = item.path;
+    emit currentImagePathChanged();
     m_outputWindow->fadeToImage(item.path);
 }
 

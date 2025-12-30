@@ -10,6 +10,9 @@ PlaybackController::PlaybackController(QObject *parent)
 
 void PlaybackController::loadMediaPath(const QString &path)
 {
+    m_currentMediaPath = path;
+    emit currentMediaPathChanged();
+
     m_source = QUrl::fromLocalFile(path).toString();
     emit sourceChanged();
 }
