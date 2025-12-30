@@ -15,7 +15,15 @@ Window {
     minimumWidth: 480
     minimumHeight: 280
 
-    color: "#121212"
+    // Dark theme colors (match ControlWindow)
+    property color backgroundColor: "#121212"
+    property color panelColor: "#1E1E1E"
+    property color accentColor: "#42A5F5"
+    property color textColor: "#E0E0E0"
+    property color subtleTextColor: "#9E9E9E"
+    property color borderColor: "#333333"
+
+    color: backgroundColor
 
     // These are expected to be provided as context properties from C++
     property var preferences
@@ -33,11 +41,11 @@ Window {
         GroupBox {
             Layout.fillWidth: true
             title: qsTr("Slideshow")
-            label: Label { text: qsTr("Slideshow"); color: "#E0E0E0" }
+            label: Label { text: qsTr("Slideshow"); color: textColor }
             background: Rectangle {
                 radius: 6
-                color: "#1E1E1E"
-                border.color: "#333333"
+                color: panelColor
+                border.color: borderColor
             }
 
             GridLayout {
@@ -49,7 +57,7 @@ Window {
 
                 Label {
                     text: qsTr("Delay (s):")
-                    color: "#E0E0E0"
+                    color: textColor
                     horizontalAlignment: Text.AlignLeft
                     Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
                 }
@@ -60,11 +68,27 @@ Window {
                     value: prefsRoot.slideshowDelaySeconds
                     Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
                     Layout.fillWidth: true
+                    background: Rectangle {
+                        radius: 4
+                        color: backgroundColor
+                        border.color: borderColor
+                    }
+                    contentItem: TextInput {
+                        text: parent.displayText
+                        font: parent.font
+                        color: textColor
+                        selectionColor: accentColor
+                        selectedTextColor: backgroundColor
+                        horizontalAlignment: Text.AlignHCenter
+                        verticalAlignment: Text.AlignVCenter
+                        readOnly: !parent.editable
+                        validator: parent.validator
+                    }
                 }
 
                 Label {
                     text: qsTr("Transition (ms):")
-                    color: "#E0E0E0"
+                    color: textColor
                     horizontalAlignment: Text.AlignLeft
                     Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
                 }
@@ -76,6 +100,22 @@ Window {
                     stepSize: 50
                     Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
                     Layout.fillWidth: true
+                    background: Rectangle {
+                        radius: 4
+                        color: backgroundColor
+                        border.color: borderColor
+                    }
+                    contentItem: TextInput {
+                        text: parent.displayText
+                        font: parent.font
+                        color: textColor
+                        selectionColor: accentColor
+                        selectedTextColor: backgroundColor
+                        horizontalAlignment: Text.AlignHCenter
+                        verticalAlignment: Text.AlignVCenter
+                        readOnly: !parent.editable
+                        validator: parent.validator
+                    }
                 }
             }
         }
@@ -83,11 +123,11 @@ Window {
         GroupBox {
             Layout.fillWidth: true
             title: qsTr("Output")
-            label: Label { text: qsTr("Output"); color: "#E0E0E0" }
+            label: Label { text: qsTr("Output"); color: textColor }
             background: Rectangle {
                 radius: 6
-                color: "#1E1E1E"
-                border.color: "#333333"
+                color: panelColor
+                border.color: borderColor
             }
 
             GridLayout {
@@ -99,7 +139,7 @@ Window {
 
                 Label {
                     text: qsTr("Screen index:")
-                    color: "#E0E0E0"
+                    color: textColor
                     horizontalAlignment: Text.AlignLeft
                     Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
                 }
@@ -110,6 +150,22 @@ Window {
                     value: prefsRoot.outputScreenIndex
                     Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
                     Layout.fillWidth: true
+                    background: Rectangle {
+                        radius: 4
+                        color: backgroundColor
+                        border.color: borderColor
+                    }
+                    contentItem: TextInput {
+                        text: parent.displayText
+                        font: parent.font
+                        color: textColor
+                        selectionColor: accentColor
+                        selectedTextColor: backgroundColor
+                        horizontalAlignment: Text.AlignHCenter
+                        verticalAlignment: Text.AlignVCenter
+                        readOnly: !parent.editable
+                        validator: parent.validator
+                    }
                 }
             }
         }
@@ -122,12 +178,36 @@ Window {
 
             Button {
                 text: qsTr("Cancel")
+                background: Rectangle {
+                    radius: 6
+                    implicitHeight: 32
+                    color: panelColor
+                    border.color: borderColor
+                }
+                contentItem: Text {
+                    text: parent.text
+                    color: subtleTextColor
+                    horizontalAlignment: Text.AlignHCenter
+                    verticalAlignment: Text.AlignVCenter
+                }
                 onClicked: prefsRoot.close()
             }
 
             Button {
                 id: btnSave
                 text: qsTr("Save")
+                background: Rectangle {
+                    radius: 6
+                    implicitHeight: 32
+                    color: accentColor
+                    border.color: borderColor
+                }
+                contentItem: Text {
+                    text: parent.text
+                    color: backgroundColor
+                    horizontalAlignment: Text.AlignHCenter
+                    verticalAlignment: Text.AlignVCenter
+                }
                 onClicked: {
                     if (!preferences)
                         return

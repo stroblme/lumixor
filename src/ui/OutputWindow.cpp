@@ -80,6 +80,14 @@ void OutputWindow::setBlackout(bool enable)
     QMetaObject::invokeMethod(m_root, "setBlackout", Q_ARG(QVariant, QVariant(enable)));
 }
 
+void OutputWindow::setBrightness(double level)
+{
+    qDebug() << "OutputWindow: setBrightness(" << level << ")";
+    if (!m_root)
+        return;
+    QMetaObject::invokeMethod(m_root, "setBrightness", Q_ARG(QVariant, QVariant(level)));
+}
+
 void OutputWindow::close()
 {
     qDebug() << "OutputWindow: close() root=" << (m_root != nullptr);

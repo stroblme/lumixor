@@ -65,12 +65,31 @@ Window {
         color: "#000000"
         visible: false
         z: 1000
+        opacity: 1.0
+    }
+
+    function setBrightness(level) {
+        // level expected in [0, 1]; 0 = black, 1 = normal
+        // Implemented as a black overlay with variable opacity
+        blackoutRect.opacity = 1.0 - level
+        blackoutRect.visible = blackoutRect.opacity > 0.0
+        // Do not pause the player here so video can continue playing under blackout
+    }
+
+    function setBlackout(enable) {
+        // Preserve existing API: map boolean blackout to brightness levels
+        setBrightness(enable ? 0.0 : 1.0)
+        if (enable) {
+            // For legacy blackout calls, keep previous behavior of pausing
+            player.pause()
+        }
     }
 
     function showVideo() {
         videoOutput.visible = true
         imageItem.visible = false
         blackoutRect.visible = false
+        blackoutRect.opacity = 0.0
     }
 
     function showImage(path) {
@@ -79,6 +98,7 @@ Window {
         imageItem.visible = true
         videoOutput.visible = false
         blackoutRect.visible = false
+        blackoutRect.opacity = 0.0
     }
 
     function fadeToImage(path) {
@@ -89,14 +109,6 @@ Window {
         nextImage = imageUrlForPath(path)
         isFading = true
         crossFade.start()
-    }
-
-    function setBlackout(enable) {
-        blackoutRect.visible = enable
-        if (enable) {
-            // try to pause playback if running
-            player.pause()
-        }
     }
 
     SequentialAnimation {

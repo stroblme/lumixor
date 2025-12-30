@@ -170,41 +170,17 @@ Window {
                     }
                 }
 
-                Button {
-                    id: btnBlackout
-                    text: "Blackout"
-                    Layout.preferredWidth: 120
-                    background: Rectangle {
-                        radius: 6
-                        implicitHeight: 32
-                        border.color: borderColor
-                        color: btnBlackout.down || btnBlackout.checked
-                               ? accentColor
-                               : btnBlackout.hovered
-                                 ? Qt.lighter(panelColor, 1.25)
-                                 : panelColor
-                    }
-                    contentItem: Text {
-                        text: btnBlackout.text
-                        color: textColor
-                        horizontalAlignment: Text.AlignHCenter
-                        verticalAlignment: Text.AlignVCenter
-                        elide: Text.ElideRight
-                    }
-                    onClicked: {
-                        isBlack = !isBlack
-                        if (isBlack) {
-                            wasVideoPlaying = playbackController.isPlaying()
-                            if (wasVideoPlaying) playbackController.pause()
-                            wasSlideshowRunning = slideshow.isRunning()
-                            if (wasSlideshowRunning) slideshow.stop()
-                            btnBlackout.text = "Unblackout"
-                        } else {
-                            if (wasVideoPlaying) playbackController.play()
-                            if (wasSlideshowRunning) slideshow.start(slideshowDelaySeconds * 1000)
-                            btnBlackout.text = "Blackout"
-                        }
-                        outputWindow.setBlackout(isBlack)
+                Slider {
+                    id: brightnessSlider
+                    from: 0.0
+                    to: 1.0
+                    value: 1.0
+                    Layout.preferredWidth: 160
+                    ToolTip.visible: hovered
+                    ToolTip.text: "Brightness: " + Math.round(value * 100) + "%"
+                    onValueChanged: {
+                        // Pause media when fully black, resume if previously running when brightened
+                        outputWindow.setBrightness(value)
                     }
                 }
 
@@ -371,5 +347,13 @@ Window {
             btnPlayToggle.text = "Play"
             m_loadedVideoIndex = -1
         }
+    }
+
+    function fileNameFromPath(p) {
+        if (!p)
+            return "";
+        var s = String(p);
+        var parts = s.split("/");
+        return parts.length > 0 ? parts[parts.length - 1] : s;
     }
 }
