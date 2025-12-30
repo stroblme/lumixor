@@ -1,35 +1,28 @@
 #pragma once
-#include <QMainWindow>
-#include <QGraphicsOpacityEffect>
-#include <QPropertyAnimation>
+#include <QObject>
 
 #include "../core/PlaybackController.h"
 
-namespace Ui
-{
-    class OutputWindow;
-}
-
-class OutputWindow : public QMainWindow
+class OutputWindow : public QObject
 {
     Q_OBJECT
 public:
     explicit OutputWindow(PlaybackController *playbackController,
-                          QWidget *parent = nullptr);
-    ~OutputWindow();
+                          QObject *parent = nullptr);
+
+    // Attach the QML root Window object (call after engine has loaded the QML)
+    Q_INVOKABLE void setRootObject(QObject *root);
+    Q_INVOKABLE void close();
 
     void fullscreenOnScreen(int screenIndex = 1);
 
 public slots:
-    void showVideo();
-    void showImage(const QString &path);
-    void fadeToImage(const QString &path);
-    void setBlackout(bool enable);
+    Q_INVOKABLE void showVideo();
+    Q_INVOKABLE void showImage(const QString &path);
+    Q_INVOKABLE void fadeToImage(const QString &path);
+    Q_INVOKABLE void setBlackout(bool enable);
 
 private:
-    Ui::OutputWindow *ui;
-    PlaybackController *m_playbackController;
-    QGraphicsOpacityEffect *m_opacityEffect = nullptr;
-    QPropertyAnimation *m_fadeAnim = nullptr;
-    QString m_nextImagePath;
+    QObject *m_root = nullptr;
+    PlaybackController *m_playbackController = nullptr;
 };

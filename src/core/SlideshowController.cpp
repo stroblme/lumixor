@@ -21,6 +21,8 @@ void SlideshowController::start(int intervalMs)
     if (items.isEmpty())
         return;
 
+    qDebug() << "Slideshow start:" << intervalMs << "ms, items:" << items.size() << "currentIndex:" << m_currentIndex;
+
     // Resume from last image if paused, otherwise start from first image
     if (m_currentIndex < 0 || m_currentIndex >= items.size())
     {
@@ -30,6 +32,7 @@ void SlideshowController::start(int intervalMs)
     if (m_currentIndex >= 0 && m_currentIndex < items.size())
     {
         const MediaItem &item = items[m_currentIndex];
+        qDebug() << "Slideshow showing image index" << m_currentIndex << ":" << item.path;
         m_outputWindow->fadeToImage(item.path);
     }
 
@@ -38,11 +41,13 @@ void SlideshowController::start(int intervalMs)
 
 void SlideshowController::stop()
 {
+    qDebug() << "Slideshow stop";
     m_timer.stop();
 }
 
 void SlideshowController::pause()
 {
+    qDebug() << "Slideshow pause";
     m_timer.stop();
 }
 
@@ -60,6 +65,7 @@ void SlideshowController::advance()
         return;
 
     const MediaItem &item = items[m_currentIndex];
+    qDebug() << "Slideshow advance to" << m_currentIndex << ":" << item.path;
     m_outputWindow->fadeToImage(item.path);
 }
 

@@ -1,47 +1,44 @@
 // src/core/PlaybackController.cpp
 #include "PlaybackController.h"
 #include <QDebug>
+#include <QUrl>
 
 PlaybackController::PlaybackController(QObject *parent)
     : QObject(parent)
 {
-    m_player.setVolume(100);
-    connect(&m_player, &QMediaPlayer::stateChanged,
-            this, &PlaybackController::handleStateChanged);
 }
 
-void PlaybackController::loadMedia(const MediaItem &item)
+void PlaybackController::loadMediaPath(const QString &path)
 {
-    QUrl url = QUrl::fromLocalFile(item.path);
-    m_player.setMedia(url);
+    m_source = QUrl::fromLocalFile(path).toString();
+    emit sourceChanged();
 }
 
 void PlaybackController::play()
 {
-    if (m_player.mediaStatus() != QMediaPlayer::NoMedia)
-    {
-        m_player.play();
-    }
-    else
+    if (m_source.isEmpty())
     {
         qWarning() << "No media loaded!";
+        return;
     }
+    m_isPlaying = true;
+    emit playRequested();
 }
 
 void PlaybackController::pause()
 {
-    m_player.pause();
+    m_isPlaying = false;
+    emit pauseRequested();
 }
 
 void PlaybackController::stop()
 {
-    m_player.stop();
+    m_isPlaying = false;
+    emit stopRequested();
 }
 
-void PlaybackController::handleStateChanged(QMediaPlayer::State state)
+void PlaybackController::notifyMediaFinished()
 {
-    if (state == QMediaPlayer::StoppedState)
-    {
-        emit mediaFinished();
-    }
+    m_isPlaying = false;
+    emit mediaFinished();
 }

@@ -13,10 +13,10 @@ public:
                                  OutputWindow *outputWindow,
                                  QObject *parent = nullptr);
 
-    void start(int intervalMs);
-    void stop();
-    void pause();
-    bool isRunning() const { return m_timer.isActive(); }
+    Q_INVOKABLE void start(int intervalMs);
+    Q_INVOKABLE void stop();
+    Q_INVOKABLE void pause();
+    Q_INVOKABLE bool isRunning() const { return m_timer.isActive(); }
 
 private slots:
     void advance();

@@ -8,7 +8,8 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
-find_package(Qt5 COMPONENTS Widgets Multimedia MultimediaWidgets REQUIRED)
+# Add QML/Quick modules
+find_package(Qt5 COMPONENTS Widgets Multimedia MultimediaWidgets Quick Qml QuickControls2 REQUIRED)
 
 set(SRC
     src/main.cpp
@@ -17,33 +18,37 @@ set(SRC
     src/core/PlaybackController.cpp
     src/core/SlideshowController.cpp
     src/ui/OutputWindow.cpp
-    src/ui/ControlWindow.cpp
-    )
-    
-    set(HDR
+    src/ui/ControlBridge.cpp
+    src/ui/ExifImageProvider.cpp
+)
+
+set(HDR
     src/util/Application.h
     src/core/MediaItem.h
     src/core/MediaManager.h
     src/core/PlaybackController.h
     src/core/SlideshowController.h
     src/ui/OutputWindow.h
-    src/ui/ControlWindow.h
+    src/ui/ControlBridge.h
+    src/ui/ExifImageProvider.h
 )
 
-# UI files (Qt Designer)
-set(UI
-    src/ui/forms/ControlWindow.ui
-    src/ui/forms/OutputWindow.ui
+# QML resources
+set(RESOURCES
+    src/ui/qml/qml.qrc
 )
 
 add_executable(lumixor-qt
     ${SRC}
     ${HDR}
-    ${UI}
+    ${RESOURCES}
 )
 
 target_link_libraries(lumixor-qt
     Qt5::Widgets
     Qt5::Multimedia
     Qt5::MultimediaWidgets
+    Qt5::Quick
+    Qt5::Qml
+    Qt5::QuickControls2
 )
