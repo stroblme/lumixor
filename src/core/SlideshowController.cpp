@@ -136,6 +136,57 @@ void SlideshowController::pause()
     m_timer.stop();
 }
 
+void SlideshowController::setCurrentIndex(int index)
+{
+    int itemCount = 0;
+
+    if (m_useCustomList)
+    {
+        itemCount = m_customImageList.size();
+    }
+    else if (m_mediaManager)
+    {
+        itemCount = m_mediaManager->items().size();
+    }
+
+    if (index < 0 || index >= itemCount)
+    {
+        qDebug() << "SlideshowController::setCurrentIndex: invalid index" << index << ", itemCount=" << itemCount;
+        return;
+    }
+
+    m_currentIndex = index;
+
+    // Update the current image path
+    QString imagePath;
+    if (m_useCustomList)
+    {
+        imagePath = m_customImageList[m_currentIndex];
+    }
+    else
+    {
+        const auto &items = m_mediaManager->items();
+        if (m_currentIndex < items.size())
+        {
+            imagePath = items[m_currentIndex].path;
+        }
+    }
+
+    if (!imagePath.isEmpty() && imagePath != m_currentImagePath)
+    {
+        m_currentImagePath = imagePath;
+        emit currentImagePathChanged();
+        qDebug() << "SlideshowController::setCurrentIndex: jumped to index" << index << "path=" << imagePath;
+    }
+
+    // If the slideshow is running, restart the timer to give full interval for the new image
+    if (m_timer.isActive())
+    {
+        int interval = m_timer.interval();
+        m_timer.start(interval);
+    }
+}
+
 void SlideshowController::advance()
 {
     int itemCount = 0;

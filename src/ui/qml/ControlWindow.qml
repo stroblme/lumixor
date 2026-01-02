@@ -94,7 +94,12 @@ Window {
             "currentPath": "",
             "isPlaying": false,
             "currentIndex": -1,
-            "zOrder": zOrder
+            "zOrder": zOrder,
+            "videoPosition": 0,
+            "videoDuration": 0,
+            "seekPosition": -1  // Set to >= 0 to request a seek
+            ,
+            "isSeeking": false   // True while user is dragging the seek slider
         });
         // Switch to the new tab
         mainTabs.currentIndex = mediaTabsModel.count + 1; // +2 for Preferences/Home, -1 for 0-based
@@ -971,18 +976,23 @@ Window {
                                                         previewActiveMedia = "image";
                                                         // Set slideshow to use this tab's media
                                                         if (currentMediaModel && currentMediaModel.count > 0) {
+                                                            // Only set image list if this is a new slideshow (not resuming)
+                                                            var isResumingSameTab = (activeSlideshowTabId === tabData.tabId);
+
                                                             // Track which tab is running the slideshow
                                                             activeSlideshowTabId = tabData.tabId;
                                                             activeSlideshowTabIndex = tabContentItem.tabModelIndex;
 
-                                                            slideshow.setImageList(currentMediaModel);
+                                                            if (!isResumingSameTab) {
+                                                                // New slideshow - set the image list
+                                                                slideshow.setImageList(currentMediaModel);
+                                                            }
                                                             slideshow.start(slideshowDelaySeconds * 1000);
-                                                            statusText = "Slideshow started (" + slideshowDelaySeconds + " s per image)";
+                                                            statusText = isResumingSameTab ? "Slideshow resumed" : "Slideshow started (" + slideshowDelaySeconds + " s per image)";
                                                         }
                                                     } else {
                                                         slideshow.pause();
-                                                        activeSlideshowTabId = -1;
-                                                        activeSlideshowTabIndex = -1;
+                                                        // Don't clear activeSlideshowTabId on pause so we can resume
                                                         statusText = "Slideshow paused";
                                                     }
                                                 }
@@ -1040,6 +1050,87 @@ Window {
                                                 Layout.alignment: Qt.AlignVCenter
                                             }
 
+                                            // Slideshow Progress Slider
+                                            Slider {
+                                                id: slideshowProgressSlider
+                                                visible: isSlideshow
+                                                Layout.fillWidth: true
+                                                Layout.preferredHeight: 44
+                                                from: 0
+                                                to: currentMediaModel ? Math.max(1, currentMediaModel.count - 1) : 0
+                                                value: tabData && tabData.currentIndex >= 0 ? tabData.currentIndex : 0
+                                                stepSize: 1
+                                                snapMode: Slider.SnapAlways
+                                                enabled: currentMediaModel && currentMediaModel.count > 0
+
+                                                ToolTip.visible: hovered || pressed
+                                                ToolTip.text: qsTr("Image ") + (Math.round(value) + 1) + " / " + (currentMediaModel ? currentMediaModel.count : 0)
+
+                                                handle: Rectangle {
+                                                    x: slideshowProgressSlider.leftPadding + slideshowProgressSlider.visualPosition * (slideshowProgressSlider.availableWidth - width)
+                                                    y: slideshowProgressSlider.topPadding + slideshowProgressSlider.availableHeight / 2 - height / 2
+                                                    width: 28
+                                                    height: 28
+                                                    radius: 14
+                                                    color: slideshowProgressSlider.pressed ? accentColor : panelColor
+                                                    border.color: accentColor
+                                                    border.width: 2
+                                                }
+
+                                                background: Rectangle {
+                                                    x: slideshowProgressSlider.leftPadding
+                                                    y: slideshowProgressSlider.topPadding + slideshowProgressSlider.availableHeight / 2 - height / 2
+                                                    width: slideshowProgressSlider.availableWidth
+                                                    height: 8
+                                                    radius: 4
+                                                    color: borderColor
+
+                                                    Rectangle {
+                                                        width: slideshowProgressSlider.visualPosition * parent.width
+                                                        height: parent.height
+                                                        radius: 4
+                                                        color: accentColor
+                                                    }
+                                                }
+
+                                                onPressedChanged: {
+                                                    if (!pressed && currentMediaModel && currentMediaModel.count > 0) {
+                                                        var targetIndex = Math.round(value);
+                                                        if (targetIndex >= 0 && targetIndex < currentMediaModel.count) {
+                                                            var item = currentMediaModel.get(targetIndex);
+                                                            // Update the model
+                                                            mediaTabsModel.setProperty(tabContentItem.tabModelIndex, "currentPath", item.path);
+                                                            mediaTabsModel.setProperty(tabContentItem.tabModelIndex, "currentIndex", targetIndex);
+                                                            dynamicMediaList.currentIndex = targetIndex;
+
+                                                            // Sync with SlideshowController if this tab is the active slideshow
+                                                            if (activeSlideshowTabId === tabData.tabId && slideshow) {
+                                                                slideshow.setCurrentIndex(targetIndex);
+                                                            }
+
+                                                            // Update OutputWindow
+                                                            if (outputWindow) {
+                                                                var zOrder = tabData.zOrder !== undefined ? tabData.zOrder : tabContentItem.tabModelIndex;
+                                                                outputWindow.setImageLayer(tabData.tabId, item.path, tabData.brightness, zOrder);
+                                                            }
+
+                                                            statusText = qsTr("Jumped to image ") + (targetIndex + 1);
+                                                        }
+                                                    }
+                                                }
+                                            }
+
+                                            // Slideshow position label
+                                            Label {
+                                                visible: isSlideshow
+                                                text: (tabData && tabData.currentIndex >= 0 ? (tabData.currentIndex + 1) : 0) + "/" + (currentMediaModel ? currentMediaModel.count : 0)
+                                                color: subtleTextColor
+                                                font.pixelSize: 12
+                                                Layout.alignment: Qt.AlignVCenter
+                                                Layout.preferredWidth: 50
+                                                horizontalAlignment: Text.AlignRight
+                                            }
+
                                             // Video controls - Play/Pause Icon Button
                                             Button {
                                                 id: dynamicPlayBtn
@@ -1071,11 +1162,18 @@ Window {
 
                                                     if (!wasPlaying) {
                                                         // Start playing
-                                                        if (row < 0) {
-                                                            statusText = "No video selected";
+                                                        // If no video selected, auto-select the first one (like slideshow)
+                                                        if (row < 0 && currentMediaModel && currentMediaModel.count > 0) {
+                                                            row = 0;
+                                                            listView.currentIndex = 0;
+                                                        }
+
+                                                        if (row < 0 || !currentMediaModel || currentMediaModel.count === 0) {
+                                                            statusText = "No videos in list";
                                                             checked = false;
                                                             return;
                                                         }
+
                                                         var item = currentMediaModel.get(row);
                                                         var tabId = tabData.tabId;
                                                         var brightness = tabData.brightness;
@@ -1146,8 +1244,116 @@ Window {
                                                 }
                                             }
 
-                                            Item {
+                                            // Video Progress Slider
+                                            Slider {
+                                                id: videoProgressSlider
+                                                visible: !isSlideshow
                                                 Layout.fillWidth: true
+                                                Layout.preferredHeight: 44
+                                                from: 0
+                                                to: tabData && tabData.videoDuration > 0 ? tabData.videoDuration : 1000
+                                                enabled: tabData && tabData.currentPath !== ""
+
+                                                // Only update from model when not being dragged
+                                                value: pressed ? value : (tabData ? tabData.videoPosition : 0)
+
+                                                ToolTip.visible: hovered || pressed
+                                                ToolTip.text: formatTime(value) + " / " + formatTime(tabData ? tabData.videoDuration : 0)
+
+                                                function formatTime(ms) {
+                                                    if (isNaN(ms) || ms < 0)
+                                                        return "0:00";
+                                                    var totalSec = Math.floor(ms / 1000);
+                                                    var min = Math.floor(totalSec / 60);
+                                                    var sec = totalSec % 60;
+                                                    return min + ":" + (sec < 10 ? "0" : "") + sec;
+                                                }
+
+                                                handle: Rectangle {
+                                                    x: videoProgressSlider.leftPadding + videoProgressSlider.visualPosition * (videoProgressSlider.availableWidth - width)
+                                                    y: videoProgressSlider.topPadding + videoProgressSlider.availableHeight / 2 - height / 2
+                                                    width: 28
+                                                    height: 28
+                                                    radius: 14
+                                                    color: videoProgressSlider.pressed ? accentColor : panelColor
+                                                    border.color: accentColor
+                                                    border.width: 2
+                                                }
+
+                                                background: Rectangle {
+                                                    x: videoProgressSlider.leftPadding
+                                                    y: videoProgressSlider.topPadding + videoProgressSlider.availableHeight / 2 - height / 2
+                                                    width: videoProgressSlider.availableWidth
+                                                    height: 8
+                                                    radius: 4
+                                                    color: borderColor
+
+                                                    Rectangle {
+                                                        width: videoProgressSlider.visualPosition * parent.width
+                                                        height: parent.height
+                                                        radius: 4
+                                                        color: accentColor
+                                                    }
+                                                }
+
+                                                onPressedChanged: {
+                                                    if (pressed) {
+                                                        // Mark that we're seeking so MediaPlayer stops updating position
+                                                        if (tabData) {
+                                                            mediaTabsModel.setProperty(tabContentItem.tabModelIndex, "isSeeking", true);
+                                                        }
+                                                    } else {
+                                                        // When released, clear seeking flag after a short delay
+                                                        if (tabData) {
+                                                            seekingClearTimer.start();
+                                                        }
+                                                    }
+                                                }
+
+                                                onMoved: {
+                                                    // Called when user moves the slider (drag or click)
+                                                    if (tabData) {
+                                                        var seekPos = Math.round(value);
+                                                        console.log("Video seek requested to: " + seekPos);
+
+                                                        // Update the model position immediately
+                                                        mediaTabsModel.setProperty(tabContentItem.tabModelIndex, "videoPosition", seekPos);
+
+                                                        // Seek in preview
+                                                        mediaTabsModel.setProperty(tabContentItem.tabModelIndex, "seekPosition", seekPos);
+
+                                                        // Also seek in OutputWindow
+                                                        if (outputWindow) {
+                                                            outputWindow.seekVideoLayer(tabData.tabId, seekPos);
+                                                        }
+                                                    }
+                                                }
+
+                                                Timer {
+                                                    id: seekingClearTimer
+                                                    interval: 200
+                                                    onTriggered: {
+                                                        if (tabData) {
+                                                            mediaTabsModel.setProperty(tabContentItem.tabModelIndex, "isSeeking", false);
+                                                        }
+                                                    }
+                                                }
+                                            }
+
+                                            // Video time label
+                                            Label {
+                                                visible: !isSlideshow
+                                                text: videoProgressSlider.formatTime(tabData ? tabData.videoPosition : 0) + "/" + videoProgressSlider.formatTime(tabData ? tabData.videoDuration : 0)
+                                                color: subtleTextColor
+                                                font.pixelSize: 12
+                                                Layout.alignment: Qt.AlignVCenter
+                                                Layout.preferredWidth: 80
+                                                horizontalAlignment: Text.AlignRight
+                                            }
+
+                                            Item {
+                                                Layout.fillWidth: false
+                                                Layout.preferredWidth: 8
                                             }
 
                                             // Add media buttons
@@ -1227,7 +1433,8 @@ Window {
                                             Layout.fillHeight: true
                                             clip: true
                                             model: currentMediaModel
-                                            currentIndex: -1
+                                            // Sync list selection with currently playing index
+                                            currentIndex: tabData ? tabData.currentIndex : -1
                                             delegate: Rectangle {
                                                 width: dynamicMediaList.width
                                                 height: 40
@@ -1274,15 +1481,31 @@ Window {
                                                     anchors.top: parent.top
                                                     anchors.bottom: parent.bottom
                                                     onClicked: {
-                                                        dynamicMediaList.currentIndex = index;
+                                                        // Update the model's currentIndex (list will sync automatically via binding)
+                                                        mediaTabsModel.setProperty(tabContentItem.tabModelIndex, "currentIndex", index);
+
                                                         if (isSlideshow) {
                                                             // Update currentPath in model for preview
                                                             mediaTabsModel.setProperty(tabContentItem.tabModelIndex, "currentPath", model.path);
-                                                            mediaTabsModel.setProperty(tabContentItem.tabModelIndex, "currentIndex", index);
+                                                            // Sync with SlideshowController if this tab is the active slideshow
+                                                            if (activeSlideshowTabId === tabData.tabId && slideshow) {
+                                                                slideshow.setCurrentIndex(index);
+                                                            }
                                                             // Also update OutputWindow
                                                             if (outputWindow) {
                                                                 var zOrder = tabData.zOrder !== undefined ? tabData.zOrder : tabContentItem.tabModelIndex;
                                                                 outputWindow.setImageLayer(tabData.tabId, model.path, tabData.brightness, zOrder);
+                                                            }
+                                                        } else {
+                                                            // For video: if currently playing, switch to the clicked video
+                                                            if (tabData.isPlaying) {
+                                                                mediaTabsModel.setProperty(tabContentItem.tabModelIndex, "currentPath", model.path);
+                                                                mediaTabsModel.setProperty(tabContentItem.tabModelIndex, "videoPosition", 0);
+                                                                // Update OutputWindow
+                                                                if (outputWindow) {
+                                                                    var videoZOrder = tabData.zOrder !== undefined ? tabData.zOrder : tabContentItem.tabModelIndex;
+                                                                    outputWindow.setVideoLayer(tabData.tabId, model.path, tabData.brightness, true, videoZOrder);
+                                                                }
                                                             }
                                                         }
                                                     }
@@ -1514,8 +1737,22 @@ Window {
                                             property real mediaBrightness: model.brightness !== undefined ? model.brightness : 1.0
                                             property bool mediaPlaying: model.isPlaying ? model.isPlaying : false
                                             property string mediaType: model.tabType ? model.tabType : "video"
+                                            property int seekPosition: model.seekPosition !== undefined ? model.seekPosition : -1
+                                            property bool isSeeking: model.isSeeking ? model.isSeeking : false
 
                                             visible: true  // Always visible, let children handle visibility
+
+                                            // Handle seek requests
+                                            onSeekPositionChanged: {
+                                                if (seekPosition >= 0 && mediaType === "video") {
+                                                    console.log("Preview seeking to: " + seekPosition);
+                                                    previewMediaPlayer.seek(seekPosition);
+                                                    // Reset the seekPosition to -1 after seeking
+                                                    if (index >= 0 && index < mediaTabsModel.count) {
+                                                        mediaTabsModel.setProperty(index, "seekPosition", -1);
+                                                    }
+                                                }
+                                            }
 
                                             // Image display (for slideshow type)
                                             Image {
@@ -1536,7 +1773,87 @@ Window {
                                                 id: previewMediaPlayer
                                                 autoPlay: false
                                                 source: previewMediaItem.mediaType === "video" && previewMediaItem.mediaPath !== "" ? "file://" + previewMediaItem.mediaPath : ""
-                                                loops: MediaPlayer.Infinite
+
+                                                // Track if we're auto-advancing to play on load
+                                                property bool pendingAutoPlay: false
+
+                                                onPositionChanged: {
+                                                    // Only update position in model if not seeking (to prevent slider jumping back)
+                                                    if (previewMediaItem.mediaType === "video" && !previewMediaItem.isSeeking && index >= 0 && index < mediaTabsModel.count) {
+                                                        mediaTabsModel.setProperty(index, "videoPosition", position);
+                                                    }
+                                                }
+
+                                                onDurationChanged: {
+                                                    // Update duration in model for the progress slider
+                                                    if (previewMediaItem.mediaType === "video" && index >= 0 && index < mediaTabsModel.count) {
+                                                        mediaTabsModel.setProperty(index, "videoDuration", duration);
+                                                    }
+                                                }
+
+                                                onStatusChanged: {
+                                                    console.log("Preview MediaPlayer status changed: " + status + ", pendingAutoPlay=" + pendingAutoPlay);
+                                                    if (status === MediaPlayer.Loaded) {
+                                                        if (index >= 0 && index < mediaTabsModel.count) {
+                                                            mediaTabsModel.setProperty(index, "videoDuration", duration);
+                                                        }
+                                                        // Auto-play if we were advancing to next video
+                                                        if (pendingAutoPlay && previewMediaItem.mediaPlaying) {
+                                                            pendingAutoPlay = false;
+                                                            previewMediaPlayer.play();
+                                                        }
+                                                    }
+                                                    // Detect when video reaches the end
+                                                    if (status === MediaPlayer.EndOfMedia && previewMediaItem.mediaPlaying) {
+                                                        advanceToNextVideo(index);
+                                                    }
+                                                }
+
+                                                onSourceChanged: {
+                                                    console.log("Preview MediaPlayer source changed: " + source);
+                                                    // When source changes while playing, mark for auto-play when loaded
+                                                    if (source !== "" && previewMediaItem.mediaPlaying) {
+                                                        pendingAutoPlay = true;
+                                                    }
+                                                }
+                                            }
+
+                                            // Function to advance to next video in the list
+                                            function advanceToNextVideo(tabIndex) {
+                                                if (tabIndex < 0 || tabIndex >= mediaTabsModel.count)
+                                                    return;
+
+                                                var tab = mediaTabsModel.get(tabIndex);
+                                                if (!tab || tab.tabType !== "video")
+                                                    return;
+
+                                                var mediaModel = tab.mediaModel;
+                                                if (!mediaModel || mediaModel.count === 0)
+                                                    return;
+
+                                                var currentIdx = tab.currentIndex;
+                                                var nextIdx = currentIdx + 1;
+
+                                                // If at end of list, loop back to beginning
+                                                if (nextIdx >= mediaModel.count) {
+                                                    nextIdx = 0;
+                                                }
+
+                                                var nextItem = mediaModel.get(nextIdx);
+                                                if (nextItem && nextItem.path) {
+                                                    console.log("Advancing to next video: index=" + nextIdx + ", path=" + nextItem.path);
+
+                                                    // Update the model
+                                                    mediaTabsModel.setProperty(tabIndex, "currentPath", nextItem.path);
+                                                    mediaTabsModel.setProperty(tabIndex, "currentIndex", nextIdx);
+                                                    mediaTabsModel.setProperty(tabIndex, "videoPosition", 0);
+
+                                                    // Update OutputWindow
+                                                    if (outputWindow) {
+                                                        var zOrder = tab.zOrder !== undefined ? tab.zOrder : tabIndex;
+                                                        outputWindow.setVideoLayer(tab.tabId, nextItem.path, tab.brightness, true, zOrder);
+                                                    }
+                                                }
                                             }
 
                                             VideoOutput {

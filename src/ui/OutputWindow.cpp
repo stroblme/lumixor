@@ -184,6 +184,16 @@ void OutputWindow::stopMediaLayer(int tabId)
                               Q_ARG(QVariant, QVariant(tabId)));
 }
 
+void OutputWindow::seekVideoLayer(int tabId, int position)
+{
+    qDebug() << "OutputWindow: seekVideoLayer(" << tabId << ", " << position << ")";
+    if (!m_root)
+        return;
+    QMetaObject::invokeMethod(m_root, "seekVideoLayer",
+                              Q_ARG(QVariant, QVariant(tabId)),
+                              Q_ARG(QVariant, QVariant(position)));
+}
+
 void OutputWindow::setExternalMediaTabsModel(QObject *model)
 {
     qDebug() << "OutputWindow: setExternalMediaTabsModel(" << model << ")";

@@ -22,6 +22,7 @@ public:
     Q_INVOKABLE void reset(); // Stop and reset to initial state
     Q_INVOKABLE bool isRunning() const { return m_timer.isActive(); }
     Q_INVOKABLE void setImageList(QVariant listModel); // Set custom image list from QML ListModel
+    Q_INVOKABLE void setCurrentIndex(int index);       // Jump to a specific index in the slideshow
 
     QString currentImagePath() const { return m_currentImagePath; }
 

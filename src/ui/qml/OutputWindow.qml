@@ -56,7 +56,8 @@ Window {
             path: path,
             brightness: brightness,
             playing: playing,
-            zOrder: zOrder !== undefined ? zOrder : mediaLayersModel.count
+            zOrder: zOrder !== undefined ? zOrder : mediaLayersModel.count,
+            seekPosition: -1
         });
         console.log("OutputWindow: added media layer " + tabId + ", total: " + mediaLayersModel.count);
     }
@@ -117,6 +118,18 @@ Window {
                 mediaLayersModel.setProperty(i, "playing", false);
                 mediaLayersModel.setProperty(i, "path", "");
                 console.log("OutputWindow: stopped and cleared layer " + tabId);
+                return;
+            }
+        }
+    }
+
+    // Seek a video layer to a specific position (in milliseconds)
+    function seekVideoLayer(tabId, position) {
+        console.log("OutputWindow.seekVideoLayer: tabId=" + tabId + ", position=" + position);
+        // Store the seek request in the model - the Repeater will pick it up
+        for (var i = 0; i < mediaLayersModel.count; i++) {
+            if (mediaLayersModel.get(i).tabId === tabId) {
+                mediaLayersModel.setProperty(i, "seekPosition", position);
                 return;
             }
         }
@@ -208,8 +221,19 @@ Window {
                 property bool layerPlaying: model.playing ? model.playing : false
                 property int layerTabId: model.tabId !== undefined ? model.tabId : -1
                 property string layerType: model.mediaType ? model.mediaType : "video"
+                property int layerSeekPosition: model.seekPosition !== undefined ? model.seekPosition : -1
 
                 visible: true  // Always visible, let children handle visibility
+
+                // Handle seek requests
+                onLayerSeekPositionChanged: {
+                    if (layerSeekPosition >= 0 && layerType === "video") {
+                        console.log("OutputWindow layer[" + layerTabId + "] seeking to: " + layerSeekPosition);
+                        layerPlayer.seek(layerSeekPosition);
+                        // Reset the seekPosition to -1 after seeking
+                        mediaLayersModel.setProperty(index, "seekPosition", -1);
+                    }
+                }
 
                 // Image display (for slideshow type)
                 Image {
@@ -230,7 +254,26 @@ Window {
                     id: layerPlayer
                     autoPlay: false
                     source: mediaLayerItem.layerType === "video" && mediaLayerItem.layerPath !== "" ? root.urlForPath(mediaLayerItem.layerPath) : ""
-                    loops: MediaPlayer.Infinite
+
+                    // Track if we need to auto-play when loaded (for video advancement)
+                    property bool pendingAutoPlay: false
+
+                    onSourceChanged: {
+                        console.log("OutputWindow MediaPlayer source changed: " + source + ", layerPlaying=" + mediaLayerItem.layerPlaying);
+                        // When source changes while playing, mark for auto-play when loaded
+                        if (source !== "" && mediaLayerItem.layerPlaying) {
+                            pendingAutoPlay = true;
+                        }
+                    }
+
+                    onStatusChanged: {
+                        console.log("OutputWindow MediaPlayer status changed: " + status + ", pendingAutoPlay=" + pendingAutoPlay);
+                        // Auto-play when loaded if we were advancing to next video
+                        if (status === MediaPlayer.Loaded && pendingAutoPlay && mediaLayerItem.layerPlaying) {
+                            pendingAutoPlay = false;
+                            layerPlayer.play();
+                        }
+                    }
                 }
 
                 VideoOutput {
@@ -252,8 +295,8 @@ Window {
                         if (layerPlaying && layerPath !== "") {
                             layerPlayer.play();
                         } else {
-                            // Stop completely when not playing (reset position)
-                            layerPlayer.stop();
+                            // Pause when not playing (preserves position)
+                            layerPlayer.pause();
                         }
                     }
                 }
@@ -263,8 +306,8 @@ Window {
                     if (layerType === "video") {
                         if (layerPath !== "" && layerPlaying) {
                             layerPlayer.play();
-                        } else {
-                            // Stop and reset video when path is cleared or not playing
+                        } else if (layerPath === "") {
+                            // Stop and reset video only when path is cleared (actual stop)
                             layerPlayer.stop();
                         }
                     }
