@@ -122,7 +122,15 @@ Window {
             mediaTabsModel.setProperty(i, "zOrder", i);
         }
 
-        // zOrder is already in the shared model, OutputWindow will react automatically
+        // Update OutputWindow's z-order for all layers immediately
+        if (outputWindow) {
+            for (var j = 0; j < mediaTabsModel.count; j++) {
+                var tab = mediaTabsModel.get(j);
+                if (tab.currentPath && tab.currentPath !== "") {
+                    outputWindow.setMediaLayerZOrder(tab.tabId, j);
+                }
+            }
+        }
     }
 
     // Remove a media tab by index
@@ -986,6 +994,12 @@ Window {
                                                             if (!isResumingSameTab) {
                                                                 // New slideshow - set the image list
                                                                 slideshow.setImageList(currentMediaModel);
+
+                                                                // If an image is pre-selected, start from that image
+                                                                var startIndex = tabData.currentIndex >= 0 ? tabData.currentIndex : 0;
+                                                                if (startIndex > 0) {
+                                                                    slideshow.setCurrentIndex(startIndex);
+                                                                }
                                                             }
                                                             slideshow.start(slideshowDelaySeconds * 1000);
                                                             statusText = isResumingSameTab ? "Slideshow resumed" : "Slideshow started (" + slideshowDelaySeconds + " s per image)";
@@ -1156,16 +1170,16 @@ Window {
                                                     verticalAlignment: Text.AlignVCenter
                                                 }
                                                 onClicked: {
-                                                    var listView = dynamicMediaList;
-                                                    var row = listView.currentIndex;
                                                     var wasPlaying = tabData.isPlaying;
 
                                                     if (!wasPlaying) {
                                                         // Start playing
-                                                        // If no video selected, auto-select the first one (like slideshow)
+                                                        // Use model's currentIndex if available, otherwise use list selection or default to 0
+                                                        var row = tabData.currentIndex >= 0 ? tabData.currentIndex : dynamicMediaList.currentIndex;
+
+                                                        // If still no selection, auto-select the first one
                                                         if (row < 0 && currentMediaModel && currentMediaModel.count > 0) {
                                                             row = 0;
-                                                            listView.currentIndex = 0;
                                                         }
 
                                                         if (row < 0 || !currentMediaModel || currentMediaModel.count === 0) {
