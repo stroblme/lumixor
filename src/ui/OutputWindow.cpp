@@ -129,6 +129,16 @@ void OutputWindow::setImageLayer(int tabId, const QString &path, double brightne
                               Q_ARG(QVariant, QVariant(zOrder)));
 }
 
+void OutputWindow::setMediaLayerBrightness(int tabId, double brightness)
+{
+    qDebug() << "OutputWindow: setMediaLayerBrightness(" << tabId << "," << brightness << ")";
+    if (!m_root)
+        return;
+    QMetaObject::invokeMethod(m_root, "setMediaLayerBrightness",
+                              Q_ARG(QVariant, QVariant(tabId)),
+                              Q_ARG(QVariant, QVariant(brightness)));
+}
+
 void OutputWindow::removeVideoLayer(int tabId)
 {
     qDebug() << "OutputWindow: removeVideoLayer(" << tabId << ")";

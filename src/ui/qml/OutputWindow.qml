@@ -28,15 +28,15 @@ Window {
         // Find existing layer
         for (var i = 0; i < mediaLayersModel.count; i++) {
             if (mediaLayersModel.get(i).tabId === tabId) {
-                mediaLayersModel.set(i, {
-                    tabId: tabId,
-                    mediaType: mediaType,
-                    path: path,
-                    brightness: brightness,
-                    playing: playing,
-                    zOrder: zOrder !== undefined ? zOrder : mediaLayersModel.get(i).zOrder
-                });
-                console.log("OutputWindow: updated media layer " + tabId);
+                // Use setProperty for each field to ensure proper reactivity
+                mediaLayersModel.setProperty(i, "mediaType", mediaType);
+                mediaLayersModel.setProperty(i, "path", path);
+                mediaLayersModel.setProperty(i, "brightness", brightness);
+                mediaLayersModel.setProperty(i, "playing", playing);
+                if (zOrder !== undefined) {
+                    mediaLayersModel.setProperty(i, "zOrder", zOrder);
+                }
+                console.log("OutputWindow: updated media layer " + tabId + " brightness=" + brightness);
                 return;
             }
         }
@@ -108,12 +108,15 @@ Window {
 
     // Update brightness for a media layer
     function setMediaLayerBrightness(tabId, brightness) {
+        console.log("OutputWindow.setMediaLayerBrightness: tabId=" + tabId + ", brightness=" + brightness);
         for (var i = 0; i < mediaLayersModel.count; i++) {
             if (mediaLayersModel.get(i).tabId === tabId) {
                 mediaLayersModel.setProperty(i, "brightness", brightness);
+                console.log("OutputWindow: updated brightness for layer " + tabId + " to " + brightness);
                 return;
             }
         }
+        console.log("OutputWindow: layer " + tabId + " not found for brightness update");
     }
 
     function urlForPath(p) {

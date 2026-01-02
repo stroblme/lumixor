@@ -1272,17 +1272,26 @@ Window {
                                                 if (tabData) {
                                                     mediaTabsModel.setProperty(tabContentItem.tabModelIndex, "brightness", value);
 
-                                                    // Apply brightness to output based on type
-                                                    var zOrder = tabData.zOrder !== undefined ? tabData.zOrder : tabContentItem.tabModelIndex;
-                                                    if (isSlideshow) {
-                                                        // Update the image layer brightness
-                                                        if (outputWindow && tabData.currentPath) {
-                                                            outputWindow.setImageLayer(tabData.tabId, tabData.currentPath, value, zOrder);
+                                                    // Apply brightness to output - use direct brightness update if layer exists
+                                                    if (outputWindow) {
+                                                        // First try direct brightness update (works if layer already exists)
+                                                        outputWindow.setMediaLayerBrightness(tabData.tabId, value);
+
+                                                        // Also ensure layer is created/updated with full info
+                                                        var zOrder = tabData.zOrder !== undefined ? tabData.zOrder : tabContentItem.tabModelIndex;
+                                                        var currentPath = tabData.currentPath;
+
+                                                        // For slideshow, also check if this tab is the active slideshow
+                                                        if (isSlideshow && activeSlideshowTabId === tabData.tabId && slideshow && slideshow.currentImagePath) {
+                                                            currentPath = slideshow.currentImagePath;
                                                         }
-                                                    } else {
-                                                        // Update the video layer brightness (include zOrder)
-                                                        if (outputWindow && tabData.currentPath) {
-                                                            outputWindow.setVideoLayer(tabData.tabId, tabData.currentPath, value, tabData.isPlaying, zOrder);
+
+                                                        if (currentPath) {
+                                                            if (isSlideshow) {
+                                                                outputWindow.setImageLayer(tabData.tabId, currentPath, value, zOrder);
+                                                            } else {
+                                                                outputWindow.setVideoLayer(tabData.tabId, currentPath, value, tabData.isPlaying, zOrder);
+                                                            }
                                                         }
                                                     }
                                                 }
