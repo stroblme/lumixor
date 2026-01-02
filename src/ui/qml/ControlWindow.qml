@@ -45,6 +45,104 @@ Window {
     property color listItemColor: "#232323"
     property color listItemHighlight: "#29434E"
 
+    // Dynamic media tabs model: each entry is { tabId, tabType ("slideshow" or "video"), tabName, mediaModel (ListModel), brightness }
+    property int nextSlideshowId: 1
+    property int nextVideoId: 1
+    property var mediaTabs: ListModel {
+        id: mediaTabsModel
+    }
+
+    // Helper to get the currently active media tab (or null if on Preferences/Home)
+    function getActiveMediaTab() {
+        var idx = mainTabs.currentIndex - 2; // 0=Preferences, 1=Home, 2+=media tabs
+        if (idx >= 0 && idx < mediaTabsModel.count) {
+            return mediaTabsModel.get(idx);
+        }
+        return null;
+    }
+
+    // Add a new media tab
+    function addMediaTab(tabType, tabName) {
+        var newModel = Qt.createQmlObject('import QtQuick 2.12; ListModel {}', controlRoot);
+        var name, tabId;
+        if (tabType === "slideshow") {
+            tabId = nextSlideshowId;
+            name = tabName || qsTr("Slideshow ") + nextSlideshowId;
+            nextSlideshowId++;
+        } else {
+            tabId = nextVideoId;
+            name = tabName || qsTr("Video ") + nextVideoId;
+            nextVideoId++;
+        }
+        mediaTabsModel.append({
+            "tabId": tabId,
+            "tabType": tabType,
+            "tabName": name,
+            "mediaModel": newModel,
+            "brightness": 1.0,
+            "currentPath": "",
+            "isPlaying": false,
+            "currentIndex": -1
+        });
+        // Switch to the new tab
+        mainTabs.currentIndex = mediaTabsModel.count + 1; // +2 for Preferences/Home, -1 for 0-based
+        return mediaTabsModel.count - 1;
+    }
+
+    // Remove a media tab by index
+    function removeMediaTab(tabIndex) {
+        if (tabIndex >= 0 && tabIndex < mediaTabsModel.count) {
+            var tab = mediaTabsModel.get(tabIndex);
+
+            // Clean up video layer if this is a video tab
+            if (tab.tabType === "video" && outputWindow) {
+                outputWindow.removeVideoLayer(tab.tabId);
+            }
+
+            if (tab.mediaModel) {
+                tab.mediaModel.clear();
+            }
+            mediaTabsModel.remove(tabIndex);
+            // Switch to Home tab if we closed the current tab
+            if (mainTabs.currentIndex > mediaTabsModel.count + 1) {
+                mainTabs.currentIndex = 1;
+            }
+        }
+    }
+
+    // Add media to the currently active tab (or create a new tab if needed)
+    function addMediaToActiveTab(paths, mediaType) {
+        var activeTab = getActiveMediaTab();
+
+        // Filter paths by type
+        var filteredPaths = [];
+        for (var i = 0; i < paths.length; i++) {
+            var path = paths[i];
+            var type = mediaManager.getMediaType(path);
+            if (type === mediaType) {
+                filteredPaths.push(path);
+            }
+        }
+
+        if (filteredPaths.length === 0)
+            return 0;
+
+        // If no active media tab or wrong type, create a new one
+        if (!activeTab || activeTab.tabType !== mediaType) {
+            var tabIdx = addMediaTab(mediaType);
+            activeTab = mediaTabsModel.get(tabIdx);
+        }
+
+        // Add paths to the tab's model
+        for (var j = 0; j < filteredPaths.length; j++) {
+            activeTab.mediaModel.append({
+                "path": filteredPaths[j]
+            });
+        }
+
+        return filteredPaths.length;
+    }
+
     color: backgroundColor
 
     // Helper to mirror OutputWindow's EXIF-aware image URL resolution
@@ -88,21 +186,89 @@ Window {
                         Layout.fillWidth: true
                         currentIndex: 1 // Default to Home tab
 
+                        // Prevent switching to the "+" tab
+                        onCurrentIndexChanged: {
+                            // The + button is at index (2 + mediaTabsModel.count)
+                            var addButtonIndex = 2 + mediaTabsModel.count;
+                            if (currentIndex >= addButtonIndex) {
+                                currentIndex = Math.max(0, addButtonIndex - 1);
+                            }
+                        }
+
+                        // Fixed tabs
                         TabButton {
                             text: qsTr("Preferences")
+                            implicitWidth: 100
                         }
                         TabButton {
                             text: qsTr("Home")
+                            implicitWidth: 100
                         }
-                        TabButton {
-                            text: qsTr("Slideshow")
-                            visible: imageModel.count > 0
-                            width: visible ? implicitWidth : 0
+
+                        // Dynamic media tabs
+                        Repeater {
+                            model: mediaTabsModel
+                            TabButton {
+                                implicitWidth: 120
+                                contentItem: RowLayout {
+                                    spacing: 4
+                                    Text {
+                                        text: model.tabName
+                                        color: textColor
+                                        elide: Text.ElideRight
+                                        Layout.fillWidth: true
+                                        horizontalAlignment: Text.AlignHCenter
+                                        verticalAlignment: Text.AlignVCenter
+                                    }
+                                    // Close button
+                                    Rectangle {
+                                        width: 16
+                                        height: 16
+                                        radius: 8
+                                        color: closeMouseArea.containsMouse ? Qt.lighter(panelColor, 1.5) : "transparent"
+                                        Text {
+                                            anchors.centerIn: parent
+                                            text: "×"
+                                            color: subtleTextColor
+                                            font.pixelSize: 14
+                                            font.bold: true
+                                        }
+                                        MouseArea {
+                                            id: closeMouseArea
+                                            anchors.fill: parent
+                                            hoverEnabled: true
+                                            onClicked: {
+                                                removeMediaTab(index);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
                         }
+
+                        // Add tab button (+) - not a real tab, just a button
                         TabButton {
-                            text: qsTr("Video")
-                            visible: videoModel.count > 0
-                            width: visible ? implicitWidth : 0
+                            id: addTabButton
+                            width: 40
+                            text: "+"
+                            font.pixelSize: 18
+                            font.bold: true
+                            checkable: false
+                            onClicked: {
+                                addTabMenu.popup();
+                            }
+
+                            Menu {
+                                id: addTabMenu
+                                MenuItem {
+                                    text: qsTr("New Slideshow Tab")
+                                    onTriggered: addMediaTab("slideshow")
+                                }
+                                MenuItem {
+                                    text: qsTr("New Video Tab")
+                                    onTriggered: addMediaTab("video")
+                                }
+                            }
                         }
                     }
 
@@ -375,10 +541,49 @@ Window {
                                             verticalAlignment: Text.AlignVCenter
                                             font.pixelSize: 14
                                         }
-                                        onClicked: btnAdd.clicked()
+                                        onClicked: {
+                                            var files = controlBridge.openFileDialog();
+                                            if (files.length === 0)
+                                                return;
+
+                                            // Separate files by type and create appropriate tabs
+                                            var images = [];
+                                            var videos = [];
+                                            for (var i = 0; i < files.length; ++i) {
+                                                var type = mediaManager.getMediaType(files[i]);
+                                                if (type === "image")
+                                                    images.push(files[i]);
+                                                else if (type === "video")
+                                                    videos.push(files[i]);
+                                            }
+
+                                            // Add images to a new slideshow tab
+                                            if (images.length > 0) {
+                                                var slideshowIdx = addMediaTab("slideshow");
+                                                var slideshowTab = mediaTabsModel.get(slideshowIdx);
+                                                for (var j = 0; j < images.length; ++j) {
+                                                    slideshowTab.mediaModel.append({
+                                                        "path": images[j]
+                                                    });
+                                                }
+                                            }
+
+                                            // Add videos to a new video tab
+                                            if (videos.length > 0) {
+                                                var videoIdx = addMediaTab("video");
+                                                var videoTab = mediaTabsModel.get(videoIdx);
+                                                for (var k = 0; k < videos.length; ++k) {
+                                                    videoTab.mediaModel.append({
+                                                        "path": videos[k]
+                                                    });
+                                                }
+                                            }
+
+                                            statusText = qsTr("Added %1 images and %2 videos").arg(images.length).arg(videos.length);
+                                        }
 
                                         ToolTip.visible: hovered
-                                        ToolTip.text: qsTr("Add images or videos to the media list")
+                                        ToolTip.text: qsTr("Add images or videos - creates new tabs automatically")
                                     }
 
                                     Button {
@@ -398,10 +603,42 @@ Window {
                                             verticalAlignment: Text.AlignVCenter
                                             font.pixelSize: 14
                                         }
-                                        onClicked: btnAddFolder.clicked()
+                                        onClicked: {
+                                            var folder = controlBridge.openFolderDialog();
+                                            if (folder === "")
+                                                return;
+
+                                            // Get files by type
+                                            var images = mediaManager.getMediaPathsFromFolder(folder, "image");
+                                            var videos = mediaManager.getMediaPathsFromFolder(folder, "video");
+
+                                            // Add images to a new slideshow tab
+                                            if (images.length > 0) {
+                                                var slideshowIdx = addMediaTab("slideshow");
+                                                var slideshowTab = mediaTabsModel.get(slideshowIdx);
+                                                for (var i = 0; i < images.length; ++i) {
+                                                    slideshowTab.mediaModel.append({
+                                                        "path": images[i]
+                                                    });
+                                                }
+                                            }
+
+                                            // Add videos to a new video tab
+                                            if (videos.length > 0) {
+                                                var videoIdx = addMediaTab("video");
+                                                var videoTab = mediaTabsModel.get(videoIdx);
+                                                for (var j = 0; j < videos.length; ++j) {
+                                                    videoTab.mediaModel.append({
+                                                        "path": videos[j]
+                                                    });
+                                                }
+                                            }
+
+                                            statusText = qsTr("Added %1 images and %2 videos from folder").arg(images.length).arg(videos.length);
+                                        }
 
                                         ToolTip.visible: hovered
-                                        ToolTip.text: qsTr("Recursively scan a folder for images and videos")
+                                        ToolTip.text: qsTr("Recursively scan a folder - creates new tabs automatically")
                                     }
                                 }
 
@@ -411,283 +648,322 @@ Window {
                             }
                         }
 
-                        // Slideshow tab content
-                        Item {
-                            Layout.fillWidth: true
-                            Layout.fillHeight: true
+                        // Dynamic media tab content
+                        Repeater {
+                            model: mediaTabsModel
 
-                            RowLayout {
-                                anchors.fill: parent
-                                anchors.margins: 8
-                                spacing: 8
+                            Item {
+                                id: tabContentItem
+                                Layout.fillWidth: true
+                                Layout.fillHeight: true
 
-                                ColumnLayout {
-                                    Layout.fillWidth: true
-                                    Layout.fillHeight: true
+                                property int tabModelIndex: index
+                                property var tabData: mediaTabsModel.get(index)
+                                property bool isSlideshow: tabData ? tabData.tabType === "slideshow" : false
+                                property var currentMediaModel: tabData ? tabData.mediaModel : null
+
+                                RowLayout {
+                                    anchors.fill: parent
+                                    anchors.margins: 8
                                     spacing: 8
 
-                                    RowLayout {
+                                    ColumnLayout {
                                         Layout.fillWidth: true
+                                        Layout.fillHeight: true
                                         spacing: 8
 
-                                        Button {
-                                            id: btnSlideshowToggle
-                                            checkable: true
-                                            text: "Start Slideshow"
-                                            Layout.preferredWidth: 160
-                                            background: Rectangle {
-                                                radius: 6
-                                                implicitHeight: 32
-                                                border.color: borderColor
-                                                color: btnSlideshowToggle.down || btnSlideshowToggle.checked ? accentColor : btnSlideshowToggle.hovered ? Qt.lighter(panelColor, 1.25) : panelColor
-                                            }
-                                            contentItem: Text {
-                                                text: btnSlideshowToggle.text
-                                                color: textColor
-                                                horizontalAlignment: Text.AlignHCenter
-                                                verticalAlignment: Text.AlignVCenter
-                                                elide: Text.ElideRight
-                                            }
-                                            onCheckedChanged: {
-                                                if (checked) {
-                                                    // Pause video when slideshow starts
-                                                    if (playbackController.isPlaying()) {
-                                                        playbackController.pause();
-                                                        btnPlayToggle.checked = false;
-                                                        btnPlayToggle.text = "Resume";
+                                        // Controls row
+                                        RowLayout {
+                                            Layout.fillWidth: true
+                                            spacing: 8
+
+                                            // Slideshow controls
+                                            Button {
+                                                visible: isSlideshow
+                                                checkable: true
+                                                text: checked ? qsTr("Pause Slideshow") : qsTr("Start Slideshow")
+                                                Layout.preferredWidth: 160
+                                                background: Rectangle {
+                                                    radius: 6
+                                                    implicitHeight: 32
+                                                    border.color: borderColor
+                                                    color: parent.down || parent.checked ? accentColor : parent.hovered ? Qt.lighter(panelColor, 1.25) : panelColor
+                                                }
+                                                contentItem: Text {
+                                                    text: parent.text
+                                                    color: textColor
+                                                    horizontalAlignment: Text.AlignHCenter
+                                                    verticalAlignment: Text.AlignVCenter
+                                                    elide: Text.ElideRight
+                                                }
+                                                onCheckedChanged: {
+                                                    if (checked) {
+                                                        if (playbackController.isPlaying()) {
+                                                            playbackController.pause();
+                                                        }
+                                                        previewActiveMedia = "image";
+                                                        // Set slideshow to use this tab's media
+                                                        if (currentMediaModel && currentMediaModel.count > 0) {
+                                                            slideshow.setImageList(currentMediaModel);
+                                                            slideshow.start(slideshowDelaySeconds * 1000);
+                                                            statusText = "Slideshow started (" + slideshowDelaySeconds + " s per image)";
+                                                        }
+                                                    } else {
+                                                        slideshow.pause();
+                                                        statusText = "Slideshow paused";
                                                     }
-                                                    previewActiveMedia = "image";
-                                                    slideshow.start(slideshowDelaySeconds * 1000);
-                                                    statusText = "Slideshow started (" + slideshowDelaySeconds + " s per image)";
-                                                    btnSlideshowToggle.text = "Pause Slideshow";
-                                                } else {
-                                                    slideshow.pause();
-                                                    statusText = "Slideshow paused";
-                                                    btnSlideshowToggle.text = "Resume Slideshow";
+                                                }
+                                            }
+
+                                            Label {
+                                                visible: isSlideshow
+                                                text: qsTr("Delay: ") + slideshowDelaySeconds + qsTr(" s")
+                                                color: subtleTextColor
+                                                Layout.alignment: Qt.AlignVCenter
+                                            }
+
+                                            // Video controls
+                                            Button {
+                                                id: dynamicPlayBtn
+                                                visible: !isSlideshow
+                                                checkable: true
+                                                checked: tabData ? tabData.isPlaying : false
+                                                text: checked ? qsTr("Pause") : qsTr("Play")
+                                                Layout.preferredWidth: 120
+                                                background: Rectangle {
+                                                    radius: 6
+                                                    implicitHeight: 32
+                                                    border.color: borderColor
+                                                    color: dynamicPlayBtn.down || dynamicPlayBtn.checked ? accentColor : dynamicPlayBtn.hovered ? Qt.lighter(panelColor, 1.25) : panelColor
+                                                }
+                                                contentItem: Text {
+                                                    text: dynamicPlayBtn.text
+                                                    color: textColor
+                                                    horizontalAlignment: Text.AlignHCenter
+                                                    verticalAlignment: Text.AlignVCenter
+                                                    elide: Text.ElideRight
+                                                }
+                                                onClicked: {
+                                                    var listView = dynamicMediaList;
+                                                    var row = listView.currentIndex;
+                                                    var wasPlaying = tabData.isPlaying;
+
+                                                    if (!wasPlaying) {
+                                                        // Start playing
+                                                        if (row < 0) {
+                                                            statusText = "No video selected";
+                                                            checked = false;
+                                                            return;
+                                                        }
+                                                        var item = currentMediaModel.get(row);
+                                                        var tabId = tabData.tabId;
+                                                        var brightness = tabData.brightness;
+
+                                                        // Update the model
+                                                        mediaTabsModel.setProperty(tabContentItem.tabModelIndex, "currentPath", item.path);
+                                                        mediaTabsModel.setProperty(tabContentItem.tabModelIndex, "isPlaying", true);
+                                                        mediaTabsModel.setProperty(tabContentItem.tabModelIndex, "currentIndex", row);
+
+                                                        // Update output window with this video layer
+                                                        outputWindow.setVideoLayer(tabId, item.path, brightness, true);
+
+                                                        statusText = "Playing video: " + item.path;
+                                                    } else {
+                                                        // Pausing
+                                                        mediaTabsModel.setProperty(tabContentItem.tabModelIndex, "isPlaying", false);
+                                                        outputWindow.setVideoLayer(tabData.tabId, tabData.currentPath, tabData.brightness, false);
+                                                        statusText = "Video paused";
+                                                    }
+                                                }
+                                            }
+
+                                            Item {
+                                                Layout.fillWidth: true
+                                            }
+
+                                            // Add media buttons
+                                            Button {
+                                                text: qsTr("Add Files")
+                                                Layout.preferredWidth: 80
+                                                background: Rectangle {
+                                                    radius: 6
+                                                    implicitHeight: 28
+                                                    border.color: borderColor
+                                                    color: parent.down ? accentColor : parent.hovered ? Qt.lighter(panelColor, 1.25) : panelColor
+                                                }
+                                                contentItem: Text {
+                                                    text: parent.text
+                                                    color: textColor
+                                                    horizontalAlignment: Text.AlignHCenter
+                                                    verticalAlignment: Text.AlignVCenter
+                                                    font.pixelSize: 11
+                                                }
+                                                onClicked: {
+                                                    var files = controlBridge.openFileDialog();
+                                                    var expectedType = isSlideshow ? "image" : "video";
+                                                    var addedCount = 0;
+                                                    for (var i = 0; i < files.length; ++i) {
+                                                        var type = mediaManager.getMediaType(files[i]);
+                                                        if (type === expectedType) {
+                                                            currentMediaModel.append({
+                                                                "path": files[i]
+                                                            });
+                                                            addedCount++;
+                                                        }
+                                                    }
+                                                    if (addedCount > 0) {
+                                                        statusText = qsTr("Added %1 files").arg(addedCount);
+                                                    }
+                                                }
+                                            }
+
+                                            Button {
+                                                text: qsTr("Add Folder")
+                                                Layout.preferredWidth: 80
+                                                background: Rectangle {
+                                                    radius: 6
+                                                    implicitHeight: 28
+                                                    border.color: borderColor
+                                                    color: parent.down ? accentColor : parent.hovered ? Qt.lighter(panelColor, 1.25) : panelColor
+                                                }
+                                                contentItem: Text {
+                                                    text: parent.text
+                                                    color: textColor
+                                                    horizontalAlignment: Text.AlignHCenter
+                                                    verticalAlignment: Text.AlignVCenter
+                                                    font.pixelSize: 11
+                                                }
+                                                onClicked: {
+                                                    var folder = controlBridge.openFolderDialog();
+                                                    if (folder !== "") {
+                                                        var expectedType = isSlideshow ? "image" : "video";
+                                                        var paths = mediaManager.getMediaPathsFromFolder(folder, expectedType);
+                                                        for (var i = 0; i < paths.length; ++i) {
+                                                            currentMediaModel.append({
+                                                                "path": paths[i]
+                                                            });
+                                                        }
+                                                        statusText = qsTr("Added %1 files from folder").arg(paths.length);
+                                                    }
+                                                }
+                                            }
+                                        }
+
+                                        // Media list
+                                        ListView {
+                                            id: dynamicMediaList
+                                            Layout.fillWidth: true
+                                            Layout.fillHeight: true
+                                            clip: true
+                                            model: currentMediaModel
+                                            currentIndex: -1
+                                            delegate: Rectangle {
+                                                width: dynamicMediaList.width
+                                                height: 40
+                                                color: ListView.isCurrentItem ? listItemHighlight : listItemColor
+                                                radius: 3
+                                                border.color: borderColor
+                                                Text {
+                                                    anchors.verticalCenter: parent.verticalCenter
+                                                    anchors.left: parent.left
+                                                    anchors.leftMargin: 8
+                                                    text: fileNameFromPath(model.path)
+                                                    color: textColor
+                                                    elide: Text.ElideRight
+                                                    width: parent.width - 40
+                                                }
+                                                // Delete button
+                                                Rectangle {
+                                                    anchors.right: parent.right
+                                                    anchors.rightMargin: 8
+                                                    anchors.verticalCenter: parent.verticalCenter
+                                                    width: 20
+                                                    height: 20
+                                                    radius: 10
+                                                    color: delMouseArea.containsMouse ? Qt.lighter(listItemColor, 1.5) : "transparent"
+                                                    Text {
+                                                        anchors.centerIn: parent
+                                                        text: "×"
+                                                        color: subtleTextColor
+                                                        font.pixelSize: 14
+                                                    }
+                                                    MouseArea {
+                                                        id: delMouseArea
+                                                        anchors.fill: parent
+                                                        hoverEnabled: true
+                                                        onClicked: {
+                                                            currentMediaModel.remove(index);
+                                                        }
+                                                    }
+                                                }
+                                                MouseArea {
+                                                    anchors.left: parent.left
+                                                    anchors.right: parent.right
+                                                    anchors.rightMargin: 36
+                                                    anchors.top: parent.top
+                                                    anchors.bottom: parent.bottom
+                                                    onClicked: {
+                                                        dynamicMediaList.currentIndex = index;
+                                                        if (isSlideshow) {
+                                                            // Update currentPath in model for preview
+                                                            mediaTabsModel.setProperty(tabContentItem.tabModelIndex, "currentPath", model.path);
+                                                            mediaTabsModel.setProperty(tabContentItem.tabModelIndex, "currentIndex", index);
+                                                            outputWindow.fadeToImage(model.path);
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                            ScrollBar.vertical: ScrollBar {}
+                                        }
+                                    }
+
+                                    // Vertical brightness slider
+                                    ColumnLayout {
+                                        Layout.fillHeight: true
+                                        Layout.preferredWidth: 40
+                                        spacing: 4
+
+                                        Label {
+                                            text: qsTr("Alpha")
+                                            color: subtleTextColor
+                                            font.pixelSize: 10
+                                            Layout.alignment: Qt.AlignHCenter
+                                        }
+
+                                        Slider {
+                                            id: tabBrightnessSlider
+                                            orientation: Qt.Vertical
+                                            from: 0.0
+                                            to: 1.0
+                                            value: tabData ? tabData.brightness : 1.0
+                                            Layout.fillHeight: true
+                                            Layout.alignment: Qt.AlignHCenter
+                                            ToolTip.visible: hovered || pressed
+                                            ToolTip.text: (isSlideshow ? qsTr("Slideshow Alpha: ") : qsTr("Video Alpha: ")) + Math.round(value * 100) + "%"
+                                            onValueChanged: {
+                                                if (tabData) {
+                                                    mediaTabsModel.setProperty(tabContentItem.tabModelIndex, "brightness", value);
+
+                                                    // Apply brightness to output based on type
+                                                    if (isSlideshow) {
+                                                        if (outputWindow && outputWindow.setImageBrightness)
+                                                            outputWindow.setImageBrightness(value);
+                                                    } else {
+                                                        // Update the video layer brightness
+                                                        if (outputWindow && tabData.currentPath) {
+                                                            outputWindow.setVideoLayer(tabData.tabId, tabData.currentPath, value, tabData.isPlaying);
+                                                        }
+                                                    }
                                                 }
                                             }
                                         }
 
                                         Label {
-                                            text: qsTr("Delay: ") + slideshowDelaySeconds + qsTr(" s")
+                                            text: Math.round((tabData ? tabData.brightness : 1.0) * 100) + "%"
                                             color: subtleTextColor
-                                            Layout.alignment: Qt.AlignVCenter
+                                            font.pixelSize: 10
+                                            Layout.alignment: Qt.AlignHCenter
                                         }
-                                    }
-
-                                    // Image list view used by slideshow
-                                    ListView {
-                                        id: listImages
-                                        Layout.fillWidth: true
-                                        Layout.fillHeight: true
-                                        clip: true
-                                        model: imageModel
-                                        delegate: Rectangle {
-                                            width: listImages.width
-                                            height: 40
-                                            color: ListView.isCurrentItem ? listItemHighlight : listItemColor
-                                            radius: 3
-                                            border.color: borderColor
-                                            Text {
-                                                anchors.verticalCenter: parent.verticalCenter
-                                                anchors.left: parent.left
-                                                anchors.leftMargin: 8
-                                                text: fileNameFromPath(model.path)
-                                                color: textColor
-                                                elide: Text.ElideRight
-                                                width: parent.width - 16
-                                            }
-                                            MouseArea {
-                                                anchors.fill: parent
-                                                onClicked: {
-                                                    listImages.currentIndex = index;
-                                                    outputWindow.fadeToImage(model.path);
-                                                }
-                                            }
-                                        }
-                                        ScrollBar.vertical: ScrollBar {}
-                                    }
-                                }
-
-                                // Vertical brightness slider for slideshow
-                                ColumnLayout {
-                                    Layout.fillHeight: true
-                                    Layout.preferredWidth: 40
-                                    spacing: 4
-
-                                    Label {
-                                        text: qsTr("Alpha")
-                                        color: subtleTextColor
-                                        font.pixelSize: 10
-                                        Layout.alignment: Qt.AlignHCenter
-                                    }
-
-                                    Slider {
-                                        id: slideshowBrightnessSlider
-                                        orientation: Qt.Vertical
-                                        from: 0.0
-                                        to: 1.0
-                                        value: slideshowBrightness
-                                        Layout.fillHeight: true
-                                        Layout.alignment: Qt.AlignHCenter
-                                        ToolTip.visible: hovered || pressed
-                                        ToolTip.text: qsTr("Slideshow Alpha: ") + Math.round(value * 100) + "%"
-                                        onValueChanged: {
-                                            slideshowBrightness = value;
-                                            if (outputWindow && outputWindow.setImageBrightness)
-                                                outputWindow.setImageBrightness(value);
-                                        }
-                                    }
-
-                                    Label {
-                                        text: Math.round(slideshowBrightness * 100) + "%"
-                                        color: subtleTextColor
-                                        font.pixelSize: 10
-                                        Layout.alignment: Qt.AlignHCenter
-                                    }
-                                }
-                            }
-                        }
-
-                        // Video tab content
-                        Item {
-                            Layout.fillWidth: true
-                            Layout.fillHeight: true
-
-                            RowLayout {
-                                anchors.fill: parent
-                                anchors.margins: 8
-                                spacing: 8
-
-                                ColumnLayout {
-                                    Layout.fillWidth: true
-                                    Layout.fillHeight: true
-                                    spacing: 8
-
-                                    RowLayout {
-                                        Layout.fillWidth: true
-                                        spacing: 8
-
-                                        Button {
-                                            id: btnPlayToggle
-                                            checkable: true
-                                            text: "Play"
-                                            Layout.preferredWidth: 120
-                                            background: Rectangle {
-                                                radius: 6
-                                                implicitHeight: 32
-                                                border.color: borderColor
-                                                color: btnPlayToggle.down || btnPlayToggle.checked ? accentColor : btnPlayToggle.hovered ? Qt.lighter(panelColor, 1.25) : panelColor
-                                            }
-                                            contentItem: Text {
-                                                text: btnPlayToggle.text
-                                                color: textColor
-                                                horizontalAlignment: Text.AlignHCenter
-                                                verticalAlignment: Text.AlignVCenter
-                                                elide: Text.ElideRight
-                                            }
-                                            onCheckedChanged: {
-                                                if (checked) {
-                                                    var row = listVideos.currentIndex;
-                                                    if (row < 0) {
-                                                        btnPlayToggle.checked = false;
-                                                        statusText = "No video selected";
-                                                        return;
-                                                    }
-                                                    // Pause slideshow when video starts
-                                                    if (slideshow.isRunning()) {
-                                                        slideshow.pause();
-                                                        btnSlideshowToggle.checked = false;
-                                                        btnSlideshowToggle.text = "Resume Slideshow";
-                                                    }
-                                                    previewActiveMedia = "video";
-                                                    if (row !== m_loadedVideoIndex) {
-                                                        var item = videoModel.get(row);
-                                                        playbackController.loadMediaPath(item.path);
-                                                        outputWindow.showVideo();
-                                                        m_loadedVideoIndex = row;
-                                                        statusText = "Playing video: " + item.path;
-                                                    }
-                                                    playbackController.play();
-                                                    btnPlayToggle.text = "Pause";
-                                                } else {
-                                                    playbackController.pause();
-                                                    statusText = "Video paused";
-                                                    btnPlayToggle.text = "Resume";
-                                                }
-                                            }
-                                        }
-                                    }
-
-                                    // Video list view and controls
-                                    ListView {
-                                        id: listVideos
-                                        Layout.fillWidth: true
-                                        Layout.fillHeight: true
-                                        clip: true
-                                        model: videoModel
-                                        currentIndex: -1
-                                        delegate: Rectangle {
-                                            width: listVideos.width
-                                            height: 40
-                                            color: ListView.isCurrentItem ? listItemHighlight : listItemColor
-                                            radius: 3
-                                            border.color: borderColor
-                                            Text {
-                                                anchors.verticalCenter: parent.verticalCenter
-                                                anchors.left: parent.left
-                                                anchors.leftMargin: 8
-                                                text: fileNameFromPath(model.path)
-                                                color: textColor
-                                                elide: Text.ElideRight
-                                                width: parent.width - 16
-                                            }
-                                            MouseArea {
-                                                anchors.fill: parent
-                                                onClicked: {
-                                                    listVideos.currentIndex = index;
-                                                }
-                                            }
-                                        }
-                                        ScrollBar.vertical: ScrollBar {}
-                                    }
-                                }
-
-                                // Vertical brightness slider for video
-                                ColumnLayout {
-                                    Layout.fillHeight: true
-                                    Layout.preferredWidth: 40
-                                    spacing: 4
-
-                                    Label {
-                                        text: qsTr("Alpha")
-                                        color: subtleTextColor
-                                        font.pixelSize: 10
-                                        Layout.alignment: Qt.AlignHCenter
-                                    }
-
-                                    Slider {
-                                        id: videoBrightnessSlider
-                                        orientation: Qt.Vertical
-                                        from: 0.0
-                                        to: 1.0
-                                        value: videoBrightness
-                                        Layout.fillHeight: true
-                                        Layout.alignment: Qt.AlignHCenter
-                                        ToolTip.visible: hovered || pressed
-                                        ToolTip.text: qsTr("Video Alpha: ") + Math.round(value * 100) + "%"
-                                        onValueChanged: {
-                                            videoBrightness = value;
-                                            if (outputWindow && outputWindow.setVideoBrightness)
-                                                outputWindow.setVideoBrightness(value);
-                                        }
-                                    }
-
-                                    Label {
-                                        text: Math.round(videoBrightness * 100) + "%"
-                                        color: subtleTextColor
-                                        font.pixelSize: 10
-                                        Layout.alignment: Qt.AlignHCenter
                                     }
                                 }
                             }
@@ -804,8 +1080,20 @@ Window {
                                     border.color: borderColor
                                     clip: true
 
-                                    // Slideshow image: exact path used by OutputWindow via EXIF provider
-                                    // Opacity controlled by slideshowBrightness for cross-fade capability
+                                    // Slideshow images from all slideshow tabs
+                                    Repeater {
+                                        model: mediaTabsModel
+                                        Image {
+                                            anchors.fill: parent
+                                            fillMode: Image.PreserveAspectFit
+                                            visible: model.tabType === "slideshow"
+                                            source: model.tabType === "slideshow" && model.currentPath ? controlRoot.imageUrlForPath(model.currentPath) : ""
+                                            opacity: model.brightness
+                                            z: index
+                                        }
+                                    }
+
+                                    // Legacy slideshow image for backward compatibility
                                     Image {
                                         id: previewImage
                                         anchors.fill: parent
@@ -813,34 +1101,55 @@ Window {
                                         visible: true
                                         source: slideshow ? controlRoot.imageUrlForPath(slideshow.currentImagePath) : ""
                                         opacity: slideshowBrightness
-                                        z: 0
+                                        z: 100
                                     }
 
-                                    // Video preview: small live video using the same source as OutputWindow
-                                    // Opacity controlled by videoBrightness for cross-fade capability
-                                    VideoOutput {
-                                        id: previewVideo
-                                        anchors.fill: parent
-                                        visible: true
-                                        source: previewPlayer
-                                        fillMode: VideoOutput.PreserveAspectFit
-                                        opacity: videoBrightness
-                                        z: 1
-                                    }
+                                    // Dynamic video layers from all video tabs
+                                    Repeater {
+                                        model: mediaTabsModel
+                                        Item {
+                                            anchors.fill: parent
+                                            visible: model.tabType === "video" && model.currentPath && model.currentPath !== ""
 
-                                    MediaPlayer {
-                                        id: previewPlayer
-                                        autoPlay: false
-                                        source: ""
-                                    }
+                                            property string videoPath: model.currentPath || ""
+                                            property real videoBrightness: model.brightness || 1.0
+                                            property bool videoPlaying: model.isPlaying || false
 
-                                    // Mirror OutputWindow's wiring to PlaybackController
-                                    Connections {
-                                        target: playbackController
-                                        onSourceChanged: previewPlayer.source = playbackController.source
-                                        onPlayRequested: previewPlayer.play()
-                                        onPauseRequested: previewPlayer.pause()
-                                        onStopRequested: previewPlayer.stop()
+                                            MediaPlayer {
+                                                id: previewLayerPlayer
+                                                autoPlay: false
+                                                source: videoPath && videoPath !== "" ? "file://" + videoPath : ""
+                                                loops: MediaPlayer.Infinite
+                                            }
+
+                                            VideoOutput {
+                                                anchors.fill: parent
+                                                source: previewLayerPlayer
+                                                fillMode: VideoOutput.PreserveAspectFit
+                                                opacity: videoBrightness
+                                                visible: videoPath !== ""
+                                            }
+
+                                            onVideoPlayingChanged: {
+                                                if (videoPlaying && videoPath && videoPath !== "") {
+                                                    previewLayerPlayer.play();
+                                                } else {
+                                                    previewLayerPlayer.pause();
+                                                }
+                                            }
+
+                                            onVideoPathChanged: {
+                                                if (videoPath && videoPath !== "" && videoPlaying) {
+                                                    previewLayerPlayer.play();
+                                                }
+                                            }
+
+                                            Component.onCompleted: {
+                                                if (videoPlaying && videoPath && videoPath !== "") {
+                                                    previewLayerPlayer.play();
+                                                }
+                                            }
+                                        }
                                     }
                                 }
                             } // End of previewContainer Item
@@ -850,7 +1159,7 @@ Window {
                     // Controls stacked below preview panel
                     Rectangle {
                         Layout.fillWidth: true
-                        implicitHeight: 90
+                        implicitHeight: 60
                         radius: 6
                         color: panelColor
                         border.color: borderColor
@@ -861,74 +1170,7 @@ Window {
                             anchors.bottomMargin: 12
                             spacing: 6
 
-                            // First row: Add Media button
-                            RowLayout {
-                                Layout.fillWidth: true
-                                spacing: 8
-
-                                Button {
-                                    id: btnAdd
-                                    text: "Add Files"
-                                    Layout.preferredWidth: 100
-                                    background: Rectangle {
-                                        radius: 6
-                                        implicitHeight: 32
-                                        border.color: borderColor
-                                        color: btnAdd.down || btnAdd.checked ? accentColor : btnAdd.hovered ? Qt.lighter(panelColor, 1.25) : panelColor
-                                    }
-                                    contentItem: Text {
-                                        text: btnAdd.text
-                                        color: textColor
-                                        horizontalAlignment: Text.AlignHCenter
-                                        verticalAlignment: Text.AlignVCenter
-                                        elide: Text.ElideRight
-                                    }
-                                    onClicked: {
-                                        var files = controlBridge.openFileDialog();
-                                        for (var i = 0; i < files.length; ++i) {
-                                            mediaManager.addMedia(files[i]);
-                                        }
-                                    }
-
-                                    ToolTip.visible: hovered
-                                    ToolTip.text: qsTr("Add images or videos to the media list")
-                                }
-
-                                Button {
-                                    id: btnAddFolder
-                                    text: "Add Folder"
-                                    Layout.preferredWidth: 100
-                                    background: Rectangle {
-                                        radius: 6
-                                        implicitHeight: 32
-                                        border.color: borderColor
-                                        color: btnAddFolder.down || btnAddFolder.checked ? accentColor : btnAddFolder.hovered ? Qt.lighter(panelColor, 1.25) : panelColor
-                                    }
-                                    contentItem: Text {
-                                        text: btnAddFolder.text
-                                        color: textColor
-                                        horizontalAlignment: Text.AlignHCenter
-                                        verticalAlignment: Text.AlignVCenter
-                                        elide: Text.ElideRight
-                                    }
-                                    onClicked: {
-                                        var folder = controlBridge.openFolderDialog();
-                                        if (folder !== "") {
-                                            var count = mediaManager.addMediaFromFolder(folder);
-                                            statusText = qsTr("Added %1 media files from folder").arg(count);
-                                        }
-                                    }
-
-                                    ToolTip.visible: hovered
-                                    ToolTip.text: qsTr("Recursively scan a folder for images and videos")
-                                }
-
-                                Item {
-                                    Layout.fillWidth: true
-                                }
-                            }
-
-                            // Second row: blackout / brightness slider
+                            // Blackout / brightness slider
                             RowLayout {
                                 Layout.fillWidth: true
                                 spacing: 8

@@ -24,6 +24,8 @@ public slots:
     Q_INVOKABLE void setBrightness(double level);
     Q_INVOKABLE void setImageBrightness(double level);
     Q_INVOKABLE void setVideoBrightness(double level);
+    Q_INVOKABLE void setVideoLayer(int tabId, const QString &path, double brightness, bool playing);
+    Q_INVOKABLE void removeVideoLayer(int tabId);
 
 private:
     QObject *m_root = nullptr;

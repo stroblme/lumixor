@@ -16,6 +16,61 @@ Window {
     property string nextImage: ""
     property string activeMedia: "image" // "image" or "video" - tracks which was started last
 
+    // Multi-layer video support using ListModel for proper reactivity
+    ListModel {
+        id: videoLayersModel
+    }
+
+    // Update or add a video layer
+    function setVideoLayer(tabId, path, brightness, playing) {
+        console.log("OutputWindow.setVideoLayer: tabId=" + tabId + ", path=" + path + ", brightness=" + brightness + ", playing=" + playing);
+
+        // Find existing layer
+        for (var i = 0; i < videoLayersModel.count; i++) {
+            if (videoLayersModel.get(i).tabId === tabId) {
+                videoLayersModel.set(i, {
+                    tabId: tabId,
+                    path: path,
+                    brightness: brightness,
+                    playing: playing
+                });
+                console.log("OutputWindow: updated layer " + i + ", total layers: " + videoLayersModel.count);
+                return;
+            }
+        }
+
+        // Add new layer
+        videoLayersModel.append({
+            tabId: tabId,
+            path: path,
+            brightness: brightness,
+            playing: playing
+        });
+        console.log("OutputWindow: added new layer, total layers: " + videoLayersModel.count);
+    }
+
+    // Remove a video layer
+    function removeVideoLayer(tabId) {
+        for (var i = 0; i < videoLayersModel.count; i++) {
+            if (videoLayersModel.get(i).tabId === tabId) {
+                videoLayersModel.remove(i);
+                console.log("OutputWindow: removed layer " + tabId);
+                return;
+            }
+        }
+    }
+
+    // Update brightness for a video layer (convenience function)
+    function setVideoLayerBrightness(tabId, brightness) {
+        for (var i = 0; i < videoLayersModel.count; i++) {
+            var layer = videoLayersModel.get(i);
+            if (layer.tabId === tabId) {
+                videoLayersModel.setProperty(i, "brightness", brightness);
+                return;
+            }
+        }
+    }
+
     function urlForPath(p) {
         // Generic url helper: if path is absolute file path, convert to file:// URL
         if (!p)
@@ -38,6 +93,7 @@ Window {
         return p;
     }
 
+    // Legacy single player for backward compatibility (hidden, use video layers instead)
     MediaPlayer {
         id: player
         autoPlay: false
@@ -54,10 +110,73 @@ Window {
         id: videoOutput
         anchors.fill: parent
         source: player
-        visible: true
+        visible: false  // Hidden - use dynamic video layers instead
         fillMode: VideoOutput.PreserveAspectFit
         opacity: 1.0
         z: 1
+    }
+
+    // Dynamic video layers container
+    Item {
+        id: videoLayersContainer
+        anchors.fill: parent
+        z: 2
+
+        Repeater {
+            id: videoLayerRepeater
+            model: videoLayersModel
+
+            Item {
+                id: videoLayerItem
+                anchors.fill: parent
+
+                // Access model properties directly for proper reactivity with ListModel
+                property string layerPath: model.path || ""
+                property real layerBrightness: model.brightness !== undefined ? model.brightness : 1.0
+                property bool layerPlaying: model.playing || false
+                property int layerTabId: model.tabId || -1
+
+                visible: layerPath !== ""
+
+                MediaPlayer {
+                    id: layerPlayer
+                    autoPlay: false
+                    source: videoLayerItem.layerPath !== "" ? root.urlForPath(videoLayerItem.layerPath) : ""
+                    loops: MediaPlayer.Infinite
+                }
+
+                VideoOutput {
+                    anchors.fill: parent
+                    source: layerPlayer
+                    fillMode: VideoOutput.PreserveAspectFit
+                    opacity: videoLayerItem.layerBrightness
+                    visible: videoLayerItem.layerPath !== ""
+                }
+
+                onLayerPlayingChanged: {
+                    console.log("OutputWindow layer[" + layerTabId + "] playing changed: " + layerPlaying + ", path=" + layerPath);
+                    if (layerPlaying && layerPath !== "") {
+                        layerPlayer.play();
+                    } else {
+                        layerPlayer.pause();
+                    }
+                }
+
+                onLayerPathChanged: {
+                    console.log("OutputWindow layer[" + layerTabId + "] path changed: " + layerPath + ", playing=" + layerPlaying);
+                    if (layerPath !== "" && layerPlaying) {
+                        layerPlayer.play();
+                    }
+                }
+
+                Component.onCompleted: {
+                    console.log("OutputWindow video layer[" + layerTabId + "] created: path=" + layerPath + ", brightness=" + layerBrightness + ", playing=" + layerPlaying);
+                    if (layerPlaying && layerPath !== "") {
+                        layerPlayer.play();
+                    }
+                }
+            }
+        }
     }
 
     Image {
@@ -94,7 +213,7 @@ Window {
 
     function setVideoBrightness(level) {
         // level expected in [0, 1]; 0 = fully transparent, 1 = fully opaque
-        // Control the opacity of the video directly for cross-fade capability
+        // Control the opacity of the legacy video output
         videoOutput.opacity = level;
     }
 

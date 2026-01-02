@@ -114,3 +114,58 @@ int MediaManager::addMediaFromFolder(const QString &folderPath)
 
     return addedCount;
 }
+
+QString MediaManager::getMediaType(const QString &path) const
+{
+    QFileInfo fi(path);
+    QString ext = fi.suffix().toLower();
+
+    if (ext == "mp4" || ext == "mov" || ext == "mkv" || ext == "avi")
+    {
+        return "video";
+    }
+    else if (ext == "jpg" || ext == "jpeg" || ext == "png" || ext == "bmp")
+    {
+        return "image";
+    }
+    return QString();
+}
+
+QStringList MediaManager::getMediaPathsFromFolder(const QString &folderPath, const QString &filterType) const
+{
+    QStringList result;
+    if (folderPath.isEmpty())
+        return result;
+
+    QStringList extensions;
+    if (filterType == "image" || filterType.isEmpty())
+    {
+        extensions << "*.jpg" << "*.jpeg" << "*.png" << "*.bmp";
+    }
+    if (filterType == "video" || filterType.isEmpty())
+    {
+        extensions << "*.mp4" << "*.mov" << "*.mkv" << "*.avi";
+    }
+
+    QDirIterator it(folderPath, extensions, QDir::Files, QDirIterator::Subdirectories);
+    while (it.hasNext())
+    {
+        QString path = it.next();
+        // Only include files matching the filter type
+        if (!filterType.isEmpty())
+        {
+            QString type = getMediaType(path);
+            if (type == filterType)
+            {
+                result.append(path);
+            }
+        }
+        else
+        {
+            result.append(path);
+        }
+    }
+
+    result.sort(Qt::CaseInsensitive);
+    return result;
+}

@@ -104,6 +104,26 @@ void OutputWindow::setVideoBrightness(double level)
     QMetaObject::invokeMethod(m_root, "setVideoBrightness", Q_ARG(QVariant, QVariant(level)));
 }
 
+void OutputWindow::setVideoLayer(int tabId, const QString &path, double brightness, bool playing)
+{
+    qDebug() << "OutputWindow: setVideoLayer(" << tabId << "," << path << "," << brightness << "," << playing << ")";
+    if (!m_root)
+        return;
+    QMetaObject::invokeMethod(m_root, "setVideoLayer",
+                              Q_ARG(QVariant, QVariant(tabId)),
+                              Q_ARG(QVariant, QVariant(path)),
+                              Q_ARG(QVariant, QVariant(brightness)),
+                              Q_ARG(QVariant, QVariant(playing)));
+}
+
+void OutputWindow::removeVideoLayer(int tabId)
+{
+    qDebug() << "OutputWindow: removeVideoLayer(" << tabId << ")";
+    if (!m_root)
+        return;
+    QMetaObject::invokeMethod(m_root, "removeVideoLayer", Q_ARG(QVariant, QVariant(tabId)));
+}
+
 void OutputWindow::close()
 {
     qDebug() << "OutputWindow: close() root=" << (m_root != nullptr);

@@ -16,6 +16,8 @@ public:
     Q_INVOKABLE QString typeAt(int index) const; // "video" or "image"
     Q_INVOKABLE void addMedia(const QString &path);
     Q_INVOKABLE int addMediaFromFolder(const QString &folderPath);
+    Q_INVOKABLE QString getMediaType(const QString &path) const; // Returns "video", "image", or empty string
+    Q_INVOKABLE QStringList getMediaPathsFromFolder(const QString &folderPath, const QString &filterType) const;
 
     // Return a QVariantList suitable for binding from QML
     QVariantList qmlItems() const;
