@@ -24,6 +24,10 @@ Window {
     property int transitionDurationMs: preferences ? preferences.transitionDurationMs : 200
     property int outputScreenIndex: preferences ? preferences.outputScreenIndex : 1
 
+    // Loop/repeat settings for media tabs
+    property bool loopSlideshows: true  // After last image, continue with first
+    property bool loopVideos: true      // After last video, continue with first
+
     property int m_loadedVideoIndex: -1
     property bool isBlack: false
     property bool wasVideoPlaying: false
@@ -598,7 +602,8 @@ Window {
                                             to: 3600
                                             value: slideshowDelaySeconds
                                             Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
-                                            Layout.fillWidth: true
+                                            Layout.preferredWidth: 120
+                                            Layout.maximumWidth: 120
                                             background: Rectangle {
                                                 radius: 4
                                                 color: backgroundColor
@@ -614,6 +619,36 @@ Window {
                                                 verticalAlignment: Text.AlignVCenter
                                                 readOnly: !parent.editable
                                                 validator: parent.validator
+                                            }
+                                            up.indicator: Rectangle {
+                                                x: parent.mirrored ? 0 : parent.width - width
+                                                height: parent.height
+                                                implicitWidth: 38
+                                                implicitHeight: 38
+                                                color: spinSlideshow.up.pressed ? Qt.darker(panelColor, 1.2) : panelColor
+                                                border.color: borderColor
+                                                radius: 4
+                                                Text {
+                                                    text: "+"
+                                                    font.pixelSize: 14
+                                                    color: subtleTextColor
+                                                    anchors.centerIn: parent
+                                                }
+                                            }
+                                            down.indicator: Rectangle {
+                                                x: parent.mirrored ? parent.width - width : 0
+                                                height: parent.height
+                                                implicitWidth: 38
+                                                implicitHeight: 38
+                                                color: spinSlideshow.down.pressed ? Qt.darker(panelColor, 1.2) : panelColor
+                                                border.color: borderColor
+                                                radius: 4
+                                                Text {
+                                                    text: "-"
+                                                    font.pixelSize: 14
+                                                    color: subtleTextColor
+                                                    anchors.centerIn: parent
+                                                }
                                             }
                                             onValueChanged: slideshowDelaySeconds = value
                                         }
@@ -631,7 +666,8 @@ Window {
                                             value: transitionDurationMs
                                             stepSize: 50
                                             Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
-                                            Layout.fillWidth: true
+                                            Layout.preferredWidth: 120
+                                            Layout.maximumWidth: 120
                                             background: Rectangle {
                                                 radius: 4
                                                 color: backgroundColor
@@ -648,7 +684,137 @@ Window {
                                                 readOnly: !parent.editable
                                                 validator: parent.validator
                                             }
+                                            up.indicator: Rectangle {
+                                                x: parent.mirrored ? 0 : parent.width - width
+                                                height: parent.height
+                                                implicitWidth: 38
+                                                implicitHeight: 38
+                                                color: spinTransition.up.pressed ? Qt.darker(panelColor, 1.2) : panelColor
+                                                border.color: borderColor
+                                                radius: 4
+                                                Text {
+                                                    text: "+"
+                                                    font.pixelSize: 14
+                                                    color: subtleTextColor
+                                                    anchors.centerIn: parent
+                                                }
+                                            }
+                                            down.indicator: Rectangle {
+                                                x: parent.mirrored ? parent.width - width : 0
+                                                height: parent.height
+                                                implicitWidth: 38
+                                                implicitHeight: 38
+                                                color: spinTransition.down.pressed ? Qt.darker(panelColor, 1.2) : panelColor
+                                                border.color: borderColor
+                                                radius: 4
+                                                Text {
+                                                    text: "-"
+                                                    font.pixelSize: 14
+                                                    color: subtleTextColor
+                                                    anchors.centerIn: parent
+                                                }
+                                            }
                                             onValueChanged: transitionDurationMs = value
+                                        }
+
+                                        Label {
+                                            text: qsTr("Loop slideshow:")
+                                            color: textColor
+                                            horizontalAlignment: Text.AlignLeft
+                                            Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
+                                        }
+                                        Switch {
+                                            id: switchLoopSlideshow
+                                            checked: loopSlideshows
+                                            Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
+                                            onCheckedChanged: loopSlideshows = checked
+                                            ToolTip.visible: hovered
+                                            ToolTip.text: qsTr("When enabled, slideshow continues from first image after the last one")
+
+                                            indicator: Rectangle {
+                                                implicitWidth: 48
+                                                implicitHeight: 26
+                                                x: switchLoopSlideshow.leftPadding
+                                                y: parent.height / 2 - height / 2
+                                                radius: 13
+                                                color: switchLoopSlideshow.checked ? accentColor : borderColor
+                                                border.color: switchLoopSlideshow.checked ? accentColor : borderColor
+
+                                                Rectangle {
+                                                    x: switchLoopSlideshow.checked ? parent.width - width - 2 : 2
+                                                    y: 2
+                                                    width: 22
+                                                    height: 22
+                                                    radius: 11
+                                                    color: panelColor
+                                                    Behavior on x {
+                                                        NumberAnimation {
+                                                            duration: 150
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+
+                                GroupBox {
+                                    Layout.fillWidth: true
+                                    title: qsTr("Video")
+                                    label: Label {
+                                        text: qsTr("Video")
+                                        color: textColor
+                                    }
+                                    background: Rectangle {
+                                        radius: 6
+                                        color: panelColor
+                                        border.color: borderColor
+                                    }
+
+                                    GridLayout {
+                                        anchors.fill: parent
+                                        anchors.margins: 12
+                                        columns: 2
+                                        columnSpacing: 12
+                                        rowSpacing: 8
+
+                                        Label {
+                                            text: qsTr("Loop video list:")
+                                            color: textColor
+                                            horizontalAlignment: Text.AlignLeft
+                                            Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
+                                        }
+                                        Switch {
+                                            id: switchLoopVideos
+                                            checked: loopVideos
+                                            Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
+                                            onCheckedChanged: loopVideos = checked
+                                            ToolTip.visible: hovered
+                                            ToolTip.text: qsTr("When enabled, video playback continues from first video after the last one")
+
+                                            indicator: Rectangle {
+                                                implicitWidth: 48
+                                                implicitHeight: 26
+                                                x: switchLoopVideos.leftPadding
+                                                y: parent.height / 2 - height / 2
+                                                radius: 13
+                                                color: switchLoopVideos.checked ? accentColor : borderColor
+                                                border.color: switchLoopVideos.checked ? accentColor : borderColor
+
+                                                Rectangle {
+                                                    x: switchLoopVideos.checked ? parent.width - width - 2 : 2
+                                                    y: 2
+                                                    width: 22
+                                                    height: 22
+                                                    radius: 11
+                                                    color: panelColor
+                                                    Behavior on x {
+                                                        NumberAnimation {
+                                                            duration: 150
+                                                        }
+                                                    }
+                                                }
+                                            }
                                         }
                                     }
                                 }
@@ -685,7 +851,8 @@ Window {
                                             to: 8
                                             value: outputScreenIndex
                                             Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
-                                            Layout.fillWidth: true
+                                            Layout.preferredWidth: 120
+                                            Layout.maximumWidth: 120
                                             background: Rectangle {
                                                 radius: 4
                                                 color: backgroundColor
@@ -701,6 +868,36 @@ Window {
                                                 verticalAlignment: Text.AlignVCenter
                                                 readOnly: !parent.editable
                                                 validator: parent.validator
+                                            }
+                                            up.indicator: Rectangle {
+                                                x: parent.mirrored ? 0 : parent.width - width
+                                                height: parent.height
+                                                implicitWidth: 38
+                                                implicitHeight: 38
+                                                color: spinScreenIndex.up.pressed ? Qt.darker(panelColor, 1.2) : panelColor
+                                                border.color: borderColor
+                                                radius: 4
+                                                Text {
+                                                    text: "+"
+                                                    font.pixelSize: 14
+                                                    color: subtleTextColor
+                                                    anchors.centerIn: parent
+                                                }
+                                            }
+                                            down.indicator: Rectangle {
+                                                x: parent.mirrored ? parent.width - width : 0
+                                                height: parent.height
+                                                implicitWidth: 38
+                                                implicitHeight: 38
+                                                color: spinScreenIndex.down.pressed ? Qt.darker(panelColor, 1.2) : panelColor
+                                                border.color: borderColor
+                                                radius: 4
+                                                Text {
+                                                    text: "-"
+                                                    font.pixelSize: 14
+                                                    color: subtleTextColor
+                                                    anchors.centerIn: parent
+                                                }
                                             }
                                             onValueChanged: outputScreenIndex = value
                                         }
@@ -719,7 +916,8 @@ Window {
                                         text: qsTr("Reset")
                                         background: Rectangle {
                                             radius: 6
-                                            implicitHeight: 32
+                                            implicitHeight: 38
+                                            implicitWidth: 64
                                             color: panelColor
                                             border.color: borderColor
                                         }
@@ -745,7 +943,8 @@ Window {
                                         text: qsTr("Save")
                                         background: Rectangle {
                                             radius: 6
-                                            implicitHeight: 32
+                                            implicitHeight: 38
+                                            implicitWidth: 64
                                             color: accentColor
                                             border.color: borderColor
                                         }
@@ -1836,6 +2035,9 @@ Window {
                                             property int seekPosition: model.seekPosition !== undefined ? model.seekPosition : -1
                                             property bool isSeeking: model.isSeeking ? model.isSeeking : false
 
+                                            // Determine if this layer has active content (for border)
+                                            property bool hasActiveContent: mediaPath !== ""
+
                                             visible: true  // Always visible, let children handle visibility
 
                                             // Handle seek requests
@@ -1861,6 +2063,27 @@ Window {
 
                                                 onSourceChanged: {
                                                     console.log("Preview image source changed: " + source + ", visible=" + visible);
+                                                }
+
+                                                // Blue border around actual image content (indicates size in output)
+                                                Rectangle {
+                                                    visible: previewImageItem.visible && previewImageItem.status === Image.Ready
+                                                    color: "transparent"
+                                                    border.color: accentColor
+                                                    border.width: 2
+                                                    radius: 2
+                                                    z: 100
+
+                                                    // Calculate position and size based on image's painted area
+                                                    property real imgRatio: previewImageItem.sourceSize.width > 0 ? previewImageItem.sourceSize.height / previewImageItem.sourceSize.width : 1
+                                                    property real containerRatio: previewImageItem.height / Math.max(1, previewImageItem.width)
+                                                    property real paintedWidth: containerRatio > imgRatio ? previewImageItem.width : previewImageItem.height / imgRatio
+                                                    property real paintedHeight: containerRatio > imgRatio ? previewImageItem.width * imgRatio : previewImageItem.height
+
+                                                    x: (previewImageItem.width - paintedWidth) / 2
+                                                    y: (previewImageItem.height - paintedHeight) / 2
+                                                    width: paintedWidth
+                                                    height: paintedHeight
                                                 }
                                             }
 
@@ -1931,9 +2154,20 @@ Window {
                                                 var currentIdx = tab.currentIndex;
                                                 var nextIdx = currentIdx + 1;
 
-                                                // If at end of list, loop back to beginning
+                                                // If at end of list, check if looping is enabled
                                                 if (nextIdx >= mediaModel.count) {
-                                                    nextIdx = 0;
+                                                    if (loopVideos) {
+                                                        nextIdx = 0;  // Loop back to beginning
+                                                    } else {
+                                                        // Stop playback - don't loop
+                                                        console.log("Video list ended, looping disabled - stopping playback");
+                                                        mediaTabsModel.setProperty(tabIndex, "isPlaying", false);
+                                                        if (outputWindow) {
+                                                            var stopZOrder = tab.zOrder !== undefined ? tab.zOrder : tabIndex;
+                                                            outputWindow.setVideoLayer(tab.tabId, tab.currentPath, tab.brightness, false, stopZOrder);
+                                                        }
+                                                        return;
+                                                    }
                                                 }
 
                                                 var nextItem = mediaModel.get(nextIdx);
@@ -1963,6 +2197,27 @@ Window {
 
                                                 onVisibleChanged: {
                                                     console.log("Preview video visible changed: " + visible + ", path=" + previewMediaItem.mediaPath + ", type=" + previewMediaItem.mediaType);
+                                                }
+
+                                                // Blue border around actual video content (indicates size in output)
+                                                Rectangle {
+                                                    visible: previewVideoOutput.visible && previewMediaPlayer.status >= MediaPlayer.Loaded
+                                                    color: "transparent"
+                                                    border.color: accentColor
+                                                    border.width: 2
+                                                    radius: 2
+                                                    z: 100
+
+                                                    // Calculate position and size based on video's content rect
+                                                    property real vidWidth: previewVideoOutput.contentRect.width
+                                                    property real vidHeight: previewVideoOutput.contentRect.height
+                                                    property real vidX: previewVideoOutput.contentRect.x
+                                                    property real vidY: previewVideoOutput.contentRect.y
+
+                                                    x: vidX
+                                                    y: vidY
+                                                    width: vidWidth > 0 ? vidWidth : parent.width
+                                                    height: vidHeight > 0 ? vidHeight : parent.height
                                                 }
                                             }
 
@@ -2099,7 +2354,7 @@ Window {
         // Bottom status bar
         Rectangle {
             Layout.fillWidth: true
-            implicitHeight: 28
+            implicitHeight: 40
             radius: 6
             color: panelColor
             border.color: borderColor
@@ -2161,8 +2416,19 @@ Window {
         }
     }
 
+    // Sync loop settings to SlideshowController
+    onLoopSlideshowsChanged: {
+        if (slideshow) {
+            slideshow.loopEnabled = loopSlideshows;
+        }
+    }
+
     Component.onCompleted: {
         refreshLists();
+        // Sync loop setting to slideshow controller
+        if (slideshow) {
+            slideshow.loopEnabled = loopSlideshows;
+        }
         // Connect the mediaTabsModel to OutputWindow for shared state
         if (outputWindow) {
             outputWindow.setExternalMediaTabsModel(mediaTabsModel);
@@ -2240,6 +2506,14 @@ Window {
                     console.log("Slideshow advanced to: " + iPath + ", tabId=" + activeSlideshowTabId);
                 }
             }
+        }
+        onSlideshowEnded: {
+            console.log("Slideshow ended (looping disabled)");
+            statusText = qsTr("Slideshow ended");
+            // The slideshow has already stopped in the controller
+            // Reset the active slideshow tracking
+            activeSlideshowTabId = -1;
+            activeSlideshowTabIndex = -1;
         }
     }
 

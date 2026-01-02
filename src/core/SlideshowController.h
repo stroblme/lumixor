@@ -11,6 +11,7 @@ class SlideshowController : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(QString currentImagePath READ currentImagePath NOTIFY currentImagePathChanged)
+    Q_PROPERTY(bool loopEnabled READ loopEnabled WRITE setLoopEnabled NOTIFY loopEnabledChanged)
 public:
     explicit SlideshowController(MediaManager *mediaManager,
                                  OutputWindow *outputWindow,
@@ -25,10 +26,14 @@ public:
     Q_INVOKABLE void setCurrentIndex(int index);       // Jump to a specific index in the slideshow
 
     QString currentImagePath() const { return m_currentImagePath; }
+    bool loopEnabled() const { return m_loopEnabled; }
+    void setLoopEnabled(bool enabled);
 
 signals:
     void currentImagePathChanged();
     void started(); // Emitted when slideshow starts or resumes
+    void loopEnabledChanged();
+    void slideshowEnded(); // Emitted when slideshow reaches end and looping is disabled
 
 private slots:
     void advance();
@@ -43,4 +48,5 @@ private:
     QString m_currentImagePath;
     QStringList m_customImageList; // Custom image paths from QML
     bool m_useCustomList = false;
+    bool m_loopEnabled = true;
 };

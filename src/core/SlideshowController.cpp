@@ -187,6 +187,16 @@ void SlideshowController::setCurrentIndex(int index)
     }
 }
 
+void SlideshowController::setLoopEnabled(bool enabled)
+{
+    if (m_loopEnabled != enabled)
+    {
+        m_loopEnabled = enabled;
+        emit loopEnabledChanged();
+        qDebug() << "SlideshowController: loop enabled =" << enabled;
+    }
+}
+
 void SlideshowController::advance()
 {
     int itemCount = 0;
@@ -203,9 +213,18 @@ void SlideshowController::advance()
     if (itemCount == 0)
         return;
 
-    m_currentIndex = findNextImageIndex(m_currentIndex);
-    if (m_currentIndex < 0)
+    int nextIndex = findNextImageIndex(m_currentIndex);
+
+    // Check if we've reached the end (findNextImageIndex returns -1 when looping is disabled and at end)
+    if (nextIndex < 0)
+    {
+        qDebug() << "Slideshow reached end, looping disabled - stopping";
+        m_timer.stop();
+        emit slideshowEnded();
         return;
+    }
+
+    m_currentIndex = nextIndex;
 
     QString imagePath;
     if (m_useCustomList)
@@ -240,8 +259,22 @@ int SlideshowController::findNextImageIndex(int from) const
         if (count == 0)
             return -1;
 
-        // All items in custom list are images, just cycle through
-        return (from + 1 + count) % count;
+        int nextIdx = from + 1;
+
+        // Check if we've reached the end
+        if (nextIdx >= count)
+        {
+            if (m_loopEnabled)
+            {
+                return 0; // Loop back to beginning
+            }
+            else
+            {
+                return -1; // No more images, don't loop
+            }
+        }
+
+        return nextIdx;
     }
 
     // Fall back to MediaManager
@@ -254,11 +287,30 @@ int SlideshowController::findNextImageIndex(int from) const
 
     count = items.size();
     int idx = from;
+    int startIdx = from;
 
-    // iterate through list once in cyclic manner, look for image
+    // iterate through list looking for next image
     for (int i = 0; i < count; ++i)
     {
-        idx = (idx + 1 + count) % count;
+        idx = idx + 1;
+
+        // Check if we've gone past the end
+        if (idx >= count)
+        {
+            if (m_loopEnabled)
+            {
+                idx = 0; // Wrap around
+            }
+            else
+            {
+                return -1; // No more images, don't loop
+            }
+        }
+
+        // Don't loop back to where we started if we've wrapped
+        if (idx == startIdx && !m_loopEnabled)
+            return -1;
+
         if (items[idx].type == MediaType::Image)
             return idx;
     }
