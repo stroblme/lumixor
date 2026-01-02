@@ -46,12 +46,15 @@ Window {
     property color listItemHighlight: "#29434E"
 
     // Dynamic media tabs model: each entry is { tabId, tabType ("slideshow" or "video"), tabName, mediaModel (ListModel), brightness }
-    // Use different ID ranges to avoid conflicts: slideshow 1000+, video 2000+
-    property int nextSlideshowId: 1000
-    property int nextVideoId: 2000
+    // Tab IDs start from 0 and increment globally to avoid conflicts
+    property int nextTabId: 0
     property var mediaTabs: ListModel {
         id: mediaTabsModel
     }
+
+    // Counters for display names (Slideshow 1, Video 1, etc.)
+    property int nextSlideshowNumber: 1
+    property int nextVideoNumber: 1
 
     // Track which slideshow tab is currently running (tabId, or -1 if none)
     property int activeSlideshowTabId: -1
@@ -69,15 +72,16 @@ Window {
     // Add a new media tab
     function addMediaTab(tabType, tabName) {
         var newModel = Qt.createQmlObject('import QtQuick 2.12; ListModel {}', controlRoot);
-        var name, tabId;
+        var name;
+        var tabId = nextTabId;
+        nextTabId++;
+
         if (tabType === "slideshow") {
-            tabId = nextSlideshowId;
-            name = tabName || qsTr("Slideshow ") + nextSlideshowId;
-            nextSlideshowId++;
+            name = tabName || qsTr("Slideshow ") + nextSlideshowNumber;
+            nextSlideshowNumber++;
         } else {
-            tabId = nextVideoId;
-            name = tabName || qsTr("Video ") + nextVideoId;
-            nextVideoId++;
+            name = tabName || qsTr("Video ") + nextVideoNumber;
+            nextVideoNumber++;
         }
         // zOrder is the position in the tab list (0 = leftmost, higher = more to the right = on top)
         var zOrder = mediaTabsModel.count;

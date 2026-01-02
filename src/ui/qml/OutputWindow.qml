@@ -324,6 +324,14 @@ Window {
     }
 
     function fadeToImage(path) {
+        // Legacy function - disabled in favor of media layers system
+        // The ControlWindow now handles image display via setImageLayer()
+        // which provides proper z-ordering and brightness control
+        console.log("fadeToImage called (legacy, ignored): " + path);
+        return;
+
+        // Original implementation (disabled):
+        /*
         activeMedia = "image";
         if (isFading) {
             pendingImage = imageUrlForPath(path);
@@ -332,6 +340,7 @@ Window {
         nextImage = imageUrlForPath(path);
         isFading = true;
         crossFade.start();
+        */
     }
 
     SequentialAnimation {
