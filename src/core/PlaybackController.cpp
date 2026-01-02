@@ -26,6 +26,7 @@ void PlaybackController::play()
     }
     m_isPlaying = true;
     emit playRequested();
+    emit started();
 }
 
 void PlaybackController::pause()

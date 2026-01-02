@@ -28,6 +28,7 @@ signals:
     void stopRequested();
     void sourceChanged();
     void currentMediaPathChanged();
+    void started(); // Emitted when video playback starts or resumes
 
 public slots:
     Q_INVOKABLE void notifyMediaFinished();

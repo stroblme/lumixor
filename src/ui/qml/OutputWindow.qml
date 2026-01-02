@@ -14,21 +14,28 @@ Window {
     property bool isFading: false
     property string pendingImage: ""
     property string nextImage: ""
+    property string activeMedia: "image" // "image" or "video" - tracks which was started last
 
     function urlForPath(p) {
         // Generic url helper: if path is absolute file path, convert to file:// URL
-        if (!p) return ""
-        if (p.indexOf(":/") !== -1) return p // already has a scheme
-        if (p.startsWith("/")) return "file://" + p
-        return p
+        if (!p)
+            return "";
+        if (p.indexOf(":/") !== -1)
+            return p; // already has a scheme
+        if (p.startsWith("/"))
+            return "file://" + p;
+        return p;
     }
 
     function imageUrlForPath(p) {
         // Use image provider for local files so EXIF orientation is applied
-        if (!p) return ""
-        if (p.indexOf(":/") !== -1) return p
-        if (p.startsWith("/")) return "image://exif/" + encodeURIComponent(p)
-        return p
+        if (!p)
+            return "";
+        if (p.indexOf(":/") !== -1)
+            return p;
+        if (p.startsWith("/"))
+            return "image://exif/" + encodeURIComponent(p);
+        return p;
     }
 
     MediaPlayer {
@@ -47,16 +54,18 @@ Window {
         id: videoOutput
         anchors.fill: parent
         source: player
-        visible: false
+        visible: true
         fillMode: VideoOutput.PreserveAspectFit
+        z: activeMedia === "video" ? 1 : 0
     }
 
     Image {
         id: imageItem
         anchors.fill: parent
         fillMode: Image.PreserveAspectFit
-        visible: false
+        visible: true
         opacity: 1.0
+        z: activeMedia === "image" ? 1 : 0
     }
 
     Rectangle {
@@ -71,67 +80,87 @@ Window {
     function setBrightness(level) {
         // level expected in [0, 1]; 0 = black, 1 = normal
         // Implemented as a black overlay with variable opacity
-        blackoutRect.opacity = 1.0 - level
-        blackoutRect.visible = blackoutRect.opacity > 0.0
+        blackoutRect.opacity = 1.0 - level;
+        blackoutRect.visible = blackoutRect.opacity > 0.0;
         // Do not pause the player here so video can continue playing under blackout
     }
 
     function setBlackout(enable) {
         // Preserve existing API: map boolean blackout to brightness levels
-        setBrightness(enable ? 0.0 : 1.0)
+        setBrightness(enable ? 0.0 : 1.0);
         if (enable) {
             // For legacy blackout calls, keep previous behavior of pausing
-            player.pause()
+            player.pause();
         }
     }
 
     function showVideo() {
-        videoOutput.visible = true
-        imageItem.visible = false
-        blackoutRect.visible = false
-        blackoutRect.opacity = 0.0
+        activeMedia = "video";
+        videoOutput.visible = true;
+        imageItem.visible = true;
+        blackoutRect.visible = false;
+        blackoutRect.opacity = 0.0;
     }
 
     function showImage(path) {
-        imageItem.source = imageUrlForPath(path)
-        imageItem.opacity = 1.0
-        imageItem.visible = true
-        videoOutput.visible = false
-        blackoutRect.visible = false
-        blackoutRect.opacity = 0.0
+        activeMedia = "image";
+        imageItem.source = imageUrlForPath(path);
+        imageItem.opacity = 1.0;
+        imageItem.visible = true;
+        videoOutput.visible = true;
+        blackoutRect.visible = false;
+        blackoutRect.opacity = 0.0;
     }
 
     function fadeToImage(path) {
+        activeMedia = "image";
         if (isFading) {
-            pendingImage = imageUrlForPath(path)
-            return
+            pendingImage = imageUrlForPath(path);
+            return;
         }
-        nextImage = imageUrlForPath(path)
-        isFading = true
-        crossFade.start()
+        nextImage = imageUrlForPath(path);
+        isFading = true;
+        crossFade.start();
     }
 
     SequentialAnimation {
         id: crossFade
         running: false
-        NumberAnimation { target: imageItem; property: "opacity"; from: 1; to: 0; duration: 200 }
-        ScriptAction { script: imageItem.source = root.nextImage }
-        NumberAnimation { target: imageItem; property: "opacity"; from: 0; to: 1; duration: 200 }
+        NumberAnimation {
+            target: imageItem
+            property: "opacity"
+            from: 1
+            to: 0
+            duration: 200
+        }
+        ScriptAction {
+            script: imageItem.source = root.nextImage
+        }
+        NumberAnimation {
+            target: imageItem
+            property: "opacity"
+            from: 0
+            to: 1
+            duration: 200
+        }
         onStopped: {
-            isFading = false
+            isFading = false;
             if (pendingImage.length > 0) {
-                var p = pendingImage; pendingImage = ""; nextImage = p; crossFade.start()
+                var p = pendingImage;
+                pendingImage = "";
+                nextImage = p;
+                crossFade.start();
             }
-            imageItem.visible = true
-            videoOutput.visible = false
-            blackoutRect.visible = false
+            imageItem.visible = true;
+            videoOutput.visible = true;
+            blackoutRect.visible = false;
         }
     }
 
     Connections {
         target: playbackController
         onSourceChanged: {
-            player.source = playbackController.source
+            player.source = playbackController.source;
         }
         onPlayRequested: player.play()
         onPauseRequested: player.pause()

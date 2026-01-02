@@ -39,6 +39,7 @@ void SlideshowController::start(int intervalMs)
     }
 
     m_timer.start(intervalMs);
+    emit started();
 }
 
 void SlideshowController::stop()

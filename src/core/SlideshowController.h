@@ -23,6 +23,7 @@ public:
 
 signals:
     void currentImagePathChanged();
+    void started(); // Emitted when slideshow starts or resumes
 
 private slots:
     void advance();

@@ -29,6 +29,7 @@ Window {
     property bool wasVideoPlaying: false
     property bool wasSlideshowRunning: false
     property string statusText: ""
+    property string previewActiveMedia: "image" // "image" or "video" - tracks which preview should be on top
 
     // Dark theme colors for the control UI
     property color backgroundColor: "#121212"
@@ -346,8 +347,13 @@ Window {
                                         }
                                         onCheckedChanged: {
                                             if (checked) {
-                                                if (playbackController.isPlaying())
+                                                // Pause video when slideshow starts
+                                                if (playbackController.isPlaying()) {
                                                     playbackController.pause();
+                                                    btnPlayToggle.checked = false;
+                                                    btnPlayToggle.text = "Resume";
+                                                }
+                                                previewActiveMedia = "image";
                                                 slideshow.start(slideshowDelaySeconds * 1000);
                                                 statusText = "Slideshow started (" + slideshowDelaySeconds + " s per image)";
                                                 btnSlideshowToggle.text = "Pause Slideshow";
@@ -441,6 +447,13 @@ Window {
                                                     statusText = "No video selected";
                                                     return;
                                                 }
+                                                // Pause slideshow when video starts
+                                                if (slideshow.isRunning()) {
+                                                    slideshow.pause();
+                                                    btnSlideshowToggle.checked = false;
+                                                    btnSlideshowToggle.text = "Resume Slideshow";
+                                                }
+                                                previewActiveMedia = "video";
                                                 if (row !== m_loadedVideoIndex) {
                                                     var item = videoModel.get(row);
                                                     playbackController.loadMediaPath(item.path);
@@ -595,17 +608,19 @@ Window {
                                     id: previewImage
                                     anchors.fill: parent
                                     fillMode: Image.PreserveAspectFit
-                                    visible: slideshow && slideshow.currentImagePath !== ""
+                                    visible: true
                                     source: slideshow ? controlRoot.imageUrlForPath(slideshow.currentImagePath) : ""
+                                    z: previewActiveMedia === "image" ? 1 : 0
                                 }
 
                                 // Video preview: small live video using the same source as OutputWindow
                                 VideoOutput {
                                     id: previewVideo
                                     anchors.fill: parent
-                                    visible: playbackController && playbackController.source !== "" && (!slideshow || slideshow.currentImagePath === "")
+                                    visible: true
                                     source: previewPlayer
                                     fillMode: VideoOutput.PreserveAspectFit
+                                    z: previewActiveMedia === "video" ? 1 : 0
                                 }
 
                                 MediaPlayer {
