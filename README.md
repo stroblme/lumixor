@@ -6,6 +6,17 @@ This project attempts to fill the gap of a simple VJ controller that runs smooth
 - blackout and crossfade functionality
 - multi screen with preview in control window
 
+## Installation
+
+At the moment, there are no pre-build binaries available.
+You can easily build the application yourself by
+1. Installing the required dependencies
+```
+./install-build-dependencies.sh
+```
+2. Building the application
+3. The output is then in `/build/lumixor-qt`
+
 ## Usage
 
 On startup, the program shows the main tab. Here you can add media either by selecting individual files or complete folders.
