@@ -86,15 +86,23 @@ Window {
                     TabBar {
                         id: mainTabs
                         Layout.fillWidth: true
+                        currentIndex: 1 // Default to Home tab
 
                         TabButton {
                             text: qsTr("Preferences")
                         }
                         TabButton {
+                            text: qsTr("Home")
+                        }
+                        TabButton {
                             text: qsTr("Slideshow")
+                            visible: imageModel.count > 0
+                            width: visible ? implicitWidth : 0
                         }
                         TabButton {
                             text: qsTr("Video")
+                            visible: videoModel.count > 0
+                            width: visible ? implicitWidth : 0
                         }
                     }
 
@@ -313,6 +321,92 @@ Window {
                                             statusText = qsTr("Preferences saved");
                                         }
                                     }
+                                }
+                            }
+                        }
+
+                        // Home tab content
+                        Item {
+                            Layout.fillWidth: true
+                            Layout.fillHeight: true
+
+                            ColumnLayout {
+                                anchors.fill: parent
+                                anchors.margins: 16
+                                spacing: 16
+
+                                Label {
+                                    text: qsTr("Welcome to Lumixor")
+                                    color: textColor
+                                    font.bold: true
+                                    font.pixelSize: 18
+                                    Layout.alignment: Qt.AlignHCenter
+                                }
+
+                                Label {
+                                    text: qsTr("Add media files to get started")
+                                    color: subtleTextColor
+                                    Layout.alignment: Qt.AlignHCenter
+                                }
+
+                                Item {
+                                    Layout.fillHeight: true
+                                    Layout.preferredHeight: 20
+                                }
+
+                                RowLayout {
+                                    Layout.alignment: Qt.AlignHCenter
+                                    spacing: 16
+
+                                    Button {
+                                        id: btnHomeAddFiles
+                                        text: qsTr("Add Files")
+                                        Layout.preferredWidth: 140
+                                        Layout.preferredHeight: 48
+                                        background: Rectangle {
+                                            radius: 6
+                                            border.color: borderColor
+                                            color: btnHomeAddFiles.down ? accentColor : btnHomeAddFiles.hovered ? Qt.lighter(panelColor, 1.25) : panelColor
+                                        }
+                                        contentItem: Text {
+                                            text: btnHomeAddFiles.text
+                                            color: textColor
+                                            horizontalAlignment: Text.AlignHCenter
+                                            verticalAlignment: Text.AlignVCenter
+                                            font.pixelSize: 14
+                                        }
+                                        onClicked: btnAdd.clicked()
+
+                                        ToolTip.visible: hovered
+                                        ToolTip.text: qsTr("Add images or videos to the media list")
+                                    }
+
+                                    Button {
+                                        id: btnHomeAddFolder
+                                        text: qsTr("Add Folder")
+                                        Layout.preferredWidth: 140
+                                        Layout.preferredHeight: 48
+                                        background: Rectangle {
+                                            radius: 6
+                                            border.color: borderColor
+                                            color: btnHomeAddFolder.down ? accentColor : btnHomeAddFolder.hovered ? Qt.lighter(panelColor, 1.25) : panelColor
+                                        }
+                                        contentItem: Text {
+                                            text: btnHomeAddFolder.text
+                                            color: textColor
+                                            horizontalAlignment: Text.AlignHCenter
+                                            verticalAlignment: Text.AlignVCenter
+                                            font.pixelSize: 14
+                                        }
+                                        onClicked: btnAddFolder.clicked()
+
+                                        ToolTip.visible: hovered
+                                        ToolTip.text: qsTr("Recursively scan a folder for images and videos")
+                                    }
+                                }
+
+                                Item {
+                                    Layout.fillHeight: true
                                 }
                             }
                         }
