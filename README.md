@@ -22,7 +22,8 @@ You can easily build the application yourself by
 
 ## Usage
 
-On startup, the program shows the main tab. Here you can add media either by selecting individual files or complete folders.
+On startup, two windows will open. One is the so called "Output Window", the other is the "Control Window".
+In the control window, the program shows the main tab. Here you can add media either by selecting individual files or complete folders.
 The selected images or videos are then sorted into separate tabs from where you can start the playback of slideshows or videos respectively.
 Each tab has an alpha slider, controlling the transparency of the media.
 You can add more media (slideshows/ videos) by clicking on the "+" at the right hand side of the tab bar.
