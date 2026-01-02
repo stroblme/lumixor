@@ -47,6 +47,10 @@ int main(int argc, char *argv[])
 
     const auto screens = app.screens();
     const int targetScreen = cfg.outputScreenIndex;
+    const bool singleScreen = screens.size() <= 1;
+
+    QWindow *controlWindow = nullptr;
+    QWindow *outWindow = nullptr;
 
     const auto roots = engine.rootObjects();
     for (QObject *root : roots)
@@ -56,6 +60,7 @@ int main(int argc, char *argv[])
             QWindow *w = qobject_cast<QWindow *>(root);
             if (w)
             {
+                controlWindow = w;
                 // Position on primary screen but let it start maximized
                 if (!screens.isEmpty())
                 {
@@ -73,10 +78,18 @@ int main(int argc, char *argv[])
             QWindow *w = qobject_cast<QWindow *>(root);
             if (w)
             {
+                outWindow = w;
                 w->resize(cfg.outputWidth, cfg.outputHeight);
             }
             outputWindow.fullscreenOnScreen(targetScreen);
         }
+    }
+
+    // On single screen, ensure control window is above output window
+    if (singleScreen && controlWindow && outWindow)
+    {
+        controlWindow->raise();
+        controlWindow->requestActivate();
     }
 
     return app.exec();

@@ -595,49 +595,65 @@ Window {
                                 font.bold: true
                             }
 
-                            Rectangle {
-                                id: previewFrame
+                            // Container that maintains the output window's aspect ratio
+                            Item {
+                                id: previewContainer
                                 Layout.fillWidth: true
                                 Layout.fillHeight: true
-                                radius: 4
-                                color: "#000000"
-                                border.color: borderColor
 
-                                // Slideshow image: exact path used by OutputWindow via EXIF provider
-                                Image {
-                                    id: previewImage
-                                    anchors.fill: parent
-                                    fillMode: Image.PreserveAspectFit
-                                    visible: true
-                                    source: slideshow ? controlRoot.imageUrlForPath(slideshow.currentImagePath) : ""
-                                    z: previewActiveMedia === "image" ? 1 : 0
-                                }
+                                // Use 16:9 aspect ratio as default (common for presentations)
+                                property real outputAspect: 16 / 9
 
-                                // Video preview: small live video using the same source as OutputWindow
-                                VideoOutput {
-                                    id: previewVideo
-                                    anchors.fill: parent
-                                    visible: true
-                                    source: previewPlayer
-                                    fillMode: VideoOutput.PreserveAspectFit
-                                    z: previewActiveMedia === "video" ? 1 : 0
-                                }
+                                Rectangle {
+                                    id: previewFrame
+                                    anchors.centerIn: parent
+                                    // Fit within container while maintaining aspect ratio
+                                    property real containerAspect: previewContainer.width / Math.max(1, previewContainer.height)
+                                    property bool isHeightLimited: containerAspect > previewContainer.outputAspect
 
-                                MediaPlayer {
-                                    id: previewPlayer
-                                    autoPlay: false
-                                    source: ""
-                                }
+                                    width: Math.max(50, isHeightLimited ? previewContainer.height * previewContainer.outputAspect : previewContainer.width)
+                                    height: Math.max(50, isHeightLimited ? previewContainer.height : previewContainer.width / previewContainer.outputAspect)
+                                    radius: 4
+                                    color: "#000000"
+                                    border.color: borderColor
+                                    clip: true
 
-                                // Mirror OutputWindow's wiring to PlaybackController
-                                Connections {
-                                    target: playbackController
-                                    onSourceChanged: previewPlayer.source = playbackController.source
-                                    onPlayRequested: previewPlayer.play()
-                                    onPauseRequested: previewPlayer.pause()
-                                    onStopRequested: previewPlayer.stop()
+                                    // Slideshow image: exact path used by OutputWindow via EXIF provider
+                                    Image {
+                                        id: previewImage
+                                        anchors.fill: parent
+                                        fillMode: Image.PreserveAspectFit
+                                        visible: true
+                                        source: slideshow ? controlRoot.imageUrlForPath(slideshow.currentImagePath) : ""
+                                        z: previewActiveMedia === "image" ? 1 : 0
+                                    }
+
+                                    // Video preview: small live video using the same source as OutputWindow
+                                    VideoOutput {
+                                        id: previewVideo
+                                        anchors.fill: parent
+                                        visible: true
+                                        source: previewPlayer
+                                        fillMode: VideoOutput.PreserveAspectFit
+                                        z: previewActiveMedia === "video" ? 1 : 0
+                                    }
+
+                                    MediaPlayer {
+                                        id: previewPlayer
+                                        autoPlay: false
+                                        source: ""
+                                    }
+
+                                    // Mirror OutputWindow's wiring to PlaybackController
+                                    Connections {
+                                        target: playbackController
+                                        onSourceChanged: previewPlayer.source = playbackController.source
+                                        onPlayRequested: previewPlayer.play()
+                                        onPauseRequested: previewPlayer.pause()
+                                        onStopRequested: previewPlayer.stop()
+                                    }
                                 }
-                            }
+                            } // End of previewContainer Item
                         }
                     }
 
