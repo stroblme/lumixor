@@ -91,6 +91,8 @@ Window {
             "tabName": name,
             "mediaModel": newModel,
             "brightness": 1.0,
+            "volume": 1.0  // Audio volume for video tabs (0.0 to 1.0)
+            ,
             "currentPath": "",
             "isPlaying": false,
             "currentIndex": -1,
@@ -1529,6 +1531,85 @@ Window {
                                         }
                                     }
 
+                                    // Vertical volume slider - for video tabs only
+                                    ColumnLayout {
+                                        visible: !isSlideshow
+                                        Layout.fillHeight: true
+                                        Layout.preferredWidth: 60
+                                        spacing: 8
+
+                                        Label {
+                                            text: qsTr("Volume")
+                                            color: textColor
+                                            font.pixelSize: 13
+                                            font.bold: true
+                                            Layout.alignment: Qt.AlignHCenter
+                                        }
+
+                                        Slider {
+                                            id: tabVolumeSlider
+                                            orientation: Qt.Vertical
+                                            from: 0.0
+                                            to: 1.0
+                                            value: tabData ? tabData.volume : 1.0
+                                            Layout.fillHeight: true
+                                            Layout.preferredWidth: 44
+                                            Layout.alignment: Qt.AlignHCenter
+                                            ToolTip.visible: hovered || pressed
+                                            ToolTip.text: qsTr("Volume: ") + Math.round(value * 100) + "%"
+
+                                            // Make the handle larger for touch
+                                            handle: Rectangle {
+                                                x: tabVolumeSlider.leftPadding + tabVolumeSlider.availableWidth / 2 - width / 2
+                                                y: tabVolumeSlider.topPadding + tabVolumeSlider.visualPosition * (tabVolumeSlider.availableHeight - height)
+                                                width: 28
+                                                height: 28
+                                                radius: 14
+                                                color: tabVolumeSlider.pressed ? accentColor : panelColor
+                                                border.color: accentColor
+                                                border.width: 2
+                                            }
+
+                                            background: Rectangle {
+                                                x: tabVolumeSlider.leftPadding + tabVolumeSlider.availableWidth / 2 - width / 2
+                                                y: tabVolumeSlider.topPadding
+                                                width: 8
+                                                height: tabVolumeSlider.availableHeight
+                                                radius: 4
+                                                color: borderColor
+
+                                                // Filled from bottom
+                                                Rectangle {
+                                                    width: parent.width
+                                                    height: (1 - tabVolumeSlider.visualPosition) * parent.height
+                                                    y: tabVolumeSlider.visualPosition * parent.height
+                                                    radius: 4
+                                                    color: accentColor
+                                                }
+                                            }
+
+                                            onValueChanged: {
+                                                if (tabData) {
+                                                    // Update volume in model
+                                                    mediaTabsModel.setProperty(tabContentItem.tabModelIndex, "volume", value);
+
+                                                    // Also update OutputWindow
+                                                    if (outputWindow) {
+                                                        outputWindow.setVideoLayerVolume(tabData.tabId, value);
+                                                    }
+                                                }
+                                            }
+                                        }
+
+                                        Label {
+                                            text: Math.round((tabData ? tabData.volume : 1.0) * 100) + "%"
+                                            color: textColor
+                                            font.pixelSize: 14
+                                            font.bold: true
+                                            Layout.alignment: Qt.AlignHCenter
+                                        }
+                                    }
+
                                     // Vertical brightness slider - touch friendly
                                     ColumnLayout {
                                         Layout.fillHeight: true
@@ -1749,6 +1830,7 @@ Window {
                                             // Use direct model access for better reactivity
                                             property string mediaPath: model.currentPath ? model.currentPath : ""
                                             property real mediaBrightness: model.brightness !== undefined ? model.brightness : 1.0
+                                            property real mediaVolume: model.volume !== undefined ? model.volume : 1.0
                                             property bool mediaPlaying: model.isPlaying ? model.isPlaying : false
                                             property string mediaType: model.tabType ? model.tabType : "video"
                                             property int seekPosition: model.seekPosition !== undefined ? model.seekPosition : -1
@@ -1787,6 +1869,7 @@ Window {
                                                 id: previewMediaPlayer
                                                 autoPlay: false
                                                 source: previewMediaItem.mediaType === "video" && previewMediaItem.mediaPath !== "" ? "file://" + previewMediaItem.mediaPath : ""
+                                                volume: previewMediaItem.mediaVolume
 
                                                 // Track if we're auto-advancing to play on load
                                                 property bool pendingAutoPlay: false

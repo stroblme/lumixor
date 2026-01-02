@@ -55,11 +55,23 @@ Window {
             mediaType: mediaType,
             path: path,
             brightness: brightness,
+            volume: 1.0,
             playing: playing,
             zOrder: zOrder !== undefined ? zOrder : mediaLayersModel.count,
             seekPosition: -1
         });
         console.log("OutputWindow: added media layer " + tabId + ", total: " + mediaLayersModel.count);
+    }
+
+    // Set volume for a video layer
+    function setVideoLayerVolume(tabId, volume) {
+        for (var i = 0; i < mediaLayersModel.count; i++) {
+            if (mediaLayersModel.get(i).tabId === tabId) {
+                mediaLayersModel.setProperty(i, "volume", volume);
+                console.log("OutputWindow: set volume for layer " + tabId + " to " + volume);
+                return;
+            }
+        }
     }
 
     // Convenience function for video layers (backward compatibility)
@@ -218,6 +230,7 @@ Window {
                 // Access model properties directly for proper reactivity with ListModel
                 property string layerPath: model.path ? model.path : ""
                 property real layerBrightness: model.brightness !== undefined ? model.brightness : 1.0
+                property real layerVolume: model.volume !== undefined ? model.volume : 1.0
                 property bool layerPlaying: model.playing ? model.playing : false
                 property int layerTabId: model.tabId !== undefined ? model.tabId : -1
                 property string layerType: model.mediaType ? model.mediaType : "video"
@@ -254,6 +267,7 @@ Window {
                     id: layerPlayer
                     autoPlay: false
                     source: mediaLayerItem.layerType === "video" && mediaLayerItem.layerPath !== "" ? root.urlForPath(mediaLayerItem.layerPath) : ""
+                    volume: mediaLayerItem.layerVolume
 
                     // Track if we need to auto-play when loaded (for video advancement)
                     property bool pendingAutoPlay: false

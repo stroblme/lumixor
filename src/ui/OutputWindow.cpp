@@ -139,6 +139,16 @@ void OutputWindow::setMediaLayerBrightness(int tabId, double brightness)
                               Q_ARG(QVariant, QVariant(brightness)));
 }
 
+void OutputWindow::setVideoLayerVolume(int tabId, double volume)
+{
+    qDebug() << "OutputWindow: setVideoLayerVolume(" << tabId << "," << volume << ")";
+    if (!m_root)
+        return;
+    QMetaObject::invokeMethod(m_root, "setVideoLayerVolume",
+                              Q_ARG(QVariant, QVariant(tabId)),
+                              Q_ARG(QVariant, QVariant(volume)));
+}
+
 void OutputWindow::removeVideoLayer(int tabId)
 {
     qDebug() << "OutputWindow: removeVideoLayer(" << tabId << ")";
