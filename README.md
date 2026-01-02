@@ -15,6 +15,9 @@ You can easily build the application yourself by
 ./install-build-dependencies.sh
 ```
 2. Building the application
+```
+./build.sh
+```
 3. The output is then in `/build/lumixor-qt`
 
 ## Usage
