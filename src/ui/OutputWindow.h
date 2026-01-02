@@ -24,8 +24,12 @@ public slots:
     Q_INVOKABLE void setBrightness(double level);
     Q_INVOKABLE void setImageBrightness(double level);
     Q_INVOKABLE void setVideoBrightness(double level);
-    Q_INVOKABLE void setVideoLayer(int tabId, const QString &path, double brightness, bool playing);
+    Q_INVOKABLE void setVideoLayer(int tabId, const QString &path, double brightness, bool playing, int zOrder = -1);
+    Q_INVOKABLE void setImageLayer(int tabId, const QString &path, double brightness, int zOrder);
     Q_INVOKABLE void removeVideoLayer(int tabId);
+    Q_INVOKABLE void removeMediaLayer(int tabId);
+    Q_INVOKABLE void setVideoLayerZOrder(int tabId, int zOrder);
+    Q_INVOKABLE void setMediaLayerZOrder(int tabId, int zOrder);
 
 private:
     QObject *m_root = nullptr;

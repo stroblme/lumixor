@@ -16,56 +16,101 @@ Window {
     property string nextImage: ""
     property string activeMedia: "image" // "image" or "video" - tracks which was started last
 
-    // Multi-layer video support using ListModel for proper reactivity
+    // Unified media layers model - supports both images and videos
     ListModel {
-        id: videoLayersModel
+        id: mediaLayersModel
     }
 
-    // Update or add a video layer
-    function setVideoLayer(tabId, path, brightness, playing) {
-        console.log("OutputWindow.setVideoLayer: tabId=" + tabId + ", path=" + path + ", brightness=" + brightness + ", playing=" + playing);
+    // Update or add a media layer (works for both slideshow/image and video)
+    function setMediaLayer(tabId, mediaType, path, brightness, playing, zOrder) {
+        console.log("OutputWindow.setMediaLayer: tabId=" + tabId + ", type=" + mediaType + ", path=" + path + ", brightness=" + brightness + ", playing=" + playing + ", zOrder=" + zOrder);
 
         // Find existing layer
-        for (var i = 0; i < videoLayersModel.count; i++) {
-            if (videoLayersModel.get(i).tabId === tabId) {
-                videoLayersModel.set(i, {
+        for (var i = 0; i < mediaLayersModel.count; i++) {
+            if (mediaLayersModel.get(i).tabId === tabId) {
+                mediaLayersModel.set(i, {
                     tabId: tabId,
+                    mediaType: mediaType,
                     path: path,
                     brightness: brightness,
-                    playing: playing
+                    playing: playing,
+                    zOrder: zOrder !== undefined ? zOrder : mediaLayersModel.get(i).zOrder
                 });
-                console.log("OutputWindow: updated layer " + i + ", total layers: " + videoLayersModel.count);
+                console.log("OutputWindow: updated media layer " + tabId);
                 return;
             }
         }
 
         // Add new layer
-        videoLayersModel.append({
+        mediaLayersModel.append({
             tabId: tabId,
+            mediaType: mediaType,
             path: path,
             brightness: brightness,
-            playing: playing
+            playing: playing,
+            zOrder: zOrder !== undefined ? zOrder : mediaLayersModel.count
         });
-        console.log("OutputWindow: added new layer, total layers: " + videoLayersModel.count);
+        console.log("OutputWindow: added media layer " + tabId + ", total: " + mediaLayersModel.count);
     }
 
-    // Remove a video layer
-    function removeVideoLayer(tabId) {
-        for (var i = 0; i < videoLayersModel.count; i++) {
-            if (videoLayersModel.get(i).tabId === tabId) {
-                videoLayersModel.remove(i);
+    // Convenience function for video layers (backward compatibility)
+    function setVideoLayer(tabId, path, brightness, playing, zOrder) {
+        // Find existing to preserve zOrder if not provided
+        var finalZOrder = zOrder;
+        if (finalZOrder === undefined) {
+            finalZOrder = 0;
+            for (var i = 0; i < mediaLayersModel.count; i++) {
+                if (mediaLayersModel.get(i).tabId === tabId) {
+                    finalZOrder = mediaLayersModel.get(i).zOrder || 0;
+                    break;
+                }
+            }
+        }
+        setMediaLayer(tabId, "video", path, brightness, playing, finalZOrder);
+    }
+
+    // Convenience function for image/slideshow layers
+    function setImageLayer(tabId, path, brightness, zOrder) {
+        setMediaLayer(tabId, "slideshow", path, brightness, false, zOrder);
+    }
+
+    // Set the z-order for a media layer
+    function setMediaLayerZOrder(tabId, zOrder) {
+        for (var i = 0; i < mediaLayersModel.count; i++) {
+            if (mediaLayersModel.get(i).tabId === tabId) {
+                mediaLayersModel.setProperty(i, "zOrder", zOrder);
+                console.log("OutputWindow: set zOrder for layer " + tabId + " to " + zOrder);
+                return;
+            }
+        }
+    }
+
+    // Backward compatibility alias
+    function setVideoLayerZOrder(tabId, zOrder) {
+        setMediaLayerZOrder(tabId, zOrder);
+    }
+
+    // Remove a media layer
+    function removeMediaLayer(tabId) {
+        for (var i = 0; i < mediaLayersModel.count; i++) {
+            if (mediaLayersModel.get(i).tabId === tabId) {
+                mediaLayersModel.remove(i);
                 console.log("OutputWindow: removed layer " + tabId);
                 return;
             }
         }
     }
 
-    // Update brightness for a video layer (convenience function)
-    function setVideoLayerBrightness(tabId, brightness) {
-        for (var i = 0; i < videoLayersModel.count; i++) {
-            var layer = videoLayersModel.get(i);
-            if (layer.tabId === tabId) {
-                videoLayersModel.setProperty(i, "brightness", brightness);
+    // Backward compatibility alias
+    function removeVideoLayer(tabId) {
+        removeMediaLayer(tabId);
+    }
+
+    // Update brightness for a media layer
+    function setMediaLayerBrightness(tabId, brightness) {
+        for (var i = 0; i < mediaLayersModel.count; i++) {
+            if (mediaLayersModel.get(i).tabId === tabId) {
+                mediaLayersModel.setProperty(i, "brightness", brightness);
                 return;
             }
         }
@@ -93,7 +138,7 @@ Window {
         return p;
     }
 
-    // Legacy single player for backward compatibility (hidden, use video layers instead)
+    // Legacy single player for backward compatibility (hidden, use media layers instead)
     MediaPlayer {
         id: player
         autoPlay: false
@@ -110,68 +155,98 @@ Window {
         id: videoOutput
         anchors.fill: parent
         source: player
-        visible: false  // Hidden - use dynamic video layers instead
+        visible: false  // Hidden - use dynamic media layers instead
         fillMode: VideoOutput.PreserveAspectFit
         opacity: 1.0
         z: 1
     }
 
-    // Dynamic video layers container
+    // Unified media layers container - handles both images and videos
     Item {
-        id: videoLayersContainer
+        id: mediaLayersContainer
         anchors.fill: parent
         z: 2
 
         Repeater {
-            id: videoLayerRepeater
-            model: videoLayersModel
+            id: mediaLayerRepeater
+            model: mediaLayersModel
 
             Item {
-                id: videoLayerItem
+                id: mediaLayerItem
                 anchors.fill: parent
 
+                // Use zOrder from model for proper stacking (higher = on top)
+                z: model.zOrder !== undefined ? model.zOrder : index
+
                 // Access model properties directly for proper reactivity with ListModel
-                property string layerPath: model.path || ""
+                property string layerPath: model.path ? model.path : ""
                 property real layerBrightness: model.brightness !== undefined ? model.brightness : 1.0
-                property bool layerPlaying: model.playing || false
-                property int layerTabId: model.tabId || -1
+                property bool layerPlaying: model.playing ? model.playing : false
+                property int layerTabId: model.tabId !== undefined ? model.tabId : -1
+                property string layerType: model.mediaType ? model.mediaType : "video"
 
-                visible: layerPath !== ""
+                visible: true  // Always visible, let children handle visibility
 
+                // Image display (for slideshow type)
+                Image {
+                    id: layerImage
+                    anchors.fill: parent
+                    fillMode: Image.PreserveAspectFit
+                    visible: mediaLayerItem.layerType === "slideshow" && mediaLayerItem.layerPath !== ""
+                    source: mediaLayerItem.layerType === "slideshow" && mediaLayerItem.layerPath !== "" ? root.imageUrlForPath(mediaLayerItem.layerPath) : ""
+                    opacity: mediaLayerItem.layerBrightness
+
+                    onSourceChanged: {
+                        console.log("OutputWindow image layer source: " + source + ", visible=" + visible + ", brightness=" + mediaLayerItem.layerBrightness);
+                    }
+                }
+
+                // Video display (for video type)
                 MediaPlayer {
                     id: layerPlayer
                     autoPlay: false
-                    source: videoLayerItem.layerPath !== "" ? root.urlForPath(videoLayerItem.layerPath) : ""
+                    source: mediaLayerItem.layerType === "video" && mediaLayerItem.layerPath !== "" ? root.urlForPath(mediaLayerItem.layerPath) : ""
                     loops: MediaPlayer.Infinite
                 }
 
                 VideoOutput {
+                    id: layerVideoOutput
                     anchors.fill: parent
                     source: layerPlayer
                     fillMode: VideoOutput.PreserveAspectFit
-                    opacity: videoLayerItem.layerBrightness
-                    visible: videoLayerItem.layerPath !== ""
+                    opacity: mediaLayerItem.layerBrightness
+                    visible: mediaLayerItem.layerType === "video" && mediaLayerItem.layerPath !== ""
+
+                    onVisibleChanged: {
+                        console.log("OutputWindow video layer visible: " + visible + ", path=" + mediaLayerItem.layerPath);
+                    }
                 }
 
                 onLayerPlayingChanged: {
-                    console.log("OutputWindow layer[" + layerTabId + "] playing changed: " + layerPlaying + ", path=" + layerPath);
-                    if (layerPlaying && layerPath !== "") {
-                        layerPlayer.play();
-                    } else {
-                        layerPlayer.pause();
+                    if (layerType === "video") {
+                        console.log("OutputWindow layer[" + layerTabId + "] playing changed: " + layerPlaying + ", path=" + layerPath);
+                        if (layerPlaying && layerPath !== "") {
+                            layerPlayer.play();
+                        } else {
+                            layerPlayer.pause();
+                        }
                     }
                 }
 
                 onLayerPathChanged: {
-                    console.log("OutputWindow layer[" + layerTabId + "] path changed: " + layerPath + ", playing=" + layerPlaying);
-                    if (layerPath !== "" && layerPlaying) {
+                    console.log("OutputWindow layer[" + layerTabId + "] path changed: " + layerPath + ", type=" + layerType);
+                    if (layerType === "video" && layerPath !== "" && layerPlaying) {
                         layerPlayer.play();
                     }
                 }
 
+                onLayerBrightnessChanged: {
+                    console.log("OutputWindow layer[" + layerTabId + "] brightness changed: " + layerBrightness);
+                }
+
                 Component.onCompleted: {
-                    console.log("OutputWindow video layer[" + layerTabId + "] created: path=" + layerPath + ", brightness=" + layerBrightness + ", playing=" + layerPlaying);
-                    if (layerPlaying && layerPath !== "") {
+                    console.log("OutputWindow media layer[" + layerTabId + "] created: type=" + layerType + ", path=" + layerPath + ", brightness=" + layerBrightness);
+                    if (layerType === "video" && layerPlaying && layerPath !== "") {
                         layerPlayer.play();
                     }
                 }
@@ -179,11 +254,12 @@ Window {
         }
     }
 
+    // Legacy image item - hidden, kept for backward compatibility with fadeToImage
     Image {
         id: imageItem
         anchors.fill: parent
         fillMode: Image.PreserveAspectFit
-        visible: true
+        visible: false  // Hidden - using media layers instead
         opacity: 1.0
         z: 0
     }

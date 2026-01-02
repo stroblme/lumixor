@@ -104,16 +104,29 @@ void OutputWindow::setVideoBrightness(double level)
     QMetaObject::invokeMethod(m_root, "setVideoBrightness", Q_ARG(QVariant, QVariant(level)));
 }
 
-void OutputWindow::setVideoLayer(int tabId, const QString &path, double brightness, bool playing)
+void OutputWindow::setVideoLayer(int tabId, const QString &path, double brightness, bool playing, int zOrder)
 {
-    qDebug() << "OutputWindow: setVideoLayer(" << tabId << "," << path << "," << brightness << "," << playing << ")";
+    qDebug() << "OutputWindow: setVideoLayer(" << tabId << "," << path << "," << brightness << "," << playing << "," << zOrder << ")";
     if (!m_root)
         return;
     QMetaObject::invokeMethod(m_root, "setVideoLayer",
                               Q_ARG(QVariant, QVariant(tabId)),
                               Q_ARG(QVariant, QVariant(path)),
                               Q_ARG(QVariant, QVariant(brightness)),
-                              Q_ARG(QVariant, QVariant(playing)));
+                              Q_ARG(QVariant, QVariant(playing)),
+                              Q_ARG(QVariant, QVariant(zOrder)));
+}
+
+void OutputWindow::setImageLayer(int tabId, const QString &path, double brightness, int zOrder)
+{
+    qDebug() << "OutputWindow: setImageLayer(" << tabId << "," << path << "," << brightness << "," << zOrder << ")";
+    if (!m_root)
+        return;
+    QMetaObject::invokeMethod(m_root, "setImageLayer",
+                              Q_ARG(QVariant, QVariant(tabId)),
+                              Q_ARG(QVariant, QVariant(path)),
+                              Q_ARG(QVariant, QVariant(brightness)),
+                              Q_ARG(QVariant, QVariant(zOrder)));
 }
 
 void OutputWindow::removeVideoLayer(int tabId)
@@ -122,6 +135,34 @@ void OutputWindow::removeVideoLayer(int tabId)
     if (!m_root)
         return;
     QMetaObject::invokeMethod(m_root, "removeVideoLayer", Q_ARG(QVariant, QVariant(tabId)));
+}
+
+void OutputWindow::removeMediaLayer(int tabId)
+{
+    qDebug() << "OutputWindow: removeMediaLayer(" << tabId << ")";
+    if (!m_root)
+        return;
+    QMetaObject::invokeMethod(m_root, "removeMediaLayer", Q_ARG(QVariant, QVariant(tabId)));
+}
+
+void OutputWindow::setVideoLayerZOrder(int tabId, int zOrder)
+{
+    qDebug() << "OutputWindow: setVideoLayerZOrder(" << tabId << "," << zOrder << ")";
+    if (!m_root)
+        return;
+    QMetaObject::invokeMethod(m_root, "setVideoLayerZOrder",
+                              Q_ARG(QVariant, QVariant(tabId)),
+                              Q_ARG(QVariant, QVariant(zOrder)));
+}
+
+void OutputWindow::setMediaLayerZOrder(int tabId, int zOrder)
+{
+    qDebug() << "OutputWindow: setMediaLayerZOrder(" << tabId << "," << zOrder << ")";
+    if (!m_root)
+        return;
+    QMetaObject::invokeMethod(m_root, "setMediaLayerZOrder",
+                              Q_ARG(QVariant, QVariant(tabId)),
+                              Q_ARG(QVariant, QVariant(zOrder)));
 }
 
 void OutputWindow::close()
