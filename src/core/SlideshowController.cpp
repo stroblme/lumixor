@@ -121,6 +121,15 @@ void SlideshowController::stop()
     m_timer.stop();
 }
 
+void SlideshowController::reset()
+{
+    qDebug() << "Slideshow reset";
+    m_timer.stop();
+    m_currentIndex = -1;
+    m_currentImagePath.clear();
+    emit currentImagePathChanged();
+}
+
 void SlideshowController::pause()
 {
     qDebug() << "Slideshow pause";

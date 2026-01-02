@@ -19,6 +19,7 @@ public:
     Q_INVOKABLE void start(int intervalMs);
     Q_INVOKABLE void stop();
     Q_INVOKABLE void pause();
+    Q_INVOKABLE void reset(); // Stop and reset to initial state
     Q_INVOKABLE bool isRunning() const { return m_timer.isActive(); }
     Q_INVOKABLE void setImageList(QVariant listModel); // Set custom image list from QML ListModel
 

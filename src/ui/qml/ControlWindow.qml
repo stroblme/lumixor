@@ -117,21 +117,7 @@ Window {
             mediaTabsModel.setProperty(i, "zOrder", i);
         }
 
-        // Notify OutputWindow of the new z-order
-        updateOutputZOrder();
-    }
-
-    // Update the z-order in OutputWindow to match tab order
-    function updateOutputZOrder() {
-        if (!outputWindow)
-            return;
-        for (var i = 0; i < mediaTabsModel.count; i++) {
-            var tab = mediaTabsModel.get(i);
-            // Update z-order for all media types (both video and slideshow)
-            if (tab.currentPath) {
-                outputWindow.setMediaLayerZOrder(tab.tabId, i);
-            }
-        }
+        // zOrder is already in the shared model, OutputWindow will react automatically
     }
 
     // Remove a media tab by index
@@ -139,14 +125,11 @@ Window {
         if (tabIndex >= 0 && tabIndex < mediaTabsModel.count) {
             var tab = mediaTabsModel.get(tabIndex);
 
-            // Clean up media layer for any tab type
-            if (outputWindow) {
-                outputWindow.removeMediaLayer(tab.tabId);
-            }
-
+            // Clear the media model
             if (tab.mediaModel) {
                 tab.mediaModel.clear();
             }
+            // Remove from shared model - OutputWindow will react automatically
             mediaTabsModel.remove(tabIndex);
             // Switch to Home tab if we closed the current tab
             if (mainTabs.currentIndex > mediaTabsModel.count + 1) {
@@ -957,27 +940,28 @@ Window {
                                             Layout.fillWidth: true
                                             spacing: 8
 
-                                            // Slideshow controls
+                                            // Slideshow controls - Play/Pause Icon Button
                                             Button {
+                                                id: slideshowPlayPauseBtn
                                                 visible: isSlideshow
                                                 checkable: true
-                                                text: checked ? qsTr("Pause Slideshow") : qsTr("Start Slideshow")
-                                                Layout.preferredWidth: 160
+                                                Layout.preferredWidth: 44
                                                 Layout.preferredHeight: 44
+                                                ToolTip.visible: hovered
+                                                ToolTip.text: checked ? qsTr("Pause Slideshow") : qsTr("Start Slideshow")
                                                 background: Rectangle {
                                                     radius: 6
                                                     implicitHeight: 44
+                                                    implicitWidth: 44
                                                     border.color: borderColor
-                                                    color: parent.down || parent.checked ? accentColor : parent.hovered ? Qt.lighter(panelColor, 1.25) : panelColor
+                                                    color: slideshowPlayPauseBtn.down || slideshowPlayPauseBtn.checked ? accentColor : slideshowPlayPauseBtn.hovered ? Qt.lighter(panelColor, 1.25) : panelColor
                                                 }
                                                 contentItem: Text {
-                                                    text: parent.text
+                                                    text: slideshowPlayPauseBtn.checked ? "⏸" : "▶"
                                                     color: textColor
-                                                    font.pixelSize: 14
-                                                    font.bold: true
+                                                    font.pixelSize: 24
                                                     horizontalAlignment: Text.AlignHCenter
                                                     verticalAlignment: Text.AlignVCenter
-                                                    elide: Text.ElideRight
                                                 }
                                                 onCheckedChanged: {
                                                     if (checked) {
@@ -1004,6 +988,50 @@ Window {
                                                 }
                                             }
 
+                                            // Slideshow Stop Icon Button
+                                            Button {
+                                                id: slideshowStopBtn
+                                                visible: isSlideshow
+                                                Layout.preferredWidth: 44
+                                                Layout.preferredHeight: 44
+                                                ToolTip.visible: hovered
+                                                ToolTip.text: qsTr("Stop Slideshow")
+                                                background: Rectangle {
+                                                    radius: 6
+                                                    implicitHeight: 44
+                                                    implicitWidth: 44
+                                                    border.color: borderColor
+                                                    color: slideshowStopBtn.down ? accentColor : slideshowStopBtn.hovered ? Qt.lighter(panelColor, 1.25) : panelColor
+                                                }
+                                                contentItem: Text {
+                                                    text: "⏹"
+                                                    color: textColor
+                                                    font.pixelSize: 24
+                                                    horizontalAlignment: Text.AlignHCenter
+                                                    verticalAlignment: Text.AlignVCenter
+                                                }
+                                                onClicked: {
+                                                    // Stop and reset the slideshow
+                                                    slideshow.reset();
+                                                    slideshowPlayPauseBtn.checked = false;
+                                                    activeSlideshowTabId = -1;
+                                                    activeSlideshowTabIndex = -1;
+
+                                                    // Clear the current path for preview
+                                                    mediaTabsModel.setProperty(tabContentItem.tabModelIndex, "currentPath", "");
+                                                    mediaTabsModel.setProperty(tabContentItem.tabModelIndex, "currentIndex", -1);
+
+                                                    // Also stop in OutputWindow
+                                                    if (outputWindow) {
+                                                        outputWindow.stopMediaLayer(tabData.tabId);
+                                                    }
+
+                                                    // Clear list selection
+                                                    dynamicMediaList.currentIndex = -1;
+                                                    statusText = "Slideshow stopped";
+                                                }
+                                            }
+
                                             Label {
                                                 visible: isSlideshow
                                                 text: qsTr("Delay: ") + slideshowDelaySeconds + qsTr(" s")
@@ -1012,29 +1040,29 @@ Window {
                                                 Layout.alignment: Qt.AlignVCenter
                                             }
 
-                                            // Video controls
+                                            // Video controls - Play/Pause Icon Button
                                             Button {
                                                 id: dynamicPlayBtn
                                                 visible: !isSlideshow
                                                 checkable: true
                                                 checked: tabData ? tabData.isPlaying : false
-                                                text: checked ? qsTr("Pause") : qsTr("Play")
-                                                Layout.preferredWidth: 120
+                                                Layout.preferredWidth: 44
                                                 Layout.preferredHeight: 44
+                                                ToolTip.visible: hovered
+                                                ToolTip.text: checked ? qsTr("Pause Video") : qsTr("Play Video")
                                                 background: Rectangle {
                                                     radius: 6
                                                     implicitHeight: 44
+                                                    implicitWidth: 44
                                                     border.color: borderColor
                                                     color: dynamicPlayBtn.down || dynamicPlayBtn.checked ? accentColor : dynamicPlayBtn.hovered ? Qt.lighter(panelColor, 1.25) : panelColor
                                                 }
                                                 contentItem: Text {
-                                                    text: dynamicPlayBtn.text
+                                                    text: dynamicPlayBtn.checked ? "⏸" : "▶"
                                                     color: textColor
-                                                    font.pixelSize: 14
-                                                    font.bold: true
+                                                    font.pixelSize: 24
                                                     horizontalAlignment: Text.AlignHCenter
                                                     verticalAlignment: Text.AlignVCenter
-                                                    elide: Text.ElideRight
                                                 }
                                                 onClicked: {
                                                     var listView = dynamicMediaList;
@@ -1053,22 +1081,68 @@ Window {
                                                         var brightness = tabData.brightness;
                                                         var zOrder = tabData.zOrder !== undefined ? tabData.zOrder : tabContentItem.tabModelIndex;
 
-                                                        // Update the model
+                                                        // Update the model for preview
                                                         mediaTabsModel.setProperty(tabContentItem.tabModelIndex, "currentPath", item.path);
                                                         mediaTabsModel.setProperty(tabContentItem.tabModelIndex, "isPlaying", true);
                                                         mediaTabsModel.setProperty(tabContentItem.tabModelIndex, "currentIndex", row);
 
-                                                        // Update output window with this video layer (including zOrder)
-                                                        outputWindow.setVideoLayer(tabId, item.path, brightness, true, zOrder);
+                                                        // Also update OutputWindow
+                                                        if (outputWindow) {
+                                                            outputWindow.setVideoLayer(tabId, item.path, brightness, true, zOrder);
+                                                        }
 
                                                         statusText = "Playing video: " + item.path;
                                                     } else {
-                                                        // Pausing - preserve zOrder
+                                                        // Pausing
                                                         var pauseZOrder = tabData.zOrder !== undefined ? tabData.zOrder : tabContentItem.tabModelIndex;
                                                         mediaTabsModel.setProperty(tabContentItem.tabModelIndex, "isPlaying", false);
-                                                        outputWindow.setVideoLayer(tabData.tabId, tabData.currentPath, tabData.brightness, false, pauseZOrder);
+                                                        if (outputWindow) {
+                                                            outputWindow.setVideoLayer(tabData.tabId, tabData.currentPath, tabData.brightness, false, pauseZOrder);
+                                                        }
                                                         statusText = "Video paused";
                                                     }
+                                                }
+                                            }
+
+                                            // Video Stop Icon Button
+                                            Button {
+                                                id: videoStopBtn
+                                                visible: !isSlideshow
+                                                Layout.preferredWidth: 44
+                                                Layout.preferredHeight: 44
+                                                ToolTip.visible: hovered
+                                                ToolTip.text: qsTr("Stop Video")
+                                                background: Rectangle {
+                                                    radius: 6
+                                                    implicitHeight: 44
+                                                    implicitWidth: 44
+                                                    border.color: borderColor
+                                                    color: videoStopBtn.down ? accentColor : videoStopBtn.hovered ? Qt.lighter(panelColor, 1.25) : panelColor
+                                                }
+                                                contentItem: Text {
+                                                    text: "⏹"
+                                                    color: textColor
+                                                    font.pixelSize: 24
+                                                    horizontalAlignment: Text.AlignHCenter
+                                                    verticalAlignment: Text.AlignVCenter
+                                                }
+                                                onClicked: {
+                                                    // Stop video playback
+                                                    dynamicPlayBtn.checked = false;
+
+                                                    // Clear the current path and state for preview
+                                                    mediaTabsModel.setProperty(tabContentItem.tabModelIndex, "currentPath", "");
+                                                    mediaTabsModel.setProperty(tabContentItem.tabModelIndex, "isPlaying", false);
+                                                    mediaTabsModel.setProperty(tabContentItem.tabModelIndex, "currentIndex", -1);
+
+                                                    // Also stop in OutputWindow
+                                                    if (outputWindow) {
+                                                        outputWindow.stopMediaLayer(tabData.tabId);
+                                                    }
+
+                                                    // Clear list selection
+                                                    dynamicMediaList.currentIndex = -1;
+                                                    statusText = "Video stopped";
                                                 }
                                             }
 
@@ -1205,9 +1279,11 @@ Window {
                                                             // Update currentPath in model for preview
                                                             mediaTabsModel.setProperty(tabContentItem.tabModelIndex, "currentPath", model.path);
                                                             mediaTabsModel.setProperty(tabContentItem.tabModelIndex, "currentIndex", index);
-                                                            // Update output window with this image layer
-                                                            var zOrder = tabData.zOrder !== undefined ? tabData.zOrder : tabContentItem.tabModelIndex;
-                                                            outputWindow.setImageLayer(tabData.tabId, model.path, tabData.brightness, zOrder);
+                                                            // Also update OutputWindow
+                                                            if (outputWindow) {
+                                                                var zOrder = tabData.zOrder !== undefined ? tabData.zOrder : tabContentItem.tabModelIndex;
+                                                                outputWindow.setImageLayer(tabData.tabId, model.path, tabData.brightness, zOrder);
+                                                            }
                                                         }
                                                     }
                                                 }
@@ -1274,14 +1350,13 @@ Window {
 
                                             onValueChanged: {
                                                 if (tabData) {
+                                                    // Update brightness in model for preview
                                                     mediaTabsModel.setProperty(tabContentItem.tabModelIndex, "brightness", value);
 
-                                                    // Apply brightness to output - use direct brightness update if layer exists
+                                                    // Also update OutputWindow
                                                     if (outputWindow) {
-                                                        // First try direct brightness update (works if layer already exists)
                                                         outputWindow.setMediaLayerBrightness(tabData.tabId, value);
 
-                                                        // Also ensure layer is created/updated with full info
                                                         var zOrder = tabData.zOrder !== undefined ? tabData.zOrder : tabContentItem.tabModelIndex;
                                                         var currentPath = tabData.currentPath;
 
@@ -1672,7 +1747,13 @@ Window {
         }
     }
 
-    Component.onCompleted: refreshLists()
+    Component.onCompleted: {
+        refreshLists();
+        // Connect the mediaTabsModel to OutputWindow for shared state
+        if (outputWindow) {
+            outputWindow.setExternalMediaTabsModel(mediaTabsModel);
+        }
+    }
 
     Connections {
         target: mediaManager
@@ -1717,11 +1798,11 @@ Window {
                 }
             }
 
-            // Update the active slideshow tab's currentPath and sync to output window
+            // Update the active slideshow tab's currentPath and sync to OutputWindow
             if (activeSlideshowTabId >= 0 && activeSlideshowTabIndex >= 0 && activeSlideshowTabIndex < mediaTabsModel.count) {
                 var tab = mediaTabsModel.get(activeSlideshowTabIndex);
                 if (tab && tab.tabId === activeSlideshowTabId) {
-                    // Update the model
+                    // Update the model for preview
                     mediaTabsModel.setProperty(activeSlideshowTabIndex, "currentPath", iPath);
 
                     // Find the index in the tab's media list
@@ -1735,12 +1816,14 @@ Window {
                         }
                     }
 
-                    // Update the output window with the new image
-                    var zOrder = tab.zOrder !== undefined ? tab.zOrder : activeSlideshowTabIndex;
-                    var brightness = tab.brightness !== undefined ? tab.brightness : 1.0;
-                    outputWindow.setImageLayer(activeSlideshowTabId, iPath, brightness, zOrder);
+                    // Also update OutputWindow
+                    if (outputWindow) {
+                        var zOrder = tab.zOrder !== undefined ? tab.zOrder : activeSlideshowTabIndex;
+                        var brightness = tab.brightness !== undefined ? tab.brightness : 1.0;
+                        outputWindow.setImageLayer(activeSlideshowTabId, iPath, brightness, zOrder);
+                    }
 
-                    console.log("Slideshow advanced to: " + iPath + ", tabId=" + activeSlideshowTabId + ", zOrder=" + zOrder + ", brightness=" + brightness);
+                    console.log("Slideshow advanced to: " + iPath + ", tabId=" + activeSlideshowTabId);
                 }
             }
         }

@@ -175,6 +175,23 @@ void OutputWindow::setMediaLayerZOrder(int tabId, int zOrder)
                               Q_ARG(QVariant, QVariant(zOrder)));
 }
 
+void OutputWindow::stopMediaLayer(int tabId)
+{
+    qDebug() << "OutputWindow: stopMediaLayer(" << tabId << ")";
+    if (!m_root)
+        return;
+    QMetaObject::invokeMethod(m_root, "stopMediaLayer",
+                              Q_ARG(QVariant, QVariant(tabId)));
+}
+
+void OutputWindow::setExternalMediaTabsModel(QObject *model)
+{
+    qDebug() << "OutputWindow: setExternalMediaTabsModel(" << model << ")";
+    if (!m_root)
+        return;
+    m_root->setProperty("externalMediaTabsModel", QVariant::fromValue(model));
+}
+
 void OutputWindow::close()
 {
     qDebug() << "OutputWindow: close() root=" << (m_root != nullptr);

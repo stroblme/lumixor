@@ -16,9 +16,17 @@ Window {
     property string nextImage: ""
     property string activeMedia: "image" // "image" or "video" - tracks which was started last
 
-    // Unified media layers model - supports both images and videos
+    // External media tabs model from ControlWindow - the single source of truth
+    property var externalMediaTabsModel: null
+
+    // Unified media layers model - used when external model is not set (backward compatibility)
     ListModel {
         id: mediaLayersModel
+    }
+
+    // Get the active model - prefer external model if set
+    function getActiveModel() {
+        return externalMediaTabsModel ? externalMediaTabsModel : mediaLayersModel;
     }
 
     // Update or add a media layer (works for both slideshow/image and video)
@@ -96,6 +104,19 @@ Window {
             if (mediaLayersModel.get(i).tabId === tabId) {
                 mediaLayersModel.remove(i);
                 console.log("OutputWindow: removed layer " + tabId);
+                return;
+            }
+        }
+    }
+
+    // Stop and clear a media layer (stops playback and clears path)
+    function stopMediaLayer(tabId) {
+        for (var i = 0; i < mediaLayersModel.count; i++) {
+            if (mediaLayersModel.get(i).tabId === tabId) {
+                var layer = mediaLayersModel.get(i);
+                mediaLayersModel.setProperty(i, "playing", false);
+                mediaLayersModel.setProperty(i, "path", "");
+                console.log("OutputWindow: stopped and cleared layer " + tabId);
                 return;
             }
         }
@@ -231,15 +252,21 @@ Window {
                         if (layerPlaying && layerPath !== "") {
                             layerPlayer.play();
                         } else {
-                            layerPlayer.pause();
+                            // Stop completely when not playing (reset position)
+                            layerPlayer.stop();
                         }
                     }
                 }
 
                 onLayerPathChanged: {
                     console.log("OutputWindow layer[" + layerTabId + "] path changed: " + layerPath + ", type=" + layerType);
-                    if (layerType === "video" && layerPath !== "" && layerPlaying) {
-                        layerPlayer.play();
+                    if (layerType === "video") {
+                        if (layerPath !== "" && layerPlaying) {
+                            layerPlayer.play();
+                        } else {
+                            // Stop and reset video when path is cleared or not playing
+                            layerPlayer.stop();
+                        }
                     }
                 }
 

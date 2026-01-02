@@ -31,6 +31,8 @@ public slots:
     Q_INVOKABLE void removeMediaLayer(int tabId);
     Q_INVOKABLE void setVideoLayerZOrder(int tabId, int zOrder);
     Q_INVOKABLE void setMediaLayerZOrder(int tabId, int zOrder);
+    Q_INVOKABLE void stopMediaLayer(int tabId);
+    Q_INVOKABLE void setExternalMediaTabsModel(QObject *model);
 
 private:
     QObject *m_root = nullptr;
