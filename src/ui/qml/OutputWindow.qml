@@ -56,7 +56,8 @@ Window {
         source: player
         visible: true
         fillMode: VideoOutput.PreserveAspectFit
-        z: activeMedia === "video" ? 1 : 0
+        opacity: 1.0
+        z: 1
     }
 
     Image {
@@ -65,7 +66,7 @@ Window {
         fillMode: Image.PreserveAspectFit
         visible: true
         opacity: 1.0
-        z: activeMedia === "image" ? 1 : 0
+        z: 0
     }
 
     Rectangle {
@@ -83,6 +84,18 @@ Window {
         blackoutRect.opacity = 1.0 - level;
         blackoutRect.visible = blackoutRect.opacity > 0.0;
         // Do not pause the player here so video can continue playing under blackout
+    }
+
+    function setImageBrightness(level) {
+        // level expected in [0, 1]; 0 = fully transparent, 1 = fully opaque
+        // Control the opacity of the image directly for cross-fade capability
+        imageItem.opacity = level;
+    }
+
+    function setVideoBrightness(level) {
+        // level expected in [0, 1]; 0 = fully transparent, 1 = fully opaque
+        // Control the opacity of the video directly for cross-fade capability
+        videoOutput.opacity = level;
     }
 
     function setBlackout(enable) {

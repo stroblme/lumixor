@@ -22,6 +22,8 @@ public slots:
     Q_INVOKABLE void fadeToImage(const QString &path);
     Q_INVOKABLE void setBlackout(bool enable);
     Q_INVOKABLE void setBrightness(double level);
+    Q_INVOKABLE void setImageBrightness(double level);
+    Q_INVOKABLE void setVideoBrightness(double level);
 
 private:
     QObject *m_root = nullptr;

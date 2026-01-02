@@ -31,6 +31,10 @@ Window {
     property string statusText: ""
     property string previewActiveMedia: "image" // "image" or "video" - tracks which preview should be on top
 
+    // Per-media brightness controls (1.0 = full brightness, 0.0 = blackout)
+    property real slideshowBrightness: 1.0
+    property real videoBrightness: 1.0
+
     // Dark theme colors for the control UI
     property color backgroundColor: "#121212"
     property color panelColor: "#1E1E1E"
@@ -318,91 +322,135 @@ Window {
                             Layout.fillWidth: true
                             Layout.fillHeight: true
 
-                            ColumnLayout {
+                            RowLayout {
                                 anchors.fill: parent
                                 anchors.margins: 8
                                 spacing: 8
 
-                                RowLayout {
+                                ColumnLayout {
                                     Layout.fillWidth: true
+                                    Layout.fillHeight: true
                                     spacing: 8
 
-                                    Button {
-                                        id: btnSlideshowToggle
-                                        checkable: true
-                                        text: "Start Slideshow"
-                                        Layout.preferredWidth: 160
-                                        background: Rectangle {
-                                            radius: 6
-                                            implicitHeight: 32
-                                            border.color: borderColor
-                                            color: btnSlideshowToggle.down || btnSlideshowToggle.checked ? accentColor : btnSlideshowToggle.hovered ? Qt.lighter(panelColor, 1.25) : panelColor
-                                        }
-                                        contentItem: Text {
-                                            text: btnSlideshowToggle.text
-                                            color: textColor
-                                            horizontalAlignment: Text.AlignHCenter
-                                            verticalAlignment: Text.AlignVCenter
-                                            elide: Text.ElideRight
-                                        }
-                                        onCheckedChanged: {
-                                            if (checked) {
-                                                // Pause video when slideshow starts
-                                                if (playbackController.isPlaying()) {
-                                                    playbackController.pause();
-                                                    btnPlayToggle.checked = false;
-                                                    btnPlayToggle.text = "Resume";
-                                                }
-                                                previewActiveMedia = "image";
-                                                slideshow.start(slideshowDelaySeconds * 1000);
-                                                statusText = "Slideshow started (" + slideshowDelaySeconds + " s per image)";
-                                                btnSlideshowToggle.text = "Pause Slideshow";
-                                            } else {
-                                                slideshow.pause();
-                                                statusText = "Slideshow paused";
-                                                btnSlideshowToggle.text = "Resume Slideshow";
+                                    RowLayout {
+                                        Layout.fillWidth: true
+                                        spacing: 8
+
+                                        Button {
+                                            id: btnSlideshowToggle
+                                            checkable: true
+                                            text: "Start Slideshow"
+                                            Layout.preferredWidth: 160
+                                            background: Rectangle {
+                                                radius: 6
+                                                implicitHeight: 32
+                                                border.color: borderColor
+                                                color: btnSlideshowToggle.down || btnSlideshowToggle.checked ? accentColor : btnSlideshowToggle.hovered ? Qt.lighter(panelColor, 1.25) : panelColor
                                             }
+                                            contentItem: Text {
+                                                text: btnSlideshowToggle.text
+                                                color: textColor
+                                                horizontalAlignment: Text.AlignHCenter
+                                                verticalAlignment: Text.AlignVCenter
+                                                elide: Text.ElideRight
+                                            }
+                                            onCheckedChanged: {
+                                                if (checked) {
+                                                    // Pause video when slideshow starts
+                                                    if (playbackController.isPlaying()) {
+                                                        playbackController.pause();
+                                                        btnPlayToggle.checked = false;
+                                                        btnPlayToggle.text = "Resume";
+                                                    }
+                                                    previewActiveMedia = "image";
+                                                    slideshow.start(slideshowDelaySeconds * 1000);
+                                                    statusText = "Slideshow started (" + slideshowDelaySeconds + " s per image)";
+                                                    btnSlideshowToggle.text = "Pause Slideshow";
+                                                } else {
+                                                    slideshow.pause();
+                                                    statusText = "Slideshow paused";
+                                                    btnSlideshowToggle.text = "Resume Slideshow";
+                                                }
+                                            }
+                                        }
+
+                                        Label {
+                                            text: qsTr("Delay: ") + slideshowDelaySeconds + qsTr(" s")
+                                            color: subtleTextColor
+                                            Layout.alignment: Qt.AlignVCenter
+                                        }
+                                    }
+
+                                    // Image list view used by slideshow
+                                    ListView {
+                                        id: listImages
+                                        Layout.fillWidth: true
+                                        Layout.fillHeight: true
+                                        clip: true
+                                        model: imageModel
+                                        delegate: Rectangle {
+                                            width: listImages.width
+                                            height: 40
+                                            color: ListView.isCurrentItem ? listItemHighlight : listItemColor
+                                            radius: 3
+                                            border.color: borderColor
+                                            Text {
+                                                anchors.verticalCenter: parent.verticalCenter
+                                                anchors.left: parent.left
+                                                anchors.leftMargin: 8
+                                                text: fileNameFromPath(model.path)
+                                                color: textColor
+                                                elide: Text.ElideRight
+                                                width: parent.width - 16
+                                            }
+                                            MouseArea {
+                                                anchors.fill: parent
+                                                onClicked: {
+                                                    listImages.currentIndex = index;
+                                                    outputWindow.fadeToImage(model.path);
+                                                }
+                                            }
+                                        }
+                                        ScrollBar.vertical: ScrollBar {}
+                                    }
+                                }
+
+                                // Vertical brightness slider for slideshow
+                                ColumnLayout {
+                                    Layout.fillHeight: true
+                                    Layout.preferredWidth: 40
+                                    spacing: 4
+
+                                    Label {
+                                        text: qsTr("Alpha")
+                                        color: subtleTextColor
+                                        font.pixelSize: 10
+                                        Layout.alignment: Qt.AlignHCenter
+                                    }
+
+                                    Slider {
+                                        id: slideshowBrightnessSlider
+                                        orientation: Qt.Vertical
+                                        from: 0.0
+                                        to: 1.0
+                                        value: slideshowBrightness
+                                        Layout.fillHeight: true
+                                        Layout.alignment: Qt.AlignHCenter
+                                        ToolTip.visible: hovered || pressed
+                                        ToolTip.text: qsTr("Slideshow Alpha: ") + Math.round(value * 100) + "%"
+                                        onValueChanged: {
+                                            slideshowBrightness = value;
+                                            if (outputWindow && outputWindow.setImageBrightness)
+                                                outputWindow.setImageBrightness(value);
                                         }
                                     }
 
                                     Label {
-                                        text: qsTr("Delay: ") + slideshowDelaySeconds + qsTr(" s")
+                                        text: Math.round(slideshowBrightness * 100) + "%"
                                         color: subtleTextColor
-                                        Layout.alignment: Qt.AlignVCenter
+                                        font.pixelSize: 10
+                                        Layout.alignment: Qt.AlignHCenter
                                     }
-                                }
-
-                                // Image list view used by slideshow
-                                ListView {
-                                    id: listImages
-                                    Layout.fillWidth: true
-                                    Layout.fillHeight: true
-                                    clip: true
-                                    model: imageModel
-                                    delegate: Rectangle {
-                                        width: listImages.width
-                                        height: 40
-                                        color: ListView.isCurrentItem ? listItemHighlight : listItemColor
-                                        radius: 3
-                                        border.color: borderColor
-                                        Text {
-                                            anchors.verticalCenter: parent.verticalCenter
-                                            anchors.left: parent.left
-                                            anchors.leftMargin: 8
-                                            text: fileNameFromPath(model.path)
-                                            color: textColor
-                                            elide: Text.ElideRight
-                                            width: parent.width - 16
-                                        }
-                                        MouseArea {
-                                            anchors.fill: parent
-                                            onClicked: {
-                                                listImages.currentIndex = index;
-                                                outputWindow.fadeToImage(model.path);
-                                            }
-                                        }
-                                    }
-                                    ScrollBar.vertical: ScrollBar {}
                                 }
                             }
                         }
@@ -412,97 +460,141 @@ Window {
                             Layout.fillWidth: true
                             Layout.fillHeight: true
 
-                            ColumnLayout {
+                            RowLayout {
                                 anchors.fill: parent
                                 anchors.margins: 8
                                 spacing: 8
 
-                                RowLayout {
+                                ColumnLayout {
                                     Layout.fillWidth: true
+                                    Layout.fillHeight: true
                                     spacing: 8
 
-                                    Button {
-                                        id: btnPlayToggle
-                                        checkable: true
-                                        text: "Play"
-                                        Layout.preferredWidth: 120
-                                        background: Rectangle {
-                                            radius: 6
-                                            implicitHeight: 32
-                                            border.color: borderColor
-                                            color: btnPlayToggle.down || btnPlayToggle.checked ? accentColor : btnPlayToggle.hovered ? Qt.lighter(panelColor, 1.25) : panelColor
-                                        }
-                                        contentItem: Text {
-                                            text: btnPlayToggle.text
-                                            color: textColor
-                                            horizontalAlignment: Text.AlignHCenter
-                                            verticalAlignment: Text.AlignVCenter
-                                            elide: Text.ElideRight
-                                        }
-                                        onCheckedChanged: {
-                                            if (checked) {
-                                                var row = listVideos.currentIndex;
-                                                if (row < 0) {
-                                                    btnPlayToggle.checked = false;
-                                                    statusText = "No video selected";
-                                                    return;
+                                    RowLayout {
+                                        Layout.fillWidth: true
+                                        spacing: 8
+
+                                        Button {
+                                            id: btnPlayToggle
+                                            checkable: true
+                                            text: "Play"
+                                            Layout.preferredWidth: 120
+                                            background: Rectangle {
+                                                radius: 6
+                                                implicitHeight: 32
+                                                border.color: borderColor
+                                                color: btnPlayToggle.down || btnPlayToggle.checked ? accentColor : btnPlayToggle.hovered ? Qt.lighter(panelColor, 1.25) : panelColor
+                                            }
+                                            contentItem: Text {
+                                                text: btnPlayToggle.text
+                                                color: textColor
+                                                horizontalAlignment: Text.AlignHCenter
+                                                verticalAlignment: Text.AlignVCenter
+                                                elide: Text.ElideRight
+                                            }
+                                            onCheckedChanged: {
+                                                if (checked) {
+                                                    var row = listVideos.currentIndex;
+                                                    if (row < 0) {
+                                                        btnPlayToggle.checked = false;
+                                                        statusText = "No video selected";
+                                                        return;
+                                                    }
+                                                    // Pause slideshow when video starts
+                                                    if (slideshow.isRunning()) {
+                                                        slideshow.pause();
+                                                        btnSlideshowToggle.checked = false;
+                                                        btnSlideshowToggle.text = "Resume Slideshow";
+                                                    }
+                                                    previewActiveMedia = "video";
+                                                    if (row !== m_loadedVideoIndex) {
+                                                        var item = videoModel.get(row);
+                                                        playbackController.loadMediaPath(item.path);
+                                                        outputWindow.showVideo();
+                                                        m_loadedVideoIndex = row;
+                                                        statusText = "Playing video: " + item.path;
+                                                    }
+                                                    playbackController.play();
+                                                    btnPlayToggle.text = "Pause";
+                                                } else {
+                                                    playbackController.pause();
+                                                    statusText = "Video paused";
+                                                    btnPlayToggle.text = "Resume";
                                                 }
-                                                // Pause slideshow when video starts
-                                                if (slideshow.isRunning()) {
-                                                    slideshow.pause();
-                                                    btnSlideshowToggle.checked = false;
-                                                    btnSlideshowToggle.text = "Resume Slideshow";
-                                                }
-                                                previewActiveMedia = "video";
-                                                if (row !== m_loadedVideoIndex) {
-                                                    var item = videoModel.get(row);
-                                                    playbackController.loadMediaPath(item.path);
-                                                    outputWindow.showVideo();
-                                                    m_loadedVideoIndex = row;
-                                                    statusText = "Playing video: " + item.path;
-                                                }
-                                                playbackController.play();
-                                                btnPlayToggle.text = "Pause";
-                                            } else {
-                                                playbackController.pause();
-                                                statusText = "Video paused";
-                                                btnPlayToggle.text = "Resume";
                                             }
                                         }
+                                    }
+
+                                    // Video list view and controls
+                                    ListView {
+                                        id: listVideos
+                                        Layout.fillWidth: true
+                                        Layout.fillHeight: true
+                                        clip: true
+                                        model: videoModel
+                                        currentIndex: -1
+                                        delegate: Rectangle {
+                                            width: listVideos.width
+                                            height: 40
+                                            color: ListView.isCurrentItem ? listItemHighlight : listItemColor
+                                            radius: 3
+                                            border.color: borderColor
+                                            Text {
+                                                anchors.verticalCenter: parent.verticalCenter
+                                                anchors.left: parent.left
+                                                anchors.leftMargin: 8
+                                                text: fileNameFromPath(model.path)
+                                                color: textColor
+                                                elide: Text.ElideRight
+                                                width: parent.width - 16
+                                            }
+                                            MouseArea {
+                                                anchors.fill: parent
+                                                onClicked: {
+                                                    listVideos.currentIndex = index;
+                                                }
+                                            }
+                                        }
+                                        ScrollBar.vertical: ScrollBar {}
                                     }
                                 }
 
-                                // Video list view and controls
-                                ListView {
-                                    id: listVideos
-                                    Layout.fillWidth: true
+                                // Vertical brightness slider for video
+                                ColumnLayout {
                                     Layout.fillHeight: true
-                                    clip: true
-                                    model: videoModel
-                                    currentIndex: -1
-                                    delegate: Rectangle {
-                                        width: listVideos.width
-                                        height: 40
-                                        color: ListView.isCurrentItem ? listItemHighlight : listItemColor
-                                        radius: 3
-                                        border.color: borderColor
-                                        Text {
-                                            anchors.verticalCenter: parent.verticalCenter
-                                            anchors.left: parent.left
-                                            anchors.leftMargin: 8
-                                            text: fileNameFromPath(model.path)
-                                            color: textColor
-                                            elide: Text.ElideRight
-                                            width: parent.width - 16
-                                        }
-                                        MouseArea {
-                                            anchors.fill: parent
-                                            onClicked: {
-                                                listVideos.currentIndex = index;
-                                            }
+                                    Layout.preferredWidth: 40
+                                    spacing: 4
+
+                                    Label {
+                                        text: qsTr("Alpha")
+                                        color: subtleTextColor
+                                        font.pixelSize: 10
+                                        Layout.alignment: Qt.AlignHCenter
+                                    }
+
+                                    Slider {
+                                        id: videoBrightnessSlider
+                                        orientation: Qt.Vertical
+                                        from: 0.0
+                                        to: 1.0
+                                        value: videoBrightness
+                                        Layout.fillHeight: true
+                                        Layout.alignment: Qt.AlignHCenter
+                                        ToolTip.visible: hovered || pressed
+                                        ToolTip.text: qsTr("Video Alpha: ") + Math.round(value * 100) + "%"
+                                        onValueChanged: {
+                                            videoBrightness = value;
+                                            if (outputWindow && outputWindow.setVideoBrightness)
+                                                outputWindow.setVideoBrightness(value);
                                         }
                                     }
-                                    ScrollBar.vertical: ScrollBar {}
+
+                                    Label {
+                                        text: Math.round(videoBrightness * 100) + "%"
+                                        color: subtleTextColor
+                                        font.pixelSize: 10
+                                        Layout.alignment: Qt.AlignHCenter
+                                    }
                                 }
                             }
                         }
@@ -619,23 +711,27 @@ Window {
                                     clip: true
 
                                     // Slideshow image: exact path used by OutputWindow via EXIF provider
+                                    // Opacity controlled by slideshowBrightness for cross-fade capability
                                     Image {
                                         id: previewImage
                                         anchors.fill: parent
                                         fillMode: Image.PreserveAspectFit
                                         visible: true
                                         source: slideshow ? controlRoot.imageUrlForPath(slideshow.currentImagePath) : ""
-                                        z: previewActiveMedia === "image" ? 1 : 0
+                                        opacity: slideshowBrightness
+                                        z: 0
                                     }
 
                                     // Video preview: small live video using the same source as OutputWindow
+                                    // Opacity controlled by videoBrightness for cross-fade capability
                                     VideoOutput {
                                         id: previewVideo
                                         anchors.fill: parent
                                         visible: true
                                         source: previewPlayer
                                         fillMode: VideoOutput.PreserveAspectFit
-                                        z: previewActiveMedia === "video" ? 1 : 0
+                                        opacity: videoBrightness
+                                        z: 1
                                     }
 
                                     MediaPlayer {

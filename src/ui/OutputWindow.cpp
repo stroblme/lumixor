@@ -88,6 +88,22 @@ void OutputWindow::setBrightness(double level)
     QMetaObject::invokeMethod(m_root, "setBrightness", Q_ARG(QVariant, QVariant(level)));
 }
 
+void OutputWindow::setImageBrightness(double level)
+{
+    qDebug() << "OutputWindow: setImageBrightness(" << level << ")";
+    if (!m_root)
+        return;
+    QMetaObject::invokeMethod(m_root, "setImageBrightness", Q_ARG(QVariant, QVariant(level)));
+}
+
+void OutputWindow::setVideoBrightness(double level)
+{
+    qDebug() << "OutputWindow: setVideoBrightness(" << level << ")";
+    if (!m_root)
+        return;
+    QMetaObject::invokeMethod(m_root, "setVideoBrightness", Q_ARG(QVariant, QVariant(level)));
+}
+
 void OutputWindow::close()
 {
     qDebug() << "OutputWindow: close() root=" << (m_root != nullptr);
