@@ -27,6 +27,8 @@ static AppConfig fromJson(const QJsonObject &o)
         c.uiScale = o.value("uiScale").toDouble(c.uiScale);
     if (o.contains("autoPlayNextVideo"))
         c.autoPlayNextVideo = o.value("autoPlayNextVideo").toBool(c.autoPlayNextVideo);
+    if (o.contains("useCustomFilePicker"))
+        c.useCustomFilePicker = o.value("useCustomFilePicker").toBool(c.useCustomFilePicker);
     return c;
 }
 
@@ -71,6 +73,7 @@ bool AppConfig::saveToFile(const QString &filePath, QString *error) const
     o["accentColor"] = accentColor;
     o["uiScale"] = uiScale;
     o["autoPlayNextVideo"] = autoPlayNextVideo;
+    o["useCustomFilePicker"] = useCustomFilePicker;
 
     QJsonDocument doc(o);
 

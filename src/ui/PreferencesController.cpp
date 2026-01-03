@@ -115,6 +115,23 @@ void PreferencesController::setAutoPlayNextVideo(bool value)
     autoSave();
 }
 
+bool PreferencesController::useCustomFilePicker() const
+{
+    return m_app ? m_app->config().useCustomFilePicker : true;
+}
+
+void PreferencesController::setUseCustomFilePicker(bool value)
+{
+    if (!m_app)
+        return;
+    AppConfig &cfg = m_app->mutableConfig();
+    if (cfg.useCustomFilePicker == value)
+        return;
+    cfg.useCustomFilePicker = value;
+    emit preferencesChanged();
+    autoSave();
+}
+
 void PreferencesController::autoSave()
 {
     if (m_app)

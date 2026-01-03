@@ -2,6 +2,7 @@ module components
 singleton Theme 1.0 Theme.qml
 singleton Utils 1.0 Utils.qml
 ColorPicker 1.0 ColorPicker.qml
+DarkFilePicker 1.0 DarkFilePicker.qml
 DragHandle 1.0 DragHandle.qml
 IconButton 1.0 IconButton.qml
 MediaLayer 1.0 MediaLayer.qml

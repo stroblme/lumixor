@@ -16,6 +16,7 @@ class PreferencesController : public QObject
     Q_PROPERTY(QString accentColor READ accentColor WRITE setAccentColor NOTIFY preferencesChanged)
     Q_PROPERTY(double uiScale READ uiScale WRITE setUiScale NOTIFY preferencesChanged)
     Q_PROPERTY(bool autoPlayNextVideo READ autoPlayNextVideo WRITE setAutoPlayNextVideo NOTIFY preferencesChanged)
+    Q_PROPERTY(bool useCustomFilePicker READ useCustomFilePicker WRITE setUseCustomFilePicker NOTIFY preferencesChanged)
 
 public:
     explicit PreferencesController(Application *app, QObject *parent = nullptr);
@@ -37,6 +38,9 @@ public:
 
     bool autoPlayNextVideo() const;
     void setAutoPlayNextVideo(bool value);
+
+    bool useCustomFilePicker() const;
+    void setUseCustomFilePicker(bool value);
 
     Q_INVOKABLE bool save(QString path = QString());
 

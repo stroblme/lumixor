@@ -25,6 +25,7 @@ Item {
     // UI customization
     property string prefAccentColor: "#42A5F5"
     property real uiScale: 1.0
+    property bool useCustomFilePicker: true
 
     // Signals
     signal slideshowDelayChanged(int value)
@@ -34,6 +35,7 @@ Item {
     signal loopVideosChanged(bool enabled)
     signal accentColorChanged(string color)
     signal uiScaleChanged(real scale)
+    signal useCustomFilePickerChanged(bool enabled)
 
     ColumnLayout {
         anchors.fill: parent
@@ -270,6 +272,32 @@ Item {
 
                 Label {
                     text: qsTr("Affects text size, buttons, and controls")
+                    color: root.subtleTextColor
+                    font.pixelSize: 11 * root.uiScale
+                    Layout.columnSpan: 2
+                    Layout.alignment: Qt.AlignRight
+                }
+
+                Label {
+                    text: qsTr("Use custom file picker:")
+                    color: root.textColor
+                    horizontalAlignment: Text.AlignLeft
+                    Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
+                }
+                StyledSwitch {
+                    id: switchCustomFilePicker
+                    checked: root.useCustomFilePicker
+                    Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
+                    panelCol: root.panelColor
+                    accentCol: root.accentColor
+                    borderCol: root.borderColor
+                    onCheckedChanged: root.useCustomFilePickerChanged(checked)
+                    ToolTip.visible: hovered
+                    ToolTip.text: qsTr("Use the custom dark-themed file picker instead of the native system dialog")
+                }
+
+                Label {
+                    text: qsTr("Disable for native GTK/KDE dialogs")
                     color: root.subtleTextColor
                     font.pixelSize: 11 * root.uiScale
                     Layout.columnSpan: 2

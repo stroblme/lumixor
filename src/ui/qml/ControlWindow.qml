@@ -35,6 +35,9 @@ Window {
     // Auto-play setting from preferences
     property bool autoPlayNextVideo: preferences ? preferences.autoPlayNextVideo : true
 
+    // File picker setting from preferences
+    property bool useCustomFilePicker: preferences ? preferences.useCustomFilePicker : true
+
     property int m_loadedVideoIndex: -1
     property bool isBlack: false
     property bool wasVideoPlaying: false
