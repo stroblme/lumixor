@@ -12,8 +12,8 @@ SpinBox {
     property color subtleTxtColor: typeof subtleTextColor !== "undefined" ? subtleTextColor : "#9E9E9E"
     property color borderCol: typeof borderColor !== "undefined" ? borderColor : "#333333"
 
-    // UI scaling
-    property real scale: typeof uiScale !== "undefined" ? uiScale : 1.0
+    // UI scaling - use globalUiScale context property (set at startup)
+    property real scale: globalUiScale ? globalUiScale : 1.0
 
     implicitWidth: Math.round(120 * scale)
 

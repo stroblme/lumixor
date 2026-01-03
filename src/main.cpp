@@ -42,6 +42,12 @@ int main(int argc, char *argv[])
     engine.rootContext()->setContextProperty("outputWindow", &outputWindow);
     engine.rootContext()->setContextProperty("preferences", &preferences);
 
+    // Expose uiScale directly for easier access in components
+    engine.rootContext()->setContextProperty("globalUiScale", preferences.uiScale());
+
+    qDebug() << "Startup - uiScale from preferences:" << preferences.uiScale();
+    qDebug() << "Startup - accentColor from preferences:" << preferences.accentColor();
+
     engine.load(QUrl(QStringLiteral("qrc:/qml/OutputWindow.qml")));
     engine.load(QUrl(QStringLiteral("qrc:/qml/ControlWindow.qml")));
 

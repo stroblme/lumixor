@@ -9,8 +9,8 @@ Switch {
     property color accentCol: typeof accentColor !== "undefined" ? accentColor : "#42A5F5"
     property color borderCol: typeof borderColor !== "undefined" ? borderColor : "#333333"
 
-    // UI scaling
-    property real scale: typeof uiScale !== "undefined" ? uiScale : 1.0
+    // UI scaling - use globalUiScale context property (set at startup)
+    property real scale: globalUiScale ? globalUiScale : 1.0
 
     indicator: Rectangle {
         implicitWidth: Math.round(48 * control.scale)

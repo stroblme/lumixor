@@ -2709,6 +2709,12 @@ Window {
     }
 
     Component.onCompleted: {
+        console.log("=== ControlWindow loaded ===");
+        console.log("preferences object:", preferences);
+        console.log("preferences.uiScale:", preferences ? preferences.uiScale : "N/A");
+        console.log("uiScale property:", uiScale);
+        console.log("prefAccentColor:", prefAccentColor);
+
         refreshLists();
         // Sync loop setting to slideshow controller
         if (slideshow) {

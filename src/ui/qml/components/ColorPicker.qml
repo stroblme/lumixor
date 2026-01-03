@@ -10,10 +10,13 @@ Item {
     property color textColor: "#E0E0E0"
     property color borderColor: "#333333"
 
+    // UI scaling - use globalUiScale context property (set at startup)
+    property real scale: globalUiScale ? globalUiScale : 1.0
+
     signal colorChanged(color newColor)
 
-    implicitWidth: 200
-    implicitHeight: 40
+    implicitWidth: Math.round(200 * scale)
+    implicitHeight: Math.round(40 * scale)
 
     // Predefined accent colors
     readonly property var presetColors: ["#42A5F5" // Blue (default)

@@ -79,7 +79,9 @@ void PreferencesController::setAccentColor(const QString &value)
 
 double PreferencesController::uiScale() const
 {
-    return m_app ? m_app->config().uiScale : 1.0;
+    double scale = m_app ? m_app->config().uiScale : 1.0;
+    qDebug() << "PreferencesController::uiScale() returning:" << scale;
+    return scale;
 }
 
 void PreferencesController::setUiScale(double value)
