@@ -54,7 +54,7 @@ Item {
                 pressedColor: root.accentColor
                 txtColor: root.textColor
                 borderCol: root.borderColor
-                onClicked: root.addFilesClicked(null)
+                onClicked: root.addFilesClicked("")
                 ToolTip.visible: hovered
                 ToolTip.text: qsTr("Add images or videos - creates new tabs automatically")
             }
