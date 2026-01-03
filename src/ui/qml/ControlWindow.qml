@@ -120,6 +120,8 @@ Window {
             "brightness": 1.0,
             "volume": 1.0  // Audio volume for video tabs (0.0 to 1.0)
             ,
+            "linkSliders": true  // Link volume and alpha sliders together
+            ,
             "currentPath": "",
             "isPlaying": false,
             "currentIndex": -1,
@@ -2128,6 +2130,19 @@ Window {
                                                     if (outputWindow) {
                                                         outputWindow.setVideoLayerVolume(tabData.tabId, value);
                                                     }
+
+                                                    // If sliders are linked, sync the brightness slider
+                                                    if (tabData.linkSliders && Math.abs(tabData.brightness - value) > 0.001) {
+                                                        mediaTabsModel.setProperty(tabContentItem.tabModelIndex, "brightness", value);
+                                                        // Also update OutputWindow brightness
+                                                        if (outputWindow) {
+                                                            outputWindow.setMediaLayerBrightness(tabData.tabId, value);
+                                                            var zOrder = tabData.zOrder !== undefined ? tabData.zOrder : tabContentItem.tabModelIndex;
+                                                            if (tabData.currentPath) {
+                                                                outputWindow.setVideoLayer(tabData.tabId, tabData.currentPath, value, tabData.isPlaying, zOrder);
+                                                            }
+                                                        }
+                                                    }
                                                 }
                                             }
                                         }
@@ -2138,6 +2153,56 @@ Window {
                                             font.pixelSize: 14
                                             font.bold: true
                                             Layout.alignment: Qt.AlignHCenter
+                                        }
+                                    }
+
+                                    // Link/unlink toggle button between volume and alpha sliders (video tabs only)
+                                    ColumnLayout {
+                                        visible: !isSlideshow
+                                        Layout.fillHeight: true
+                                        Layout.preferredWidth: 36
+                                        spacing: 4
+
+                                        Item {
+                                            Layout.fillHeight: true
+                                        }
+
+                                        Rectangle {
+                                            id: linkToggleButton
+                                            width: 32
+                                            height: 32
+                                            radius: 16
+                                            color: linkToggleMouse.containsMouse ? Qt.lighter(panelColor, 1.3) : panelColor
+                                            border.color: (tabData && tabData.linkSliders) ? accentColor : borderColor
+                                            border.width: (tabData && tabData.linkSliders) ? 2 : 1
+                                            Layout.alignment: Qt.AlignHCenter
+
+                                            // Chain link icon
+                                            Text {
+                                                anchors.centerIn: parent
+                                                text: (tabData && tabData.linkSliders) ? "🔗" : "⛓"
+                                                font.pixelSize: 14
+                                                color: (tabData && tabData.linkSliders) ? accentColor : subtleTextColor
+                                            }
+
+                                            MouseArea {
+                                                id: linkToggleMouse
+                                                anchors.fill: parent
+                                                hoverEnabled: true
+                                                onClicked: {
+                                                    if (tabData) {
+                                                        var newValue = !tabData.linkSliders;
+                                                        mediaTabsModel.setProperty(tabContentItem.tabModelIndex, "linkSliders", newValue);
+                                                    }
+                                                }
+                                            }
+
+                                            ToolTip.visible: linkToggleMouse.containsMouse
+                                            ToolTip.text: (tabData && tabData.linkSliders) ? qsTr("Sliders linked - click to unlink") : qsTr("Sliders unlinked - click to link")
+                                        }
+
+                                        Item {
+                                            Layout.fillHeight: true
                                         }
                                     }
 
@@ -2220,6 +2285,15 @@ Window {
                                                             } else {
                                                                 outputWindow.setVideoLayer(tabData.tabId, currentPath, value, tabData.isPlaying, zOrder);
                                                             }
+                                                        }
+                                                    }
+
+                                                    // If sliders are linked (video tabs only), sync the volume slider
+                                                    if (!isSlideshow && tabData.linkSliders && Math.abs(tabData.volume - value) > 0.001) {
+                                                        mediaTabsModel.setProperty(tabContentItem.tabModelIndex, "volume", value);
+                                                        // Also update OutputWindow volume
+                                                        if (outputWindow) {
+                                                            outputWindow.setVideoLayerVolume(tabData.tabId, value);
                                                         }
                                                     }
                                                 }

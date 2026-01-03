@@ -16,7 +16,7 @@ struct AppConfig
     int outputScreenIndex = 1; // second screen by default
 
     // UI customization
-    QString accentColor = "#42A5F5"; // accent color for UI elements
+    QString accentColor = "#78909C"; // accent color for UI elements
     double uiScale = 1.0;            // global UI scale factor (0.5 to 2.0)
 
     // Playback settings
