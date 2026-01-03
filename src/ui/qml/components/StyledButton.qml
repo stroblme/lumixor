@@ -16,6 +16,10 @@ Button {
 
     property int radius: 6
 
+    Component.onCompleted: {
+        console.log("StyledButton - globalUiScale:", globalUiScale, "scale property:", scale);
+    }
+
     background: Rectangle {
         radius: control.radius
         implicitHeight: Math.round(44 * control.scale)
