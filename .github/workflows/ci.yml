@@ -29,6 +29,8 @@ jobs:
                     qml-module-qtquick-layouts \
                     qml-module-qtmultimedia \
                     qml-module-qt-labs-platform \
+                    qt5-gtk-platformtheme \
+                    qml-module-qtquick-dialogs \
                     libgstreamer1.0-dev \
                     libgstreamer-plugins-base1.0-dev \
                     gstreamer1.0-plugins-base \
@@ -111,6 +113,18 @@ jobs:
                   cp -r $QT_PLUGIN_PATH/mediaservice/* AppDir/usr/plugins/mediaservice/ 2>/dev/null || true
                   cp -r /usr/lib/x86_64-linux-gnu/qt5/plugins/mediaservice/* AppDir/usr/plugins/mediaservice/ 2>/dev/null || true
 
+                  # Copy platform theme plugins for native file dialogs
+                  mkdir -p AppDir/usr/plugins/platformthemes
+                  cp -r $QT_PLUGIN_PATH/platformthemes/* AppDir/usr/plugins/platformthemes/ 2>/dev/null || true
+                  cp -r /usr/lib/x86_64-linux-gnu/qt5/plugins/platformthemes/* AppDir/usr/plugins/platformthemes/ 2>/dev/null || true
+
+                  # Copy GTK3 libraries needed for gtk3 platform theme
+                  cp -L /usr/lib/x86_64-linux-gnu/libgtk-3.so* AppDir/usr/lib/ 2>/dev/null || true
+                  cp -L /usr/lib/x86_64-linux-gnu/libgdk-3.so* AppDir/usr/lib/ 2>/dev/null || true
+
+                  echo "Platform theme plugins:"
+                  ls -la AppDir/usr/plugins/platformthemes/ 2>/dev/null || echo "None"
+
                   # Copy GStreamer plugins and libraries
                   echo "Copying GStreamer libraries..."
                   cp -L /usr/lib/x86_64-linux-gnu/libgst*.so* AppDir/usr/lib/ 2>/dev/null || true
@@ -148,7 +162,7 @@ jobs:
                   chmod +x AppDir/AppRun
 
                   # Run linuxdeployqt once with all options
-                  ../linuxdeployqt-continuous-x86_64.AppImage AppDir/usr/share/applications/lumixor-qt.desktop -qmldir=../src/ui/qml -qmldir=AppDir/usr/qml -bundle-non-qt-libs -no-translations -no-copy-copyright-files -extra-plugins=iconengines,imageformats,mediaservice -appimage
+                  ../linuxdeployqt-continuous-x86_64.AppImage AppDir/usr/share/applications/lumixor-qt.desktop -qmldir=../src/ui/qml -qmldir=AppDir/usr/qml -bundle-non-qt-libs -no-translations -no-copy-copyright-files -extra-plugins=iconengines,imageformats,mediaservice,platformthemes -appimage
             - name: Upload AppImage
               uses: actions/upload-artifact@v4
               with:

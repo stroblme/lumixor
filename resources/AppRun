@@ -45,10 +45,31 @@ export FONTCONFIG_FILE=/etc/fonts/fonts.conf
 # Scaling
 export QT_ENABLE_HIGHDPI_SCALING=1
 
+# Use XDG Desktop Portal for native file dialogs (works on GNOME, KDE, etc.)
+# This is the modern way to get native dialogs in sandboxed/AppImage apps
+export QT_QPA_PLATFORMTHEME=${QT_QPA_PLATFORMTHEME:-xdgdesktopportal}
+
+# Fallback: try GTK3 theme if portal isn't available
+if [ ! -S "${XDG_RUNTIME_DIR}/bus" ] && [ -z "$DBUS_SESSION_BUS_ADDRESS" ]; then
+    export QT_QPA_PLATFORMTHEME=gtk3
+fi
+
+# DBus is required for portal dialogs
+if [ -z "$DBUS_SESSION_BUS_ADDRESS" ]; then
+    if [ -S "${XDG_RUNTIME_DIR}/bus" ]; then
+        export DBUS_SESSION_BUS_ADDRESS="unix:path=${XDG_RUNTIME_DIR}/bus"
+    fi
+fi
+
 if [ "$DEBUG" = "1" ]; then
     echo "LD_LIBRARY_PATH: $LD_LIBRARY_PATH"
     echo "QT_PLUGIN_PATH: $QT_PLUGIN_PATH"
     echo "QML2_IMPORT_PATH: $QML2_IMPORT_PATH"
+    echo "QT_QPA_PLATFORMTHEME: $QT_QPA_PLATFORMTHEME"
+    echo "DBUS_SESSION_BUS_ADDRESS: $DBUS_SESSION_BUS_ADDRESS"
+    echo ""
+    echo "Checking platform theme plugins:"
+    ls -la "${HERE}/usr/plugins/platformthemes/" 2>/dev/null || echo "No platformthemes dir"
     echo ""
     echo "Checking mediaservice plugins:"
     ls -la "${HERE}/usr/plugins/mediaservice/" 2>/dev/null || echo "No mediaservice dir"
