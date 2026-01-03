@@ -33,9 +33,10 @@ jobs:
                   cp ../resources/lumixor.desktop lumixor-qt.desktop
                   cp ../resources/lumixor.svg lumixor-qt.svg
 
-                  # Get Qt plugin path
+                  # Get Qt paths
                   QT_PLUGIN_PATH=$(qmake -query QT_INSTALL_PLUGINS)
                   QT_QML_PATH=$(qmake -query QT_INSTALL_QML)
+                  QT_LIB_PATH=$(qmake -query QT_INSTALL_LIBS)
 
                   # Create AppDir structure
                   mkdir -p AppDir/usr/bin
@@ -47,6 +48,9 @@ jobs:
 
                   # Copy binary
                   cp lumixor-qt AppDir/usr/bin/
+
+                  # Verify binary is valid ELF
+                  file AppDir/usr/bin/lumixor-qt
 
                   # Copy desktop file and icon
                   cp lumixor-qt.desktop AppDir/usr/share/applications/
@@ -67,44 +71,21 @@ jobs:
                     if [ -d "/usr/lib/x86_64-linux-gnu/qt5/qml/$dir" ]; then
                       cp -r "/usr/lib/x86_64-linux-gnu/qt5/qml/$dir" AppDir/usr/qml/ 2>/dev/null || true
                     fi
-                    if [ -d "/usr/lib/qt5/qml/$dir" ]; then
-                      cp -r "/usr/lib/qt5/qml/$dir" AppDir/usr/qml/ 2>/dev/null || true
-                    fi
                   done
 
                   # List what we have for debugging
                   echo "QML modules copied:"
                   ls -la AppDir/usr/qml/
 
-                  # Copy additional Qt libraries that may be needed
-                  QT_LIB_PATH=$(qmake -query QT_INSTALL_LIBS)
-                  cp -L $QT_LIB_PATH/libQt5QmlWorkerScript.so.5 AppDir/usr/lib/ 2>/dev/null || true
-                  cp -L $QT_LIB_PATH/libQt5QuickControls2.so.5 AppDir/usr/lib/ 2>/dev/null || true
-                  cp -L $QT_LIB_PATH/libQt5QuickTemplates2.so.5 AppDir/usr/lib/ 2>/dev/null || true
-
                   # Copy all Qt5 libraries to ensure consistency
                   cp -L $QT_LIB_PATH/libQt5*.so.5 AppDir/usr/lib/ 2>/dev/null || true
-
-                  # Run linuxdeployqt on AppDir
-                  ../linuxdeployqt-continuous-x86_64.AppImage AppDir/usr/share/applications/lumixor-qt.desktop -qmldir=../src/ui/qml -qmldir=AppDir/usr/qml -bundle-non-qt-libs -no-translations -no-copy-copyright-files -extra-plugins=iconengines,imageformats,platformthemes/libqgtk3.so
-
-                  # Ensure all QML plugin dependencies are bundled
-                  for lib in AppDir/usr/qml/*/lib*.so; do
-                    if [ -f "$lib" ]; then
-                      ldd "$lib" 2>/dev/null | grep "=> /" | awk '{print $3}' | while read dep; do
-                        if [ -f "$dep" ] && [[ "$dep" == *"Qt5"* ]]; then
-                          cp -L "$dep" AppDir/usr/lib/ 2>/dev/null || true
-                        fi
-                      done
-                    fi
-                  done
 
                   # Copy custom AppRun script that properly sets library paths
                   cp ../resources/AppRun AppDir/AppRun
                   chmod +x AppDir/AppRun
 
-                  # Create AppImage
-                  ../linuxdeployqt-continuous-x86_64.AppImage AppDir/usr/share/applications/lumixor-qt.desktop -appimage -no-translations -no-copy-copyright-files
+                  # Run linuxdeployqt once with all options
+                  ../linuxdeployqt-continuous-x86_64.AppImage AppDir/usr/share/applications/lumixor-qt.desktop -qmldir=../src/ui/qml -qmldir=AppDir/usr/qml -bundle-non-qt-libs -no-translations -no-copy-copyright-files -extra-plugins=iconengines,imageformats -appimage
             - name: Upload AppImage
               uses: actions/upload-artifact@v4
               with:
