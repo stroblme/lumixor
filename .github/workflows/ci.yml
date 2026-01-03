@@ -1,0 +1,67 @@
+name: CI
+
+on:
+    push:
+        tags:
+            - "*"
+
+jobs:
+    lint:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+            - name: Install dependencies
+              run: |
+                  sudo apt-get update
+                  sudo apt-get install -y cmake qtbase5-dev qtmultimedia5-dev libexiv2-dev clang-tidy
+            - name: Configure CMake
+              run: |
+                  mkdir build
+                  cd build
+                  cmake .. -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+            - name: Run clang-tidy
+              run: |
+                  clang-tidy src/**/*.cpp src/**/*.h -p build -- -std=c++17 -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/x86_64-linux-gnu/qt5/QtMultimedia -I/usr/include/x86_64-linux-gnu/qt5/QtQuick -I/usr/include/x86_64-linux-gnu/qt5/QtQml
+
+    build:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+            - name: Install dependencies
+              run: |
+                  sudo apt-get update
+                  sudo apt-get install -y cmake qtbase5-dev qtmultimedia5-dev libexiv2-dev
+            - name: Build
+              run: |
+                  mkdir build
+                  cd build
+                  cmake ..
+                  make -j$(nproc)
+
+    appimage:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+            - name: Install dependencies
+              run: |
+                  sudo apt-get update
+                  sudo apt-get install -y cmake qtbase5-dev qtmultimedia5-dev libexiv2-dev fuse libfuse2 wget
+            - name: Build
+              run: |
+                  mkdir build
+                  cd build
+                  cmake ..
+                  make -j$(nproc)
+            - name: Download linuxdeployqt
+              run: |
+                  wget -c -nv "https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage"
+                  chmod a+x linuxdeployqt-continuous-x86_64.AppImage
+            - name: Create AppImage
+              run: |
+                  cd build
+                  ../linuxdeployqt-continuous-x86_64.AppImage lumixor-qt -appimage -no-translations -no-copy-copyright-files
+            - name: Upload AppImage
+              uses: actions/upload-artifact@v4
+              with:
+                  name: Lumixor-AppImage
+                  path: build/*.AppImage
