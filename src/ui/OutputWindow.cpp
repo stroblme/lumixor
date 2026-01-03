@@ -48,6 +48,17 @@ void OutputWindow::fullscreenOnScreen(int screenIndex)
     window->showFullScreen();
 }
 
+void OutputWindow::moveToScreen(int screenIndex)
+{
+    qDebug() << "OutputWindow::moveToScreen(" << screenIndex << ")";
+    fullscreenOnScreen(screenIndex);
+}
+
+int OutputWindow::screenCount() const
+{
+    return qApp->screens().size();
+}
+
 void OutputWindow::showVideo()
 {
     qDebug() << "OutputWindow: showVideo()" << (m_root != nullptr);

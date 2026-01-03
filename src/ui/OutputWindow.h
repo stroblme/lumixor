@@ -6,6 +6,7 @@
 class OutputWindow : public QObject
 {
     Q_OBJECT
+    Q_PROPERTY(int screenCount READ screenCount NOTIFY screenCountChanged)
 public:
     explicit OutputWindow(PlaybackController *playbackController,
                           QObject *parent = nullptr);
@@ -15,6 +16,11 @@ public:
     Q_INVOKABLE void close();
 
     void fullscreenOnScreen(int screenIndex = 1);
+    Q_INVOKABLE void moveToScreen(int screenIndex);
+    Q_INVOKABLE int screenCount() const;
+
+signals:
+    void screenCountChanged();
 
 public slots:
     Q_INVOKABLE void showVideo();

@@ -542,13 +542,49 @@ Window {
 
                             Menu {
                                 id: addTabMenu
+
+                                background: Rectangle {
+                                    implicitWidth: 180
+                                    color: panelColor
+                                    border.color: borderColor
+                                    radius: 6
+                                }
+
                                 MenuItem {
+                                    id: slideshowMenuItem
                                     text: qsTr("New Slideshow Tab")
                                     onTriggered: addMediaTab("slideshow")
+
+                                    background: Rectangle {
+                                        implicitWidth: 180
+                                        implicitHeight: 32
+                                        color: slideshowMenuItem.highlighted ? Qt.lighter(panelColor, 1.3) : "transparent"
+                                    }
+                                    contentItem: Text {
+                                        text: slideshowMenuItem.text
+                                        color: textColor
+                                        horizontalAlignment: Text.AlignLeft
+                                        verticalAlignment: Text.AlignVCenter
+                                        leftPadding: 8
+                                    }
                                 }
                                 MenuItem {
+                                    id: videoMenuItem
                                     text: qsTr("New Video Tab")
                                     onTriggered: addMediaTab("video")
+
+                                    background: Rectangle {
+                                        implicitWidth: 180
+                                        implicitHeight: 32
+                                        color: videoMenuItem.highlighted ? Qt.lighter(panelColor, 1.3) : "transparent"
+                                    }
+                                    contentItem: Text {
+                                        text: videoMenuItem.text
+                                        color: textColor
+                                        horizontalAlignment: Text.AlignLeft
+                                        verticalAlignment: Text.AlignVCenter
+                                        leftPadding: 8
+                                    }
                                 }
                             }
                         }
@@ -650,7 +686,13 @@ Window {
                                                     anchors.centerIn: parent
                                                 }
                                             }
-                                            onValueChanged: slideshowDelaySeconds = value
+                                            onValueChanged: {
+                                                slideshowDelaySeconds = value;
+                                                if (preferences) {
+                                                    preferences.slideshowIntervalSeconds = value;
+                                                    preferences.save();
+                                                }
+                                            }
                                         }
 
                                         Label {
@@ -714,7 +756,13 @@ Window {
                                                     anchors.centerIn: parent
                                                 }
                                             }
-                                            onValueChanged: transitionDurationMs = value
+                                            onValueChanged: {
+                                                transitionDurationMs = value;
+                                                if (preferences) {
+                                                    preferences.transitionDurationMs = value;
+                                                    preferences.save();
+                                                }
+                                            }
                                         }
 
                                         Label {
@@ -848,7 +896,7 @@ Window {
                                         SpinBox {
                                             id: spinScreenIndex
                                             from: 0
-                                            to: 8
+                                            to: outputWindow ? Math.max(0, outputWindow.screenCount - 1) : 0
                                             value: outputScreenIndex
                                             Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
                                             Layout.preferredWidth: 120
@@ -899,71 +947,32 @@ Window {
                                                     anchors.centerIn: parent
                                                 }
                                             }
-                                            onValueChanged: outputScreenIndex = value
+                                            onValueChanged: {
+                                                outputScreenIndex = value;
+                                                // Move the output window to the selected screen
+                                                if (outputWindow) {
+                                                    outputWindow.moveToScreen(value);
+                                                }
+                                                // Save to preferences
+                                                if (preferences) {
+                                                    preferences.outputScreenIndex = value;
+                                                    preferences.save();
+                                                }
+                                            }
+                                        }
+
+                                        Label {
+                                            text: qsTr("Available screens: %1").arg(outputWindow ? outputWindow.screenCount : 0)
+                                            color: subtleTextColor
+                                            font.pixelSize: 11
+                                            Layout.columnSpan: 2
+                                            Layout.alignment: Qt.AlignRight
                                         }
                                     }
                                 }
 
                                 Item {
                                     Layout.fillHeight: true
-                                }
-
-                                RowLayout {
-                                    Layout.alignment: Qt.AlignRight
-                                    spacing: 8
-
-                                    Button {
-                                        text: qsTr("Reset")
-                                        background: Rectangle {
-                                            radius: 6
-                                            implicitHeight: 38
-                                            implicitWidth: 64
-                                            color: panelColor
-                                            border.color: borderColor
-                                        }
-                                        contentItem: Text {
-                                            text: parent.text
-                                            color: subtleTextColor
-                                            horizontalAlignment: Text.AlignHCenter
-                                            verticalAlignment: Text.AlignVCenter
-                                        }
-                                        onClicked: {
-                                            if (!preferences)
-                                                return;
-                                            slideshowDelaySeconds = preferences.slideshowIntervalSeconds;
-                                            transitionDurationMs = preferences.transitionDurationMs;
-                                            outputScreenIndex = preferences.outputScreenIndex;
-                                            spinSlideshow.value = slideshowDelaySeconds;
-                                            spinTransition.value = transitionDurationMs;
-                                            spinScreenIndex.value = outputScreenIndex;
-                                        }
-                                    }
-
-                                    Button {
-                                        text: qsTr("Save")
-                                        background: Rectangle {
-                                            radius: 6
-                                            implicitHeight: 38
-                                            implicitWidth: 64
-                                            color: accentColor
-                                            border.color: borderColor
-                                        }
-                                        contentItem: Text {
-                                            text: parent.text
-                                            color: backgroundColor
-                                            horizontalAlignment: Text.AlignHCenter
-                                            verticalAlignment: Text.AlignVCenter
-                                        }
-                                        onClicked: {
-                                            if (!preferences)
-                                                return;
-                                            preferences.slideshowIntervalSeconds = slideshowDelaySeconds;
-                                            preferences.transitionDurationMs = transitionDurationMs;
-                                            preferences.outputScreenIndex = outputScreenIndex;
-                                            preferences.save();
-                                            statusText = qsTr("Preferences saved");
-                                        }
-                                    }
                                 }
                             }
                         }
@@ -1173,7 +1182,7 @@ Window {
                                                 contentItem: Text {
                                                     text: slideshowPlayPauseBtn.checked ? "⏸" : "▶"
                                                     color: textColor
-                                                    font.pixelSize: 24
+                                                    font.pixelSize: 18
                                                     horizontalAlignment: Text.AlignHCenter
                                                     verticalAlignment: Text.AlignVCenter
                                                 }
@@ -1231,7 +1240,7 @@ Window {
                                                 contentItem: Text {
                                                     text: "⏹"
                                                     color: textColor
-                                                    font.pixelSize: 24
+                                                    font.pixelSize: 20
                                                     horizontalAlignment: Text.AlignHCenter
                                                     verticalAlignment: Text.AlignVCenter
                                                 }
@@ -1366,7 +1375,7 @@ Window {
                                                 contentItem: Text {
                                                     text: dynamicPlayBtn.checked ? "⏸" : "▶"
                                                     color: textColor
-                                                    font.pixelSize: 24
+                                                    font.pixelSize: 18
                                                     horizontalAlignment: Text.AlignHCenter
                                                     verticalAlignment: Text.AlignVCenter
                                                 }
@@ -1435,7 +1444,7 @@ Window {
                                                 contentItem: Text {
                                                     text: "⏹"
                                                     color: textColor
-                                                    font.pixelSize: 24
+                                                    font.pixelSize: 20
                                                     horizontalAlignment: Text.AlignHCenter
                                                     verticalAlignment: Text.AlignVCenter
                                                 }
