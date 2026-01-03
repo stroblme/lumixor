@@ -30,7 +30,7 @@ jobs:
                   cd build
                   cp ../resources/lumixor.desktop lumixor-qt.desktop
                   cp ../resources/lumixor.svg lumixor-qt.svg
-                  ../linuxdeployqt-continuous-x86_64.AppImage lumixor-qt -appimage -no-translations -no-copy-copyright-files -desktopfile=lumixor-qt.desktop -iconfile=lumixor-qt.svg
+                  ../linuxdeployqt-continuous-x86_64.AppImage lumixor-qt -appimage -no-translations -no-copy-copyright-files
             - name: Upload AppImage
               uses: actions/upload-artifact@v4
               with:
