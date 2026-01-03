@@ -14,7 +14,7 @@ jobs:
             - name: Install dependencies
               run: |
                   sudo apt-get update
-                  sudo apt-get install -y cmake qtbase5-dev qtmultimedia5-dev qtdeclarative5-dev qtquickcontrols2-5-dev libexiv2-dev fuse libfuse2 wget
+                  sudo apt-get install -y cmake qtbase5-dev qtmultimedia5-dev qtdeclarative5-dev qtquickcontrols2-5-dev libexiv2-dev fuse libfuse2 wget qml-module-qtquick2 qml-module-qtquick-window2 qml-module-qtquick-controls2 qml-module-qtquick-layouts qml-module-qtmultimedia qml-module-qt-labs-platform
             - name: Build
               run: |
                   mkdir build
@@ -55,10 +55,26 @@ jobs:
                   cp lumixor-qt.desktop AppDir/lumixor-qt.desktop
 
                   # Copy required QML modules
-                  cp -r $QT_QML_PATH/QtQuick AppDir/usr/qml/ || true
-                  cp -r $QT_QML_PATH/QtQuick.2 AppDir/usr/qml/ || true
-                  cp -r $QT_QML_PATH/QtMultimedia AppDir/usr/qml/ || true
-                  cp -r $QT_QML_PATH/Qt AppDir/usr/qml/ || true
+                  QML_DIRS="QtQuick QtQuick.2 QtMultimedia Qt QtGraphicalEffects"
+                  for dir in $QML_DIRS; do
+                    if [ -d "$QT_QML_PATH/$dir" ]; then
+                      cp -r "$QT_QML_PATH/$dir" AppDir/usr/qml/
+                    fi
+                  done
+
+                  # Also copy from common alternative locations
+                  for dir in $QML_DIRS; do
+                    if [ -d "/usr/lib/x86_64-linux-gnu/qt5/qml/$dir" ]; then
+                      cp -r "/usr/lib/x86_64-linux-gnu/qt5/qml/$dir" AppDir/usr/qml/ 2>/dev/null || true
+                    fi
+                    if [ -d "/usr/lib/qt5/qml/$dir" ]; then
+                      cp -r "/usr/lib/qt5/qml/$dir" AppDir/usr/qml/ 2>/dev/null || true
+                    fi
+                  done
+
+                  # List what we have for debugging
+                  echo "QML modules copied:"
+                  ls -la AppDir/usr/qml/
 
                   # Run linuxdeployqt on AppDir
                   ../linuxdeployqt-continuous-x86_64.AppImage AppDir/usr/share/applications/lumixor-qt.desktop -qmldir=../src/ui/qml -bundle-non-qt-libs -no-translations -no-copy-copyright-files
