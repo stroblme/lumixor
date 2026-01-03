@@ -15,7 +15,6 @@ jobs:
               run: |
                   sudo apt-get update
                   sudo apt-get install -y \
-                    build-essential \
                     cmake \
                     qtbase5-dev \
                     qtmultimedia5-dev \
@@ -23,6 +22,7 @@ jobs:
                     qtquickcontrols2-5-dev \
                     libexiv2-dev \
                     libqt5svg5-dev \
+                    libunwind-dev \
                     qml-module-qtquick2 \
                     qml-module-qtquick-window2 \
                     qml-module-qtquick-controls2 \
@@ -38,7 +38,6 @@ jobs:
                     gstreamer1.0-libav \
                     gstreamer1.0-alsa \
                     gstreamer1.0-pulseaudio \
-                    wget \
                     fuse \
                     libfuse2
             - name: Build
