@@ -19,6 +19,7 @@ int main(int argc, char *argv[])
     QGuiApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
 
     Application app(argc, argv);
+    app.setWindowIcon(QIcon(":/lumixor.svg"));
     app.applyDarkTheme();
 
     const AppConfig &cfg = app.config();

@@ -40,6 +40,7 @@ set(HDR
 # QML resources
 set(RESOURCES
     src/ui/qml/qml.qrc
+    resources/resources.qrc
 )
 
 add_executable(lumixor-qt

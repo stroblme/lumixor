@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Name=Lumixor
+Comment=Media slideshow application
+Exec=lumixor-qt
+Icon=lumixor
+Terminal=false
+Type=Application
+Categories=AudioVideo;
+StartupWMClass=lumixor-qt
