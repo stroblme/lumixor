@@ -14,7 +14,30 @@ jobs:
             - name: Install dependencies
               run: |
                   sudo apt-get update
-                  sudo apt-get install -y cmake qtbase5-dev qtmultimedia5-dev qtdeclarative5-dev qtquickcontrols2-5-dev libexiv2-dev fuse libfuse2 wget qml-module-qtquick2 qml-module-qtquick-window2 qml-module-qtquick-controls2 qml-module-qtquick-layouts qml-module-qtmultimedia qml-module-qt-labs-platform
+                  sudo apt-get install -y \
+                    build-essential \
+                    cmake \
+                    qt5-default \
+                    qtbase5-dev \
+                    qtdeclarative5-dev \
+                    qtmultimedia5-dev \
+                    libqt5svg5-dev \
+                    qml-module-qtquick2 \
+                    qml-module-qtquick-window2 \
+                    qml-module-qtquick-controls2 \
+                    qml-module-qtquick-layouts \
+                    qml-module-qtmultimedia \
+                    qml-module-qt-labs-platform \
+                    libgstreamer1.0-dev \
+                    libgstreamer-plugins-base1.0-dev \
+                    gstreamer1.0-plugins-base \
+                    gstreamer1.0-plugins-good \
+                    gstreamer1.0-plugins-bad \
+                    gstreamer1.0-plugins-ugly \
+                    gstreamer1.0-libav \
+                    gstreamer1.0-alsa \
+                    gstreamer1.0-pulseaudio \
+                    libfuse2
             - name: Build
               run: |
                   mkdir build
@@ -41,6 +64,7 @@ jobs:
                   # Create AppDir structure
                   mkdir -p AppDir/usr/bin
                   mkdir -p AppDir/usr/lib
+                  mkdir -p AppDir/usr/lib/gstreamer-1.0
                   mkdir -p AppDir/usr/plugins
                   mkdir -p AppDir/usr/qml
                   mkdir -p AppDir/usr/share/icons/hicolor/256x256/apps
@@ -80,12 +104,49 @@ jobs:
                   # Copy all Qt5 libraries to ensure consistency
                   cp -L $QT_LIB_PATH/libQt5*.so.5 AppDir/usr/lib/ 2>/dev/null || true
 
+                  # Copy Qt multimedia plugins
+                  mkdir -p AppDir/usr/plugins/mediaservice
+                  cp -r $QT_PLUGIN_PATH/mediaservice/* AppDir/usr/plugins/mediaservice/ 2>/dev/null || true
+                  cp -r /usr/lib/x86_64-linux-gnu/qt5/plugins/mediaservice/* AppDir/usr/plugins/mediaservice/ 2>/dev/null || true
+
+                  # Copy GStreamer plugins and libraries
+                  echo "Copying GStreamer libraries..."
+                  cp -L /usr/lib/x86_64-linux-gnu/libgst*.so* AppDir/usr/lib/ 2>/dev/null || true
+                  cp -L /usr/lib/x86_64-linux-gnu/gstreamer-1.0/*.so AppDir/usr/lib/gstreamer-1.0/ 2>/dev/null || true
+
+                  # Copy GStreamer base libraries
+                  cp -L /usr/lib/x86_64-linux-gnu/libgstvideo-1.0.so* AppDir/usr/lib/ 2>/dev/null || true
+                  cp -L /usr/lib/x86_64-linux-gnu/libgstaudio-1.0.so* AppDir/usr/lib/ 2>/dev/null || true
+                  cp -L /usr/lib/x86_64-linux-gnu/libgstbase-1.0.so* AppDir/usr/lib/ 2>/dev/null || true
+                  cp -L /usr/lib/x86_64-linux-gnu/libgstreamer-1.0.so* AppDir/usr/lib/ 2>/dev/null || true
+                  cp -L /usr/lib/x86_64-linux-gnu/libgstpbutils-1.0.so* AppDir/usr/lib/ 2>/dev/null || true
+                  cp -L /usr/lib/x86_64-linux-gnu/libgstapp-1.0.so* AppDir/usr/lib/ 2>/dev/null || true
+                  cp -L /usr/lib/x86_64-linux-gnu/libgstgl-1.0.so* AppDir/usr/lib/ 2>/dev/null || true
+                  cp -L /usr/lib/x86_64-linux-gnu/libgstrtp-1.0.so* AppDir/usr/lib/ 2>/dev/null || true
+                  cp -L /usr/lib/x86_64-linux-gnu/libgstrtsp-1.0.so* AppDir/usr/lib/ 2>/dev/null || true
+                  cp -L /usr/lib/x86_64-linux-gnu/libgstsdp-1.0.so* AppDir/usr/lib/ 2>/dev/null || true
+                  cp -L /usr/lib/x86_64-linux-gnu/libgsttag-1.0.so* AppDir/usr/lib/ 2>/dev/null || true
+                  cp -L /usr/lib/x86_64-linux-gnu/libgstfft-1.0.so* AppDir/usr/lib/ 2>/dev/null || true
+                  cp -L /usr/lib/x86_64-linux-gnu/libgstcheck-1.0.so* AppDir/usr/lib/ 2>/dev/null || true
+                  cp -L /usr/lib/x86_64-linux-gnu/libgstcontroller-1.0.so* AppDir/usr/lib/ 2>/dev/null || true
+                  cp -L /usr/lib/x86_64-linux-gnu/libgstnet-1.0.so* AppDir/usr/lib/ 2>/dev/null || true
+                  cp -L /usr/lib/x86_64-linux-gnu/libgstcodecparsers-1.0.so* AppDir/usr/lib/ 2>/dev/null || true
+                  cp -L /usr/lib/x86_64-linux-gnu/libgstbadaudio-1.0.so* AppDir/usr/lib/ 2>/dev/null || true
+                  cp -L /usr/lib/x86_64-linux-gnu/libgstplayer-1.0.so* AppDir/usr/lib/ 2>/dev/null || true
+                  cp -L /usr/lib/x86_64-linux-gnu/libgstinsertbin-1.0.so* AppDir/usr/lib/ 2>/dev/null || true
+                  cp -L /usr/lib/x86_64-linux-gnu/libgstmpegts-1.0.so* AppDir/usr/lib/ 2>/dev/null || true
+                  cp -L /usr/lib/x86_64-linux-gnu/libgstallocators-1.0.so* AppDir/usr/lib/ 2>/dev/null || true
+
+                  # List GStreamer plugins for debugging
+                  echo "GStreamer plugins copied:"
+                  ls -la AppDir/usr/lib/gstreamer-1.0/ | head -20
+
                   # Copy custom AppRun script that properly sets library paths
                   cp ../resources/AppRun AppDir/AppRun
                   chmod +x AppDir/AppRun
 
                   # Run linuxdeployqt once with all options
-                  ../linuxdeployqt-continuous-x86_64.AppImage AppDir/usr/share/applications/lumixor-qt.desktop -qmldir=../src/ui/qml -qmldir=AppDir/usr/qml -bundle-non-qt-libs -no-translations -no-copy-copyright-files -extra-plugins=iconengines,imageformats -appimage
+                  ../linuxdeployqt-continuous-x86_64.AppImage AppDir/usr/share/applications/lumixor-qt.desktop -qmldir=../src/ui/qml -qmldir=AppDir/usr/qml -bundle-non-qt-libs -no-translations -no-copy-copyright-files -extra-plugins=iconengines,imageformats,mediaservice -appimage
             - name: Upload AppImage
               uses: actions/upload-artifact@v4
               with:

@@ -1,14 +1,45 @@
 #!/bin/bash
 SELF=$(readlink -f "$0")
 HERE=${SELF%/*}
+
+# Library paths - bundled libraries first
 export LD_LIBRARY_PATH="${HERE}/usr/lib/:${HERE}/usr/lib/x86_64-linux-gnu/:${HERE}/lib/:${HERE}/lib/x86_64-linux-gnu/${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+
+# Executable paths
 export PATH="${HERE}/usr/bin/:${HERE}/usr/sbin/:${HERE}/usr/games/:${HERE}/bin/:${HERE}/sbin/${PATH:+:$PATH}"
+
+# Qt plugin paths
 export QT_PLUGIN_PATH="${HERE}/usr/plugins/:${HERE}/usr/lib/qt5/plugins/:${HERE}/usr/lib/x86_64-linux-gnu/qt5/plugins/${QT_PLUGIN_PATH:+:$QT_PLUGIN_PATH}"
+
+# QML import paths
 export QML2_IMPORT_PATH="${HERE}/usr/qml/:${HERE}/usr/lib/qml/:${HERE}/usr/lib/x86_64-linux-gnu/qml/${QML2_IMPORT_PATH:+:$QML2_IMPORT_PATH}"
+
+# Qt platform plugin path
 export QT_QPA_PLATFORM_PLUGIN_PATH="${HERE}/usr/plugins/platforms/:${HERE}/usr/lib/qt5/plugins/platforms/"
+
+# Qt directory
 export QTDIR="${HERE}/usr"
+
+# XDG data dirs
 export XDG_DATA_DIRS="${HERE}/usr/share/:${XDG_DATA_DIRS:-/usr/local/share:/usr/share}"
-export QT_AUTO_SCREEN_SCALE_FACTOR=0
-export QT_SCALE_FACTOR=1
+
+# GStreamer plugin path - CRITICAL for video playback
+export GST_PLUGIN_PATH="${HERE}/usr/lib/gstreamer-1.0/"
+export GST_PLUGIN_SYSTEM_PATH="${HERE}/usr/lib/gstreamer-1.0/"
+export GST_PLUGIN_SCANNER="${HERE}/usr/libexec/gstreamer-1.0/gst-plugin-scanner"
+
+# Disable system GStreamer plugins to avoid conflicts
+export GST_PLUGIN_SYSTEM_PATH_1_0="${HERE}/usr/lib/gstreamer-1.0/"
+
+# Font configuration - use system fonts
+export FONTCONFIG_PATH=/etc/fonts
+export FONTCONFIG_FILE=/etc/fonts/fonts.conf
+
+# Scaling - respect system DPI settings
+unset QT_AUTO_SCREEN_SCALE_FACTOR
+unset QT_SCALE_FACTOR
+export QT_ENABLE_HIGHDPI_SCALING=1
+export QT_FONT_DPI=96
+
 cd "${HERE}/usr"
 exec "${HERE}/usr/bin/lumixor-qt" "$@"

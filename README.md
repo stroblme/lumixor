@@ -18,7 +18,7 @@ You can easily build the application yourself by
 ```
 ./build.sh
 ```
-3. The output is then in `/build/lumixor-qt`
+3. The output is then in `./build/lumixor-qt`
 
 ## Usage
 
