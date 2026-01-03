@@ -82,8 +82,22 @@ jobs:
                   cp -L $QT_LIB_PATH/libQt5QuickControls2.so.5 AppDir/usr/lib/ 2>/dev/null || true
                   cp -L $QT_LIB_PATH/libQt5QuickTemplates2.so.5 AppDir/usr/lib/ 2>/dev/null || true
 
+                  # Copy all Qt5 libraries to ensure consistency
+                  cp -L $QT_LIB_PATH/libQt5*.so.5 AppDir/usr/lib/ 2>/dev/null || true
+
                   # Run linuxdeployqt on AppDir
                   ../linuxdeployqt-continuous-x86_64.AppImage AppDir/usr/share/applications/lumixor-qt.desktop -qmldir=../src/ui/qml -qmldir=AppDir/usr/qml -bundle-non-qt-libs -no-translations -no-copy-copyright-files -extra-plugins=iconengines,imageformats,platformthemes/libqgtk3.so
+
+                  # Ensure all QML plugin dependencies are bundled
+                  for lib in AppDir/usr/qml/*/lib*.so; do
+                    if [ -f "$lib" ]; then
+                      ldd "$lib" 2>/dev/null | grep "=> /" | awk '{print $3}' | while read dep; do
+                        if [ -f "$dep" ] && [[ "$dep" == *"Qt5"* ]]; then
+                          cp -L "$dep" AppDir/usr/lib/ 2>/dev/null || true
+                        fi
+                      done
+                    fi
+                  done
 
                   # Create AppImage
                   ../linuxdeployqt-continuous-x86_64.AppImage AppDir/usr/share/applications/lumixor-qt.desktop -appimage -no-translations -no-copy-copyright-files
