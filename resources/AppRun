@@ -1,0 +1,12 @@
+#!/bin/bash
+SELF=$(readlink -f "$0")
+HERE=${SELF%/*}
+export LD_LIBRARY_PATH="${HERE}/usr/lib/:${HERE}/usr/lib/x86_64-linux-gnu/:${HERE}/lib/:${HERE}/lib/x86_64-linux-gnu/${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+export PATH="${HERE}/usr/bin/:${HERE}/usr/sbin/:${HERE}/usr/games/:${HERE}/bin/:${HERE}/sbin/${PATH:+:$PATH}"
+export QT_PLUGIN_PATH="${HERE}/usr/plugins/:${HERE}/usr/lib/qt5/plugins/:${HERE}/usr/lib/x86_64-linux-gnu/qt5/plugins/${QT_PLUGIN_PATH:+:$QT_PLUGIN_PATH}"
+export QML2_IMPORT_PATH="${HERE}/usr/qml/:${HERE}/usr/lib/qml/:${HERE}/usr/lib/x86_64-linux-gnu/qml/${QML2_IMPORT_PATH:+:$QML2_IMPORT_PATH}"
+export QT_QPA_PLATFORM_PLUGIN_PATH="${HERE}/usr/plugins/platforms/:${HERE}/usr/lib/qt5/plugins/platforms/"
+export QTDIR="${HERE}/usr"
+export XDG_DATA_DIRS="${HERE}/usr/share/:${XDG_DATA_DIRS:-/usr/local/share:/usr/share}"
+cd "${HERE}/usr"
+exec "${HERE}/usr/bin/lumixor-qt" "$@"

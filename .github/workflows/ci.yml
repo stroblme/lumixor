@@ -99,6 +99,10 @@ jobs:
                     fi
                   done
 
+                  # Copy custom AppRun script that properly sets library paths
+                  cp ../resources/AppRun AppDir/AppRun
+                  chmod +x AppDir/AppRun
+
                   # Create AppImage
                   ../linuxdeployqt-continuous-x86_64.AppImage AppDir/usr/share/applications/lumixor-qt.desktop -appimage -no-translations -no-copy-copyright-files
             - name: Upload AppImage
