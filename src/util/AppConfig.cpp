@@ -25,6 +25,8 @@ static AppConfig fromJson(const QJsonObject &o)
         c.accentColor = o.value("accentColor").toString(c.accentColor);
     if (o.contains("uiScale"))
         c.uiScale = o.value("uiScale").toDouble(c.uiScale);
+    if (o.contains("autoPlayNextVideo"))
+        c.autoPlayNextVideo = o.value("autoPlayNextVideo").toBool(c.autoPlayNextVideo);
     return c;
 }
 
@@ -68,6 +70,7 @@ bool AppConfig::saveToFile(const QString &filePath, QString *error) const
     o["outputScreenIndex"] = outputScreenIndex;
     o["accentColor"] = accentColor;
     o["uiScale"] = uiScale;
+    o["autoPlayNextVideo"] = autoPlayNextVideo;
 
     QJsonDocument doc(o);
 

@@ -98,6 +98,23 @@ void PreferencesController::setUiScale(double value)
     autoSave();
 }
 
+bool PreferencesController::autoPlayNextVideo() const
+{
+    return m_app ? m_app->config().autoPlayNextVideo : true;
+}
+
+void PreferencesController::setAutoPlayNextVideo(bool value)
+{
+    if (!m_app)
+        return;
+    AppConfig &cfg = m_app->mutableConfig();
+    if (cfg.autoPlayNextVideo == value)
+        return;
+    cfg.autoPlayNextVideo = value;
+    emit preferencesChanged();
+    autoSave();
+}
+
 void PreferencesController::autoSave()
 {
     if (m_app)

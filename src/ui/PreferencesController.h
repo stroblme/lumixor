@@ -15,6 +15,7 @@ class PreferencesController : public QObject
     Q_PROPERTY(int outputScreenIndex READ outputScreenIndex WRITE setOutputScreenIndex NOTIFY preferencesChanged)
     Q_PROPERTY(QString accentColor READ accentColor WRITE setAccentColor NOTIFY preferencesChanged)
     Q_PROPERTY(double uiScale READ uiScale WRITE setUiScale NOTIFY preferencesChanged)
+    Q_PROPERTY(bool autoPlayNextVideo READ autoPlayNextVideo WRITE setAutoPlayNextVideo NOTIFY preferencesChanged)
 
 public:
     explicit PreferencesController(Application *app, QObject *parent = nullptr);
@@ -33,6 +34,9 @@ public:
 
     double uiScale() const;
     void setUiScale(double value);
+
+    bool autoPlayNextVideo() const;
+    void setAutoPlayNextVideo(bool value);
 
     Q_INVOKABLE bool save(QString path = QString());
 

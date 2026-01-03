@@ -32,6 +32,9 @@ Window {
     property bool loopSlideshows: true  // After last image, continue with first
     property bool loopVideos: true      // After last video, continue with first
 
+    // Auto-play setting from preferences
+    property bool autoPlayNextVideo: preferences ? preferences.autoPlayNextVideo : true
+
     property int m_loadedVideoIndex: -1
     property bool isBlack: false
     property bool wasVideoPlaying: false
@@ -885,6 +888,50 @@ Window {
 
                                                 Rectangle {
                                                     x: switchLoopVideos.checked ? parent.width - width - 2 : 2
+                                                    y: 2
+                                                    width: 22
+                                                    height: 22
+                                                    radius: 11
+                                                    color: panelColor
+                                                    Behavior on x {
+                                                        NumberAnimation {
+                                                            duration: 150
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+
+                                        Label {
+                                            text: qsTr("Auto-play next:")
+                                            color: textColor
+                                            horizontalAlignment: Text.AlignLeft
+                                            Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
+                                        }
+                                        Switch {
+                                            id: switchAutoPlayNextVideo
+                                            checked: autoPlayNextVideo
+                                            Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
+                                            onCheckedChanged: {
+                                                autoPlayNextVideo = checked;
+                                                if (preferences) {
+                                                    preferences.autoPlayNextVideo = checked;
+                                                }
+                                            }
+                                            ToolTip.visible: hovered
+                                            ToolTip.text: qsTr("When enabled, the next video plays automatically when the current one finishes")
+
+                                            indicator: Rectangle {
+                                                implicitWidth: 48
+                                                implicitHeight: 26
+                                                x: switchAutoPlayNextVideo.leftPadding
+                                                y: parent.height / 2 - height / 2
+                                                radius: 13
+                                                color: switchAutoPlayNextVideo.checked ? accentColor : borderColor
+                                                border.color: switchAutoPlayNextVideo.checked ? accentColor : borderColor
+
+                                                Rectangle {
+                                                    x: switchAutoPlayNextVideo.checked ? parent.width - width - 2 : 2
                                                     y: 2
                                                     width: 22
                                                     height: 22
@@ -2410,7 +2457,20 @@ Window {
                                                     }
                                                     // Detect when video reaches the end
                                                     if (status === MediaPlayer.EndOfMedia && previewMediaItem.mediaPlaying) {
-                                                        advanceToNextVideo(index);
+                                                        if (autoPlayNextVideo) {
+                                                            advanceToNextVideo(index);
+                                                        } else {
+                                                            // Stop playback - don't auto-advance
+                                                            console.log("Video ended, auto-play next disabled - stopping playback");
+                                                            mediaTabsModel.setProperty(index, "isPlaying", false);
+                                                            if (outputWindow) {
+                                                                var tab = mediaTabsModel.get(index);
+                                                                if (tab) {
+                                                                    var zOrder = tab.zOrder !== undefined ? tab.zOrder : index;
+                                                                    outputWindow.setVideoLayer(tab.tabId, tab.currentPath, tab.brightness, false, zOrder);
+                                                                }
+                                                            }
+                                                        }
                                                     }
                                                 }
 
