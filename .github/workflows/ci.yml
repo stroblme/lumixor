@@ -76,8 +76,14 @@ jobs:
                   echo "QML modules copied:"
                   ls -la AppDir/usr/qml/
 
+                  # Copy additional Qt libraries that may be needed
+                  QT_LIB_PATH=$(qmake -query QT_INSTALL_LIBS)
+                  cp -L $QT_LIB_PATH/libQt5QmlWorkerScript.so.5 AppDir/usr/lib/ 2>/dev/null || true
+                  cp -L $QT_LIB_PATH/libQt5QuickControls2.so.5 AppDir/usr/lib/ 2>/dev/null || true
+                  cp -L $QT_LIB_PATH/libQt5QuickTemplates2.so.5 AppDir/usr/lib/ 2>/dev/null || true
+
                   # Run linuxdeployqt on AppDir
-                  ../linuxdeployqt-continuous-x86_64.AppImage AppDir/usr/share/applications/lumixor-qt.desktop -qmldir=../src/ui/qml -bundle-non-qt-libs -no-translations -no-copy-copyright-files
+                  ../linuxdeployqt-continuous-x86_64.AppImage AppDir/usr/share/applications/lumixor-qt.desktop -qmldir=../src/ui/qml -qmldir=AppDir/usr/qml -bundle-non-qt-libs -no-translations -no-copy-copyright-files -extra-plugins=iconengines,imageformats,platformthemes/libqgtk3.so
 
                   # Create AppImage
                   ../linuxdeployqt-continuous-x86_64.AppImage AppDir/usr/share/applications/lumixor-qt.desktop -appimage -no-translations -no-copy-copyright-files
