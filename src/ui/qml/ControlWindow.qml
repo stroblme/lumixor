@@ -143,6 +143,20 @@ Window {
     function removeMediaTab(tabIndex) {
         if (tabIndex >= 0 && tabIndex < mediaTabsModel.count) {
             var tab = mediaTabsModel.get(tabIndex);
+            var tabId = tab.tabId;
+            var tabType = tab.tabType;
+
+            // Stop playback and remove from OutputWindow
+            if (outputWindow) {
+                outputWindow.removeMediaLayer(tabId);
+            }
+
+            // If this was an active slideshow, stop the slideshow controller
+            if (tabType === "slideshow" && activeSlideshowTabId === tabId) {
+                slideshow.stop();
+                activeSlideshowTabId = -1;
+                activeSlideshowTabIndex = -1;
+            }
 
             // Clear the media model
             if (tab.mediaModel) {
