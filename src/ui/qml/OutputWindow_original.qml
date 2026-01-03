@@ -32,22 +32,16 @@ Window {
 
     // URL helpers
     function urlForPath(p) {
-        if (!p)
-            return "";
-        if (p.indexOf(":/") !== -1)
-            return p;
-        if (p.startsWith("/"))
-            return "file://" + p;
+        if (!p) return "";
+        if (p.indexOf(":/") !== -1) return p;
+        if (p.startsWith("/")) return "file://" + p;
         return p;
     }
 
     function imageUrlForPath(p) {
-        if (!p)
-            return "";
-        if (p.indexOf(":/") !== -1)
-            return p;
-        if (p.startsWith("/"))
-            return "image://exif/" + encodeURIComponent(p);
+        if (!p) return "";
+        if (p.indexOf(":/") !== -1) return p;
+        if (p.startsWith("/")) return "image://exif/" + encodeURIComponent(p);
         return p;
     }
 
@@ -59,7 +53,8 @@ Window {
 
     // Update or add a media layer
     function setMediaLayer(tabId, mediaType, path, brightness, playing, zOrder) {
-        console.log("OutputWindow.setMediaLayer: tabId=" + tabId + ", type=" + mediaType + ", path=" + path + ", brightness=" + brightness + ", playing=" + playing + ", zOrder=" + zOrder);
+        console.log("OutputWindow.setMediaLayer: tabId=" + tabId + ", type=" + mediaType + 
+                    ", path=" + path + ", brightness=" + brightness + ", playing=" + playing + ", zOrder=" + zOrder);
 
         for (var i = 0; i < mediaLayersModel.count; i++) {
             if (mediaLayersModel.get(i).tabId === tabId) {
@@ -297,8 +292,7 @@ Window {
         NumberAnimation {
             target: imageItem
             property: "opacity"
-            from: 1
-            to: 0
+            from: 1; to: 0
             duration: 200
         }
         ScriptAction {
@@ -307,8 +301,7 @@ Window {
         NumberAnimation {
             target: imageItem
             property: "opacity"
-            from: 0
-            to: 1
+            from: 0; to: 1
             duration: 200
         }
         onStopped: {
