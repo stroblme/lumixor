@@ -41,11 +41,28 @@ void OutputWindow::fullscreenOnScreen(int screenIndex)
         target = screens.at(0);
     }
 
+    qDebug() << "OutputWindow::fullscreenOnScreen - target screen:" << screenIndex
+             << "name:" << target->name()
+             << "geometry:" << target->geometry();
+
+    // First, ensure we're not in fullscreen mode to allow screen change
+    if (window->windowState() == Qt::WindowFullScreen)
+    {
+        window->showNormal();
+    }
+
+    // Set the screen and move window to target screen's position
     window->setScreen(target);
     QRect geo = target->geometry();
-    window->setX(geo.x());
-    window->setY(geo.y());
+    window->setGeometry(geo);
+
+    // Process events to ensure the window move is completed
+    qApp->processEvents();
+
+    // Now go fullscreen on the target screen
     window->showFullScreen();
+
+    qDebug() << "OutputWindow::fullscreenOnScreen - window now at:" << window->geometry();
 }
 
 void OutputWindow::moveToScreen(int screenIndex)

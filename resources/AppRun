@@ -8,5 +8,7 @@ export QML2_IMPORT_PATH="${HERE}/usr/qml/:${HERE}/usr/lib/qml/:${HERE}/usr/lib/x
 export QT_QPA_PLATFORM_PLUGIN_PATH="${HERE}/usr/plugins/platforms/:${HERE}/usr/lib/qt5/plugins/platforms/"
 export QTDIR="${HERE}/usr"
 export XDG_DATA_DIRS="${HERE}/usr/share/:${XDG_DATA_DIRS:-/usr/local/share:/usr/share}"
+export QT_AUTO_SCREEN_SCALE_FACTOR=0
+export QT_SCALE_FACTOR=1
 cd "${HERE}/usr"
 exec "${HERE}/usr/bin/lumixor-qt" "$@"
