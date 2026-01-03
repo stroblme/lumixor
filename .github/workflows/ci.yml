@@ -28,9 +28,43 @@ jobs:
             - name: Create AppImage
               run: |
                   cd build
+
+                  # Copy desktop file and icon
                   cp ../resources/lumixor.desktop lumixor-qt.desktop
                   cp ../resources/lumixor.svg lumixor-qt.svg
-                  ../linuxdeployqt-continuous-x86_64.AppImage lumixor-qt -qmldir=../src/ui/qml -appimage -no-translations -no-copy-copyright-files
+
+                  # Get Qt plugin path
+                  QT_PLUGIN_PATH=$(qmake -query QT_INSTALL_PLUGINS)
+                  QT_QML_PATH=$(qmake -query QT_INSTALL_QML)
+
+                  # Create AppDir structure
+                  mkdir -p AppDir/usr/bin
+                  mkdir -p AppDir/usr/lib
+                  mkdir -p AppDir/usr/plugins
+                  mkdir -p AppDir/usr/qml
+                  mkdir -p AppDir/usr/share/icons/hicolor/256x256/apps
+                  mkdir -p AppDir/usr/share/applications
+
+                  # Copy binary
+                  cp lumixor-qt AppDir/usr/bin/
+
+                  # Copy desktop file and icon
+                  cp lumixor-qt.desktop AppDir/usr/share/applications/
+                  cp lumixor-qt.svg AppDir/usr/share/icons/hicolor/256x256/apps/
+                  cp lumixor-qt.svg AppDir/lumixor-qt.svg
+                  cp lumixor-qt.desktop AppDir/lumixor-qt.desktop
+
+                  # Copy required QML modules
+                  cp -r $QT_QML_PATH/QtQuick AppDir/usr/qml/ || true
+                  cp -r $QT_QML_PATH/QtQuick.2 AppDir/usr/qml/ || true
+                  cp -r $QT_QML_PATH/QtMultimedia AppDir/usr/qml/ || true
+                  cp -r $QT_QML_PATH/Qt AppDir/usr/qml/ || true
+
+                  # Run linuxdeployqt on AppDir
+                  ../linuxdeployqt-continuous-x86_64.AppImage AppDir/usr/share/applications/lumixor-qt.desktop -qmldir=../src/ui/qml -bundle-non-qt-libs -no-translations -no-copy-copyright-files
+
+                  # Create AppImage
+                  ../linuxdeployqt-continuous-x86_64.AppImage AppDir/usr/share/applications/lumixor-qt.desktop -appimage -no-translations -no-copy-copyright-files
             - name: Upload AppImage
               uses: actions/upload-artifact@v4
               with:
