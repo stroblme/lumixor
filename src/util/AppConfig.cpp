@@ -21,6 +21,10 @@ static AppConfig fromJson(const QJsonObject &o)
         c.outputHeight = o.value("outputHeight").toInt(c.outputHeight);
     if (o.contains("outputScreenIndex"))
         c.outputScreenIndex = o.value("outputScreenIndex").toInt(c.outputScreenIndex);
+    if (o.contains("accentColor"))
+        c.accentColor = o.value("accentColor").toString(c.accentColor);
+    if (o.contains("uiScale"))
+        c.uiScale = o.value("uiScale").toDouble(c.uiScale);
     return c;
 }
 
@@ -62,6 +66,8 @@ bool AppConfig::saveToFile(const QString &filePath, QString *error) const
     o["outputWidth"] = outputWidth;
     o["outputHeight"] = outputHeight;
     o["outputScreenIndex"] = outputScreenIndex;
+    o["accentColor"] = accentColor;
+    o["uiScale"] = uiScale;
 
     QJsonDocument doc(o);
 

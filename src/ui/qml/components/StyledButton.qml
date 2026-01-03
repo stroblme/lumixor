@@ -11,11 +11,14 @@ Button {
     property color txtColor: typeof textColor !== "undefined" ? textColor : "#E0E0E0"
     property color borderCol: typeof borderColor !== "undefined" ? borderColor : "#333333"
 
+    // UI scaling
+    property real scale: typeof uiScale !== "undefined" ? uiScale : 1.0
+
     property int radius: 6
 
     background: Rectangle {
         radius: control.radius
-        implicitHeight: 44
+        implicitHeight: Math.round(44 * control.scale)
         border.color: control.borderCol
         color: control.down ? control.pressedColor : control.hovered ? control.hoverColor : control.bgColor
     }
@@ -25,6 +28,6 @@ Button {
         color: control.txtColor
         horizontalAlignment: Text.AlignHCenter
         verticalAlignment: Text.AlignVCenter
-        font.pixelSize: 13
+        font.pixelSize: Math.round(13 * control.scale)
     }
 }

@@ -11,16 +11,19 @@ Button {
     property color txtColor: typeof textColor !== "undefined" ? textColor : "#E0E0E0"
     property color borderCol: typeof borderColor !== "undefined" ? borderColor : "#333333"
 
-    property string iconText: "▶"
-    property int iconSize: 18
+    // UI scaling
+    property real scale: typeof uiScale !== "undefined" ? uiScale : 1.0
 
-    implicitWidth: 44
-    implicitHeight: 44
+    property string iconText: "▶"
+    property int iconSize: Math.round(18 * scale)
+
+    implicitWidth: Math.round(44 * scale)
+    implicitHeight: Math.round(44 * scale)
 
     background: Rectangle {
         radius: 6
-        implicitHeight: 44
-        implicitWidth: 44
+        implicitHeight: Math.round(44 * control.scale)
+        implicitWidth: Math.round(44 * control.scale)
         border.color: control.borderCol
         color: control.down || control.checked ? control.pressedColor : control.hovered ? control.hoverColor : control.bgColor
     }

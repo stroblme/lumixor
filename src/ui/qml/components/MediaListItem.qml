@@ -11,6 +11,9 @@ Rectangle {
     property color subtleTxtColor: typeof subtleTextColor !== "undefined" ? subtleTextColor : "#9E9E9E"
     property color borderCol: typeof borderColor !== "undefined" ? borderColor : "#333333"
 
+    // UI scaling
+    property real scale: typeof uiScale !== "undefined" ? uiScale : 1.0
+
     // Content properties
     property string fileName: ""
     property bool isSelected: false
@@ -19,7 +22,7 @@ Rectangle {
     signal clicked
     signal deleteClicked
 
-    height: 40
+    height: Math.round(40 * scale)
     color: isSelected ? highlightColor : itemColor
     radius: 3
     border.color: borderCol
@@ -27,28 +30,29 @@ Rectangle {
     Text {
         anchors.verticalCenter: parent.verticalCenter
         anchors.left: parent.left
-        anchors.leftMargin: 8
+        anchors.leftMargin: Math.round(8 * control.scale)
         text: control.fileName
         color: control.txtColor
+        font.pixelSize: Math.round(13 * control.scale)
         elide: Text.ElideRight
-        width: parent.width - 40
+        width: parent.width - Math.round(40 * control.scale)
     }
 
     // Delete button
     Rectangle {
         anchors.right: parent.right
-        anchors.rightMargin: 8
+        anchors.rightMargin: Math.round(8 * control.scale)
         anchors.verticalCenter: parent.verticalCenter
-        width: 20
-        height: 20
-        radius: 10
+        width: Math.round(20 * control.scale)
+        height: Math.round(20 * control.scale)
+        radius: Math.round(10 * control.scale)
         color: delMouseArea.containsMouse ? Qt.lighter(control.itemColor, 1.5) : "transparent"
 
         Text {
             anchors.centerIn: parent
             text: "×"
             color: control.subtleTxtColor
-            font.pixelSize: 14
+            font.pixelSize: Math.round(14 * control.scale)
         }
 
         MouseArea {
@@ -62,7 +66,7 @@ Rectangle {
     MouseArea {
         anchors.left: parent.left
         anchors.right: parent.right
-        anchors.rightMargin: 36
+        anchors.rightMargin: Math.round(36 * control.scale)
         anchors.top: parent.top
         anchors.bottom: parent.bottom
         onClicked: control.clicked()

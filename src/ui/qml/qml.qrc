@@ -5,6 +5,7 @@
     <file>OutputWindow.qml</file>
     <!-- Components -->
     <file>components/qmldir</file>
+    <file>components/ColorPicker.qml</file>
     <file>components/DragHandle.qml</file>
     <file>components/IconButton.qml</file>
     <file>components/MediaLayer.qml</file>

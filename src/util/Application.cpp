@@ -4,11 +4,55 @@
 #include <QFile>
 #include <QTextStream>
 #include <QCommandLineParser>
+#include <QStandardPaths>
+#include <QDir>
+#include <QDebug>
 
 Application::Application(int &argc, char **argv)
     : QApplication(argc, argv)
 {
     loadConfigFromCommandLine();
+}
+
+QString Application::defaultConfigDir()
+{
+    // Use XDG config directory on Linux, AppData on Windows, etc.
+    QString configDir = QStandardPaths::writableLocation(QStandardPaths::ConfigLocation);
+    return configDir + "/lumixor";
+}
+
+QString Application::defaultConfigPath()
+{
+    return defaultConfigDir() + "/config.json";
+}
+
+void Application::loadDefaultConfig()
+{
+    QString defaultPath = defaultConfigPath();
+
+    // Ensure the config directory exists
+    QDir dir(defaultConfigDir());
+    if (!dir.exists())
+    {
+        dir.mkpath(".");
+    }
+
+    bool ok = false;
+    if (QFile::exists(defaultPath))
+    {
+        m_config = AppConfig::loadFromFile(defaultPath, &ok);
+        if (ok)
+        {
+            m_configPath = defaultPath;
+            qDebug() << "Loaded config from:" << defaultPath;
+            return;
+        }
+    }
+
+    // No config file exists yet, use defaults and set path for future saves
+    m_config = AppConfig();
+    m_configPath = defaultPath;
+    qDebug() << "Using default config, will save to:" << defaultPath;
 }
 
 void Application::loadConfigFromCommandLine()
@@ -26,21 +70,48 @@ void Application::loadConfigFromCommandLine()
 
     if (parser.isSet(configOpt))
     {
+        // Use explicitly provided config file
         m_configPath = parser.value(configOpt);
+        bool ok = false;
+        m_config = AppConfig::loadFromFile(m_configPath, &ok);
+        if (!ok)
+        {
+            qWarning() << "Failed to load config from:" << m_configPath;
+            m_config = AppConfig();
+        }
     }
     else
     {
-        m_configPath.clear();
+        // Use default config location
+        loadDefaultConfig();
+    }
+}
+
+bool Application::saveConfig()
+{
+    if (m_configPath.isEmpty())
+    {
+        m_configPath = defaultConfigPath();
     }
 
-    bool ok = false;
-    m_config = AppConfig::loadFromFile(m_configPath, &ok);
+    // Ensure directory exists
+    QDir dir(QFileInfo(m_configPath).absolutePath());
+    if (!dir.exists())
+    {
+        dir.mkpath(".");
+    }
+
+    QString error;
+    bool ok = m_config.saveToFile(m_configPath, &error);
     if (!ok)
     {
-        // fall back to defaults
-        m_config = AppConfig();
-        m_configPath.clear();
+        qWarning() << "Failed to save config:" << error;
     }
+    else
+    {
+        qDebug() << "Config saved to:" << m_configPath;
+    }
+    return ok;
 }
 
 void Application::applyDarkTheme()

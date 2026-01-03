@@ -9,10 +9,13 @@ Slider {
     property color accentCol: typeof accentColor !== "undefined" ? accentColor : "#42A5F5"
     property color borderCol: typeof borderColor !== "undefined" ? borderColor : "#333333"
 
-    property int handleSize: 28
-    property int trackHeight: 8
+    // UI scaling
+    property real scale: typeof uiScale !== "undefined" ? uiScale : 1.0
 
-    implicitHeight: 44
+    property int handleSize: Math.round(28 * scale)
+    property int trackHeight: Math.round(8 * scale)
+
+    implicitHeight: Math.round(44 * scale)
 
     handle: Rectangle {
         x: control.orientation === Qt.Horizontal ? control.leftPadding + control.visualPosition * (control.availableWidth - width) : control.leftPadding + control.availableWidth / 2 - width / 2

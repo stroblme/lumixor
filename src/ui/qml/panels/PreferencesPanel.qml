@@ -22,12 +22,18 @@ Item {
     property bool loopVideos: true
     property int screenCount: 1
 
+    // UI customization
+    property string prefAccentColor: "#42A5F5"
+    property real uiScale: 1.0
+
     // Signals
     signal slideshowDelayChanged(int value)
     signal transitionDurationChanged(int value)
     signal outputScreenIndexChanged(int value)
     signal loopSlideshowsChanged(bool enabled)
     signal loopVideosChanged(bool enabled)
+    signal accentColorChanged(string color)
+    signal uiScaleChanged(real scale)
 
     ColumnLayout {
         anchors.fill: parent
@@ -189,7 +195,83 @@ Item {
                 Label {
                     text: qsTr("Available screens: %1").arg(root.screenCount)
                     color: root.subtleTextColor
-                    font.pixelSize: 11
+                    font.pixelSize: 11 * root.uiScale
+                    Layout.columnSpan: 2
+                    Layout.alignment: Qt.AlignRight
+                }
+            }
+        }
+
+        StyledGroupBox {
+            Layout.fillWidth: true
+            title: qsTr("Appearance")
+            panelCol: root.panelColor
+            txtColor: root.textColor
+            borderCol: root.borderColor
+
+            GridLayout {
+                anchors.fill: parent
+                anchors.margins: 12
+                columns: 2
+                columnSpacing: 12
+                rowSpacing: 8
+
+                Label {
+                    text: qsTr("Accent Color:")
+                    color: root.textColor
+                    horizontalAlignment: Text.AlignLeft
+                    Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
+                }
+                ColorPicker {
+                    id: accentColorPicker
+                    selectedColor: root.prefAccentColor
+                    panelColor: root.panelColor
+                    textColor: root.textColor
+                    borderColor: root.borderColor
+                    Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
+                    Layout.preferredWidth: 200
+                    onColorChanged: root.accentColorChanged(newColor.toString())
+                }
+
+                Label {
+                    text: qsTr("UI Scale:")
+                    color: root.textColor
+                    horizontalAlignment: Text.AlignLeft
+                    Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
+                }
+                RowLayout {
+                    Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
+                    spacing: 8
+
+                    StyledSlider {
+                        id: uiScaleSlider
+                        from: 0.5
+                        to: 2.0
+                        value: root.uiScale
+                        stepSize: 0.1
+                        Layout.preferredWidth: 120
+                        Layout.preferredHeight: 32
+                        bgColor: root.panelColor
+                        accentCol: root.accentColor
+                        borderCol: root.borderColor
+                        handleSize: 20
+                        trackHeight: 6
+                        onValueChanged: root.uiScaleChanged(value)
+                    }
+
+                    Label {
+                        text: Math.round(uiScaleSlider.value * 100) + "%"
+                        color: root.textColor
+                        font.pixelSize: 12
+                        Layout.preferredWidth: 45
+                        horizontalAlignment: Text.AlignRight
+                    }
+                }
+
+                Label {
+                    text: qsTr("Affects text size, buttons, and controls")
+                    color: root.subtleTextColor
+                    font.pixelSize: 11 * root.uiScale
                     Layout.columnSpan: 2
                     Layout.alignment: Qt.AlignRight
                 }

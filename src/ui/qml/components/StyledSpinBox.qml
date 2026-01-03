@@ -12,7 +12,10 @@ SpinBox {
     property color subtleTxtColor: typeof subtleTextColor !== "undefined" ? subtleTextColor : "#9E9E9E"
     property color borderCol: typeof borderColor !== "undefined" ? borderColor : "#333333"
 
-    implicitWidth: 120
+    // UI scaling
+    property real scale: typeof uiScale !== "undefined" ? uiScale : 1.0
+
+    implicitWidth: Math.round(120 * scale)
 
     background: Rectangle {
         radius: 4
@@ -22,7 +25,7 @@ SpinBox {
 
     contentItem: TextInput {
         text: control.displayText
-        font: control.font
+        font.pixelSize: Math.round(13 * control.scale)
         color: control.txtColor
         selectionColor: control.accentCol
         selectedTextColor: control.bgColor
@@ -35,15 +38,15 @@ SpinBox {
     up.indicator: Rectangle {
         x: control.mirrored ? 0 : control.width - width
         height: control.height
-        implicitWidth: 38
-        implicitHeight: 38
+        implicitWidth: Math.round(38 * control.scale)
+        implicitHeight: Math.round(38 * control.scale)
         color: control.up.pressed ? Qt.darker(control.panelCol, 1.2) : control.panelCol
         border.color: control.borderCol
         radius: 4
 
         Text {
             text: "+"
-            font.pixelSize: 14
+            font.pixelSize: Math.round(14 * control.scale)
             color: control.subtleTxtColor
             anchors.centerIn: parent
         }
@@ -52,15 +55,15 @@ SpinBox {
     down.indicator: Rectangle {
         x: control.mirrored ? control.width - width : 0
         height: control.height
-        implicitWidth: 38
-        implicitHeight: 38
+        implicitWidth: Math.round(38 * control.scale)
+        implicitHeight: Math.round(38 * control.scale)
         color: control.down.pressed ? Qt.darker(control.panelCol, 1.2) : control.panelCol
         border.color: control.borderCol
         radius: 4
 
         Text {
             text: "-"
-            font.pixelSize: 14
+            font.pixelSize: Math.round(14 * control.scale)
             color: control.subtleTxtColor
             anchors.centerIn: parent
         }
