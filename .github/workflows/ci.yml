@@ -42,6 +42,13 @@ jobs:
             gstreamer1.0-pulseaudio \
             fuse \
             libfuse2
+          # Show what multimedia packages are installed
+          echo "=== Installed Qt5 multimedia packages ==="
+          dpkg -l | grep -i qt.*multi || echo "No multimedia packages found"
+          echo "=== Looking for mediaservice plugins after install ==="
+          find /usr -type d -name "mediaservice" 2>/dev/null
+          find /usr -name "libgstmediaplayer*" 2>/dev/null
+          find /usr -name "libqgsttools*" 2>/dev/null
       - name: Build
         run: |
           mkdir build
@@ -70,9 +77,16 @@ jobs:
           echo "QT_QML_PATH: $QT_QML_PATH"
           echo "QT_LIB_PATH: $QT_LIB_PATH"
 
-          echo "=== Available mediaservice plugins ==="
+          echo "=== Searching for mediaservice plugins ==="
+          echo "QT_PLUGIN_PATH: $QT_PLUGIN_PATH"
           ls -la $QT_PLUGIN_PATH/mediaservice/ 2>/dev/null || echo "None at QT_PLUGIN_PATH"
-          ls -la /usr/lib/x86_64-linux-gnu/qt5/plugins/mediaservice/ 2>/dev/null || echo "None at system path"
+          ls -la /usr/lib/x86_64-linux-gnu/qt5/plugins/mediaservice/ 2>/dev/null || echo "None at /usr/lib/x86_64-linux-gnu/qt5/plugins/mediaservice/"
+          echo "=== Searching system for mediaservice ==="
+          find /usr -type d -name "mediaservice" 2>/dev/null || echo "No mediaservice dirs found"
+          echo "=== Searching for gstreamer media plugins ==="
+          find /usr -name "*gstmedia*" -o -name "*qtmedia*" 2>/dev/null | head -20
+          echo "=== Searching for libqgsttools ==="
+          find /usr -name "libqgsttools*" 2>/dev/null
 
           # Create AppDir structure
           mkdir -p AppDir/usr/bin

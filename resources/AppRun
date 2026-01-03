@@ -38,6 +38,13 @@ unset GST_PLUGIN_SYSTEM_PATH
 unset GST_PLUGIN_SYSTEM_PATH_1_0
 unset GST_PLUGIN_SCANNER
 
+# IMPORTANT: Also use system Qt multimedia plugins if bundled ones are missing
+# This allows video playback to work if the target system has Qt5 multimedia installed
+if [ ! -f "${HERE}/usr/plugins/mediaservice/libgstmediaplayer.so" ]; then
+    # Add system Qt plugin paths as fallback
+    export QT_PLUGIN_PATH="${HERE}/usr/plugins:/usr/lib/x86_64-linux-gnu/qt5/plugins:${HERE}/usr/lib/qt5/plugins"
+fi
+
 # Font configuration - use system fonts
 export FONTCONFIG_PATH=/etc/fonts
 export FONTCONFIG_FILE=/etc/fonts/fonts.conf
