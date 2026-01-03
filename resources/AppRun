@@ -62,10 +62,15 @@ if [ -z "$DBUS_SESSION_BUS_ADDRESS" ]; then
 fi
 
 if [ "$DEBUG" = "1" ]; then
+    echo "=== Lumixor AppImage Debug Info ==="
+    echo "Script Location: $SELF"
+    echo "Executable Directory: $HERE"
     echo "LD_LIBRARY_PATH: $LD_LIBRARY_PATH"
     echo "QT_PLUGIN_PATH: $QT_PLUGIN_PATH"
     echo "QML2_IMPORT_PATH: $QML2_IMPORT_PATH"
-    echo "QT_QPA_PLATFORMTHEME: $QT_QPA_PLATFORMTHEME"
+    echo "QT_QPA_PLATFORM_PLUGIN_PATH: $QT_QPA_PLATFORM_PLUGIN_PATH"
+    echo "QTDIR: $QTDIR"
+    echo "XDG_DATA_DIRS: $XDG_DATA_DIRS"
     echo "DBUS_SESSION_BUS_ADDRESS: $DBUS_SESSION_BUS_ADDRESS"
     echo ""
     echo "Checking platform theme plugins:"

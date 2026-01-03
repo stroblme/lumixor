@@ -65,11 +65,21 @@ jobs:
                   QT_QML_PATH=$(qmake -query QT_INSTALL_QML)
                   QT_LIB_PATH=$(qmake -query QT_INSTALL_LIBS)
 
+                  echo "=== Qt paths ==="
+                  echo "QT_PLUGIN_PATH: $QT_PLUGIN_PATH"
+                  echo "QT_QML_PATH: $QT_QML_PATH"
+                  echo "QT_LIB_PATH: $QT_LIB_PATH"
+
+                  echo "=== Available mediaservice plugins ==="
+                  ls -la $QT_PLUGIN_PATH/mediaservice/ 2>/dev/null || echo "None at QT_PLUGIN_PATH"
+                  ls -la /usr/lib/x86_64-linux-gnu/qt5/plugins/mediaservice/ 2>/dev/null || echo "None at system path"
+
                   # Create AppDir structure
                   mkdir -p AppDir/usr/bin
                   mkdir -p AppDir/usr/lib
                   mkdir -p AppDir/usr/lib/gstreamer-1.0
                   mkdir -p AppDir/usr/plugins
+                  mkdir -p AppDir/usr/plugins/mediaservice
                   mkdir -p AppDir/usr/qml
                   mkdir -p AppDir/usr/share/icons/hicolor/256x256/apps
                   mkdir -p AppDir/usr/share/applications
@@ -108,10 +118,19 @@ jobs:
                   # Copy all Qt5 libraries to ensure consistency
                   cp -L $QT_LIB_PATH/libQt5*.so.5 AppDir/usr/lib/ 2>/dev/null || true
 
-                  # Copy Qt multimedia plugins
-                  mkdir -p AppDir/usr/plugins/mediaservice
-                  cp -r $QT_PLUGIN_PATH/mediaservice/* AppDir/usr/plugins/mediaservice/ 2>/dev/null || true
-                  cp -r /usr/lib/x86_64-linux-gnu/qt5/plugins/mediaservice/* AppDir/usr/plugins/mediaservice/ 2>/dev/null || true
+                  # CRITICAL: Copy Qt multimedia plugins BEFORE running linuxdeployqt
+                  echo "=== Copying mediaservice plugins ==="
+                  cp -v $QT_PLUGIN_PATH/mediaservice/* AppDir/usr/plugins/mediaservice/ 2>/dev/null || true
+                  cp -v /usr/lib/x86_64-linux-gnu/qt5/plugins/mediaservice/* AppDir/usr/plugins/mediaservice/ 2>/dev/null || true
+
+                  # Also copy libqgsttools which is required by the GStreamer media plugin
+                  echo "=== Looking for libqgsttools ==="
+                  find /usr -name "libqgsttools*" 2>/dev/null || echo "Not found"
+                  cp -L /usr/lib/x86_64-linux-gnu/libqgsttools_p.so* AppDir/usr/lib/ 2>/dev/null || true
+                  cp -L $QT_LIB_PATH/libqgsttools_p.so* AppDir/usr/lib/ 2>/dev/null || true
+
+                  echo "=== Mediaservice plugins in AppDir ==="
+                  ls -la AppDir/usr/plugins/mediaservice/
 
                   # Copy platform theme plugins for native file dialogs
                   mkdir -p AppDir/usr/plugins/platformthemes
@@ -163,6 +182,10 @@ jobs:
 
                   # Run linuxdeployqt once with all options
                   ../linuxdeployqt-continuous-x86_64.AppImage AppDir/usr/share/applications/lumixor-qt.desktop -qmldir=../src/ui/qml -qmldir=AppDir/usr/qml -bundle-non-qt-libs -no-translations -no-copy-copyright-files -extra-plugins=iconengines,imageformats,mediaservice,platformthemes -appimage
+
+                  # Verify mediaservice plugins are in final AppImage
+                  echo "=== Final check: mediaservice plugins ==="
+                  ls -la AppDir/usr/plugins/mediaservice/ 2>/dev/null || echo "MISSING!"
             - name: Upload AppImage
               uses: actions/upload-artifact@v4
               with:
