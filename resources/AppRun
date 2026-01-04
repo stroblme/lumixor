@@ -17,8 +17,14 @@ export LD_LIBRARY_PATH="${HERE}/usr/lib:${HERE}/lib:${LD_LIBRARY_PATH:+:$LD_LIBR
 # Executable paths
 export PATH="${HERE}/usr/bin:${HERE}/bin:${PATH:+:$PATH}"
 
-# Qt plugin paths - check multiple possible locations
-export QT_PLUGIN_PATH="${HERE}/usr/plugins:${HERE}/usr/lib/qt5/plugins"
+# GStreamer - Use system plugins to match local build and avoid version mismatches
+export GST_PLUGIN_PATH="/usr/lib/x86_64-linux-gnu/gstreamer-1.0"
+export GST_PLUGIN_SYSTEM_PATH="/usr/lib/x86_64-linux-gnu/gstreamer-1.0"
+export GST_PLUGIN_SYSTEM_PATH_1_0="/usr/lib/x86_64-linux-gnu/gstreamer-1.0"
+export GST_PLUGIN_SCANNER="/usr/libexec/gstreamer-1.0/gst-plugin-scanner"
+
+# Qt plugin paths - prefer system Qt multimedia plugins to use system GStreamer
+export QT_PLUGIN_PATH="/usr/lib/x86_64-linux-gnu/qt5/plugins:${HERE}/usr/plugins:${HERE}/usr/lib/qt5/plugins"
 
 # QML import paths
 export QML2_IMPORT_PATH="${HERE}/usr/qml:${HERE}/usr/lib/qml"
@@ -31,18 +37,6 @@ export QTDIR="${HERE}/usr"
 
 # XDG data dirs
 export XDG_DATA_DIRS="${HERE}/usr/share:${XDG_DATA_DIRS:-/usr/local/share:/usr/share}"
-
-# GStreamer - MUST use SYSTEM plugins to avoid version mismatch
-# The bundled GStreamer plugins are built for Ubuntu 22.04 and will
-# cause "no element identity" errors on other systems
-unset GST_PLUGIN_PATH
-unset GST_PLUGIN_SYSTEM_PATH
-unset GST_PLUGIN_SYSTEM_PATH_1_0
-unset GST_PLUGIN_SCANNER
-
-# Remove bundled GStreamer from library path to force use of system GStreamer
-# This is critical - mixing GStreamer versions causes crashes
-export LD_LIBRARY_PATH=$(echo "$LD_LIBRARY_PATH" | sed 's|[^:]*gstreamer[^:]*:||g')
 
 # IMPORTANT: Also use system Qt multimedia plugins if bundled ones are missing
 # This allows video playback to work if the target system has Qt5 multimedia installed
