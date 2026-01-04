@@ -19,6 +19,7 @@
     <file>components/StyledSwitch.qml</file>
     <file>components/StyledTabButton.qml</file>
     <file>components/Utils.qml</file>
+    <file>components/Spectrometer.qml</file>
     <!-- Panels -->
     <file>panels/qmldir</file>
     <file>panels/HomePanel.qml</file>

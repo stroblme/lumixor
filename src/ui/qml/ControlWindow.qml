@@ -1768,6 +1768,7 @@ Window {
                         id: previewPanel
                         Layout.fillWidth: true
                         Layout.fillHeight: true
+                        Layout.minimumHeight: 150
                         radius: 6
                         color: backgroundColor
                         border.color: borderColor
@@ -2055,6 +2056,135 @@ Window {
                                     }
                                 }
                             } // End of previewContainer Item
+                        }
+                    }
+
+                    // Spectrometer panel
+                    Rectangle {
+                        id: spectrometerPanel
+                        Layout.fillWidth: true
+                        implicitHeight: 80
+                        radius: 6
+                        color: panelColor
+                        border.color: borderColor
+
+                        ColumnLayout {
+                            anchors.fill: parent
+                            anchors.margins: 8
+                            spacing: 4
+
+                            RowLayout {
+                                Layout.fillWidth: true
+                                spacing: 8
+
+                                Label {
+                                    text: qsTr("Spectrometer")
+                                    color: textColor
+                                    font.pixelSize: 13
+                                    font.bold: true
+                                    Layout.alignment: Qt.AlignVCenter
+                                }
+
+                                Item {
+                                    Layout.fillWidth: true
+                                }
+
+                                Label {
+                                    text: qsTr("Gain:")
+                                    color: subtleTextColor
+                                    font.pixelSize: 12
+                                    Layout.alignment: Qt.AlignVCenter
+                                }
+
+                                Slider {
+                                    id: spectrometerGainSlider
+                                    from: 0.5
+                                    to: 5.0
+                                    value: audioAnalyzer ? audioAnalyzer.gain : 1.0
+                                    Layout.preferredWidth: 80
+                                    Layout.preferredHeight: 24
+
+                                    onValueChanged: {
+                                        if (audioAnalyzer) {
+                                            audioAnalyzer.gain = value;
+                                        }
+                                    }
+
+                                    background: Rectangle {
+                                        x: spectrometerGainSlider.leftPadding
+                                        y: spectrometerGainSlider.topPadding + spectrometerGainSlider.availableHeight / 2 - height / 2
+                                        implicitWidth: 80
+                                        implicitHeight: 4
+                                        width: spectrometerGainSlider.availableWidth
+                                        height: implicitHeight
+                                        radius: 2
+                                        color: borderColor
+
+                                        Rectangle {
+                                            width: spectrometerGainSlider.visualPosition * parent.width
+                                            height: parent.height
+                                            color: accentColor
+                                            radius: 2
+                                        }
+                                    }
+
+                                    handle: Rectangle {
+                                        x: spectrometerGainSlider.leftPadding + spectrometerGainSlider.visualPosition * (spectrometerGainSlider.availableWidth - width)
+                                        y: spectrometerGainSlider.topPadding + spectrometerGainSlider.availableHeight / 2 - height / 2
+                                        implicitWidth: 12
+                                        implicitHeight: 12
+                                        radius: 6
+                                        color: spectrometerGainSlider.pressed ? Qt.lighter(accentColor, 1.2) : accentColor
+                                    }
+                                }
+
+                                Switch {
+                                    id: spectrometerSwitch
+                                    checked: audioAnalyzer ? audioAnalyzer.active : false
+                                    Layout.alignment: Qt.AlignVCenter
+
+                                    onCheckedChanged: {
+                                        if (audioAnalyzer) {
+                                            audioAnalyzer.active = checked;
+                                        }
+                                    }
+
+                                    indicator: Rectangle {
+                                        implicitWidth: 40
+                                        implicitHeight: 20
+                                        x: spectrometerSwitch.leftPadding
+                                        y: parent.height / 2 - height / 2
+                                        radius: 10
+                                        color: spectrometerSwitch.checked ? accentColor : borderColor
+
+                                        Rectangle {
+                                            x: spectrometerSwitch.checked ? parent.width - width - 2 : 2
+                                            y: 2
+                                            width: 16
+                                            height: 16
+                                            radius: 8
+                                            color: "#FFFFFF"
+
+                                            Behavior on x {
+                                                NumberAnimation {
+                                                    duration: 100
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+                            Spectrometer {
+                                id: spectrometer
+                                Layout.fillWidth: true
+                                Layout.fillHeight: true
+                                Layout.minimumHeight: 40
+                                spectrumData: audioAnalyzer ? audioAnalyzer.spectrum : []
+                                barColor: accentColor
+                                bgColor: backgroundColor
+                                active: audioAnalyzer ? audioAnalyzer.active : false
+                            }
                         }
                     }
 

@@ -7,6 +7,7 @@
 #include "ui/ControlBridge.h"
 #include "ui/ExifImageProvider.h"
 #include "ui/PreferencesController.h"
+#include "audio/AudioAnalyzer.h"
 
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
@@ -32,6 +33,7 @@ int main(int argc, char *argv[])
 
     ControlBridge controlBridge;
     PreferencesController preferences(&app);
+    AudioAnalyzer audioAnalyzer;
 
     QQmlApplicationEngine engine;
     engine.addImageProvider("exif", new ExifImageProvider());
@@ -42,6 +44,7 @@ int main(int argc, char *argv[])
     engine.rootContext()->setContextProperty("controlBridge", &controlBridge);
     engine.rootContext()->setContextProperty("outputWindow", &outputWindow);
     engine.rootContext()->setContextProperty("preferences", &preferences);
+    engine.rootContext()->setContextProperty("audioAnalyzer", &audioAnalyzer);
 
     // Debug: print the loaded values
     qDebug() << "Startup - accentColor from preferences:" << preferences.accentColor();

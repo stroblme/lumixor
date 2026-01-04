@@ -22,6 +22,7 @@ set(SRC
     src/ui/ControlBridge.cpp
     src/ui/ExifImageProvider.cpp
     src/ui/PreferencesController.cpp
+    src/audio/AudioAnalyzer.cpp
 )
 
 set(HDR
@@ -35,6 +36,7 @@ set(HDR
     src/ui/ControlBridge.h
     src/ui/ExifImageProvider.h
     src/ui/PreferencesController.h
+    src/audio/AudioAnalyzer.h
 )
 
 # QML resources
