@@ -51,6 +51,15 @@ if [ ! -f "${HERE}/usr/plugins/mediaservice/libgstmediaplayer.so" ]; then
     export QT_PLUGIN_PATH="${HERE}/usr/plugins:/usr/lib/x86_64-linux-gnu/qt5/plugins:${HERE}/usr/lib/qt5/plugins"
 fi
 
+# CRITICAL FIX: The bundled mediaservice plugins are built against Ubuntu 22.04's
+# GStreamer version. If there's a version mismatch, we need to use system plugins.
+# Check if system Qt multimedia plugins exist and prefer them to avoid GStreamer conflicts
+if [ -f "/usr/lib/x86_64-linux-gnu/qt5/plugins/mediaservice/libgstmediaplayer.so" ]; then
+    # System has Qt multimedia plugins - use them instead of bundled ones
+    # This avoids GStreamer version mismatches
+    export QT_PLUGIN_PATH="/usr/lib/x86_64-linux-gnu/qt5/plugins:${HERE}/usr/plugins:${HERE}/usr/lib/qt5/plugins"
+fi
+
 # Font configuration - use system fonts
 export FONTCONFIG_PATH=/etc/fonts
 export FONTCONFIG_FILE=/etc/fonts/fonts.conf
