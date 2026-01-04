@@ -17,11 +17,12 @@ export LD_LIBRARY_PATH="${HERE}/usr/lib:${HERE}/lib:${LD_LIBRARY_PATH:+:$LD_LIBR
 # Executable paths
 export PATH="${HERE}/usr/bin:${HERE}/bin:${PATH:+:$PATH}"
 
-# GStreamer - Use system plugins to match local build and avoid version mismatches
-export GST_PLUGIN_PATH="/usr/lib/x86_64-linux-gnu/gstreamer-1.0"
-export GST_PLUGIN_SYSTEM_PATH="/usr/lib/x86_64-linux-gnu/gstreamer-1.0"
-export GST_PLUGIN_SYSTEM_PATH_1_0="/usr/lib/x86_64-linux-gnu/gstreamer-1.0"
-export GST_PLUGIN_SCANNER="/usr/libexec/gstreamer-1.0/gst-plugin-scanner"
+# GStreamer - Use system entirely, no bundling
+# Unset any plugin paths to use system defaults
+unset GST_PLUGIN_PATH
+unset GST_PLUGIN_SYSTEM_PATH
+unset GST_PLUGIN_SYSTEM_PATH_1_0
+unset GST_PLUGIN_SCANNER
 
 # Qt plugin paths - prefer system Qt multimedia plugins to use system GStreamer
 export QT_PLUGIN_PATH="/usr/lib/x86_64-linux-gnu/qt5/plugins:${HERE}/usr/plugins:${HERE}/usr/lib/qt5/plugins"
@@ -82,6 +83,7 @@ if [ "$DEBUG" = "1" ]; then
     echo "Script Location: $SELF"
     echo "Executable Directory: $HERE"
     echo "LD_LIBRARY_PATH: $LD_LIBRARY_PATH"
+    echo "GST_PLUGIN_PATH: $GST_PLUGIN_PATH"
     echo "QT_PLUGIN_PATH: $QT_PLUGIN_PATH"
     echo "QML2_IMPORT_PATH: $QML2_IMPORT_PATH"
     echo "QT_QPA_PLATFORM_PLUGIN_PATH: $QT_QPA_PLATFORM_PLUGIN_PATH"

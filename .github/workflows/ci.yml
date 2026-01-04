@@ -165,29 +165,9 @@ jobs:
           # The app will use system GStreamer which is more reliable
           echo "Skipping GStreamer bundling - will use system GStreamer for compatibility"
 
-          # Copy GStreamer base libraries
-          cp -L /usr/lib/x86_64-linux-gnu/libgstvideo-1.0.so* AppDir/usr/lib/ 2>/dev/null || true
-          cp -L /usr/lib/x86_64-linux-gnu/libgstaudio-1.0.so* AppDir/usr/lib/ 2>/dev/null || true
-          cp -L /usr/lib/x86_64-linux-gnu/libgstbase-1.0.so* AppDir/usr/lib/ 2>/dev/null || true
-          cp -L /usr/lib/x86_64-linux-gnu/libgstreamer-1.0.so* AppDir/usr/lib/ 2>/dev/null || true
-          cp -L /usr/lib/x86_64-linux-gnu/libgstpbutils-1.0.so* AppDir/usr/lib/ 2>/dev/null || true
-          cp -L /usr/lib/x86_64-linux-gnu/libgstapp-1.0.so* AppDir/usr/lib/ 2>/dev/null || true
-          cp -L /usr/lib/x86_64-linux-gnu/libgstgl-1.0.so* AppDir/usr/lib/ 2>/dev/null || true
-          cp -L /usr/lib/x86_64-linux-gnu/libgstrtp-1.0.so* AppDir/usr/lib/ 2>/dev/null || true
-          cp -L /usr/lib/x86_64-linux-gnu/libgstrtsp-1.0.so* AppDir/usr/lib/ 2>/dev/null || true
-          cp -L /usr/lib/x86_64-linux-gnu/libgstsdp-1.0.so* AppDir/usr/lib/ 2>/dev/null || true
-          cp -L /usr/lib/x86_64-linux-gnu/libgsttag-1.0.so* AppDir/usr/lib/ 2>/dev/null || true
-          cp -L /usr/lib/x86_64-linux-gnu/libgstfft-1.0.so* AppDir/usr/lib/ 2>/dev/null || true
-          cp -L /usr/lib/x86_64-linux-gnu/libgstcheck-1.0.so* AppDir/usr/lib/ 2>/dev/null || true
-          cp -L /usr/lib/x86_64-linux-gnu/libgstcontroller-1.0.so* AppDir/usr/lib/ 2>/dev/null || true
-
-          # Do NOT copy GStreamer plugins - they must come from the system
-          # Mixing bundled and system GStreamer causes crashes
-          rm -rf AppDir/usr/lib/gstreamer-1.0/* 2>/dev/null || true
-
-          # List GStreamer plugins for debugging
-          echo "GStreamer plugins (should be empty - using system):"
-          ls -la AppDir/usr/lib/gstreamer-1.0/ 2>/dev/null || echo "Directory empty or not present"
+          # Do NOT copy GStreamer libraries or plugins - use system entirely
+          # This prevents version mismatches between bundled libs and system plugins
+          echo "Skipping GStreamer bundling - will use system GStreamer for compatibility"
 
           # Copy custom AppRun script that properly sets library paths
           cp ../resources/AppRun AppDir/AppRun
