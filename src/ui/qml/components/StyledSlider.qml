@@ -6,7 +6,7 @@ Slider {
 
     // Theme colors
     property color bgColor: typeof panelColor !== "undefined" ? panelColor : "#1E1E1E"
-    property color accentCol: typeof accentColor !== "undefined" ? accentColor : "#42A5F5"
+    property color accentCol: typeof accentColor !== "undefined" ? accentColor : "#78909C"
     property color borderCol: typeof borderColor !== "undefined" ? borderColor : "#333333"
 
     property int handleSize: 28

@@ -6,7 +6,7 @@ SpinBox {
 
     property color bgColor: typeof backgroundColor !== "undefined" ? backgroundColor : "#121212"
     property color panelCol: typeof panelColor !== "undefined" ? panelColor : "#1E1E1E"
-    property color accentCol: typeof accentColor !== "undefined" ? accentColor : "#42A5F5"
+    property color accentCol: typeof accentColor !== "undefined" ? accentColor : "#78909C"
     property color txtColor: typeof textColor !== "undefined" ? textColor : "#E0E0E0"
     property color subtleTxtColor: typeof subtleTextColor !== "undefined" ? subtleTextColor : "#9E9E9E"
     property color borderCol: typeof borderColor !== "undefined" ? borderColor : "#333333"

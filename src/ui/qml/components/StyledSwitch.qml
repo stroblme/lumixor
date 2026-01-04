@@ -6,7 +6,7 @@ Switch {
 
     // Theme colors
     property color panelCol: typeof panelColor !== "undefined" ? panelColor : "#1E1E1E"
-    property color accentCol: typeof accentColor !== "undefined" ? accentColor : "#42A5F5"
+    property color accentCol: typeof accentColor !== "undefined" ? accentColor : "#78909C"
     property color borderCol: typeof borderColor !== "undefined" ? borderColor : "#333333"
 
     implicitWidth: 48

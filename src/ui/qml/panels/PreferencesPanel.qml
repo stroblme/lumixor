@@ -9,7 +9,7 @@ Item {
     // Theme colors - passed from parent
     property color backgroundColor: "#121212"
     property color panelColor: "#1E1E1E"
-    property color accentColor: "#42A5F5"
+    property color accentColor: "#78909C"
     property color textColor: "#E0E0E0"
     property color subtleTextColor: "#9E9E9E"
     property color borderColor: "#333333"
@@ -22,7 +22,7 @@ Item {
     property bool loopVideos: true
     property bool autoPlayNextVideo: true
     property int screenCount: 1
-    property string prefAccentColor: "#42A5F5"
+    property string prefAccentColor: "#78909C"
     property bool useCustomFilePicker: true
 
     // Signals to notify parent of changes (use unique names to avoid conflicts with auto-generated property change signals)

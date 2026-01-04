@@ -62,7 +62,7 @@ void PreferencesController::setOutputScreenIndex(int value)
 
 QString PreferencesController::accentColor() const
 {
-    return m_app ? m_app->config().accentColor : "#42A5F5";
+    return m_app ? m_app->config().accentColor : "#78909C";
 }
 
 bool PreferencesController::autoPlayNextVideo() const

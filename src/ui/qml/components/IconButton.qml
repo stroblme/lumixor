@@ -7,7 +7,7 @@ Button {
     // Theme colors - inherit from root or use defaults
     property color bgColor: typeof panelColor !== "undefined" ? panelColor : "#1E1E1E"
     property color hoverColor: Qt.lighter(bgColor, 1.25)
-    property color pressedColor: typeof accentColor !== "undefined" ? accentColor : "#42A5F5"
+    property color pressedColor: typeof accentColor !== "undefined" ? accentColor : "#78909C"
     property color txtColor: typeof textColor !== "undefined" ? textColor : "#E0E0E0"
     property color borderCol: typeof borderColor !== "undefined" ? borderColor : "#333333"
 

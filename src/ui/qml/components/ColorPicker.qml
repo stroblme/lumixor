@@ -4,7 +4,7 @@ import QtQuick.Controls 2.12
 Item {
     id: control
 
-    property color selectedColor: "#42A5F5"
+    property color selectedColor: "#78909C"
     property color panelColor: "#1E1E1E"
     property color textColor: "#E0E0E0"
     property color borderColor: "#333333"
@@ -15,12 +15,12 @@ Item {
     implicitWidth: 220
 
     // Preset colors
-    property var presetColors: ["#42A5F5"  // Blue (default)
+    property var presetColors: ["#78909C"  // Blue (default)
         , "#66BB6A"  // Green
         , "#FFA726"  // Orange
         , "#EF5350"  // Red
         , "#AB47BC"  // Purple
-        , "#26C6DA"  // Cyan
+        , "#42A5F5"  // Cyan
         , "#FFEE58"  // Yellow
         , "#EC407A"  // Pink
         , "#78909C"  // Blue Grey

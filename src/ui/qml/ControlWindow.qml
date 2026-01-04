@@ -28,7 +28,7 @@ Window {
     property int outputScreenIndex: preferences ? preferences.outputScreenIndex : 1
 
     // UI customization from preferences
-    property string prefAccentColor: preferences ? preferences.accentColor : "#42A5F5"
+    property string prefAccentColor: preferences ? preferences.accentColor : "#78909C"
 
     // Loop/repeat settings for media tabs
     property bool loopSlideshows: true  // After last image, continue with first
