@@ -18,12 +18,10 @@
     <file>components/StyledSpinBox.qml</file>
     <file>components/StyledSwitch.qml</file>
     <file>components/StyledTabButton.qml</file>
-    <file>components/Theme.qml</file>
     <file>components/Utils.qml</file>
     <!-- Panels -->
     <file>panels/qmldir</file>
     <file>panels/HomePanel.qml</file>
-    <file>panels/MediaTabContent.qml</file>
     <file>panels/PreferencesPanel.qml</file>
   </qresource>
 </RCC>

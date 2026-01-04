@@ -1,4 +1,2 @@
 module panels
-HomePanel 1.0 HomePanel.qml
-MediaTabContent 1.0 MediaTabContent.qml
 PreferencesPanel 1.0 PreferencesPanel.qml

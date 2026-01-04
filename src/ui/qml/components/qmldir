@@ -1,16 +1,11 @@
 module components
-singleton Theme 1.0 Theme.qml
-singleton Utils 1.0 Utils.qml
-ColorPicker 1.0 ColorPicker.qml
-DarkFilePicker 1.0 DarkFilePicker.qml
-DragHandle 1.0 DragHandle.qml
-IconButton 1.0 IconButton.qml
-MediaLayer 1.0 MediaLayer.qml
-MediaListItem 1.0 MediaListItem.qml
 StyledButton 1.0 StyledButton.qml
-StyledGroupBox 1.0 StyledGroupBox.qml
-StyledMenuItem 1.0 StyledMenuItem.qml
+IconButton 1.0 IconButton.qml
 StyledSlider 1.0 StyledSlider.qml
 StyledSpinBox 1.0 StyledSpinBox.qml
 StyledSwitch 1.0 StyledSwitch.qml
 StyledTabButton 1.0 StyledTabButton.qml
+StyledGroupBox 1.0 StyledGroupBox.qml
+MediaListItem 1.0 MediaListItem.qml
+DragHandle 1.0 DragHandle.qml
+ColorPicker 1.0 ColorPicker.qml

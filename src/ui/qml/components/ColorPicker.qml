@@ -1,6 +1,5 @@
 import QtQuick 2.12
 import QtQuick.Controls 2.12
-import QtQuick.Layouts 1.12
 
 Item {
     id: control
@@ -12,8 +11,8 @@ Item {
 
     signal colorChanged(color newColor)
 
-    implicitHeight: 32
-    implicitWidth: 200
+    implicitHeight: 28
+    implicitWidth: 220
 
     // Preset colors
     property var presetColors: ["#42A5F5"  // Blue (default)
@@ -28,20 +27,20 @@ Item {
         , "#8D6E63"   // Brown
     ]
 
-    RowLayout {
+    Row {
         anchors.fill: parent
-        spacing: 4
+        spacing: 2
 
         Repeater {
             model: control.presetColors
 
             Rectangle {
-                width: 24
-                height: 24
-                radius: 12
+                width: 20
+                height: 20
+                radius: 10
                 color: modelData
                 border.color: control.selectedColor === modelData ? Qt.lighter(modelData, 1.5) : control.borderColor
-                border.width: control.selectedColor === modelData ? 3 : 1
+                border.width: control.selectedColor === modelData ? 2 : 1
 
                 MouseArea {
                     anchors.fill: parent

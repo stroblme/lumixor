@@ -115,6 +115,7 @@ Item {
                     id: switchLoopSlideshows
                     checked: root.loopSlideshows
                     Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
+                    Layout.bottomMargin: 8
                     panelCol: root.panelColor
                     accentCol: root.accentColor
                     borderCol: root.borderColor
@@ -167,6 +168,7 @@ Item {
                     id: switchAutoPlayNextVideo
                     checked: root.autoPlayNextVideo
                     Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
+                    Layout.bottomMargin: 8
                     panelCol: root.panelColor
                     accentCol: root.accentColor
                     borderCol: root.borderColor
@@ -217,9 +219,10 @@ Item {
                 Label {
                     text: qsTr("Available screens: %1").arg(root.screenCount)
                     color: root.subtleTextColor
-                    font.pixelSize: 11
+                    font.pixelSize: 12
                     Layout.columnSpan: 2
                     Layout.alignment: Qt.AlignRight
+                    Layout.bottomMargin: 8
                 }
             }
         }
@@ -276,9 +279,10 @@ Item {
                 Label {
                     text: qsTr("Disable for native GTK/KDE dialogs")
                     color: root.subtleTextColor
-                    font.pixelSize: 11
+                    font.pixelSize: 12
                     Layout.columnSpan: 2
                     Layout.alignment: Qt.AlignRight
+                    Layout.bottomMargin: 8
                 }
             }
         }
