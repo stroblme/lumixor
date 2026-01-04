@@ -29,7 +29,6 @@ Window {
 
     // UI customization from preferences
     property string prefAccentColor: preferences ? preferences.accentColor : "#42A5F5"
-    property real uiScale: preferences ? preferences.uiScale : 1.0
 
     // Loop/repeat settings for media tabs
     property bool loopSlideshows: true  // After last image, continue with first
@@ -61,22 +60,6 @@ Window {
     property color borderColor: "#333333"
     property color listItemColor: "#232323"
     property color listItemHighlight: "#29434E"
-
-    // Scaled UI sizes (multiplied by uiScale)
-    readonly property int scaledFontSize: Math.round(13 * uiScale)
-    readonly property int scaledSmallFontSize: Math.round(11 * uiScale)
-    readonly property int scaledLargeFontSize: Math.round(18 * uiScale)
-    readonly property int scaledButtonHeight: Math.round(44 * uiScale)
-    readonly property int scaledButtonWidth: Math.round(100 * uiScale)
-    readonly property int scaledIconSize: Math.round(18 * uiScale)
-    readonly property int scaledListItemHeight: Math.round(40 * uiScale)
-    readonly property int scaledMargin: Math.round(8 * uiScale)
-    readonly property int scaledSpacing: Math.round(8 * uiScale)
-
-    // Helper function to scale any value
-    function scaled(value) {
-        return Math.round(value * uiScale);
-    }
 
     // Dynamic media tabs model: each entry is { tabId, tabType ("slideshow" or "video"), tabName, mediaModel (ListModel), brightness }
     // Tab IDs start from 0 and increment globally to avoid conflicts
@@ -646,664 +629,58 @@ Window {
                             Layout.fillWidth: true
                             Layout.fillHeight: true
 
-                            ColumnLayout {
+                            PreferencesPanel {
                                 anchors.fill: parent
-                                anchors.margins: 8
-                                spacing: 8
+                                backgroundColor: controlRoot.backgroundColor
+                                panelColor: controlRoot.panelColor
+                                accentColor: controlRoot.accentColor
+                                textColor: controlRoot.textColor
+                                subtleTextColor: controlRoot.subtleTextColor
+                                borderColor: controlRoot.borderColor
 
-                                GroupBox {
-                                    Layout.fillWidth: true
-                                    title: qsTr("Slideshow")
-                                    label: Label {
-                                        text: qsTr("Slideshow")
-                                        color: textColor
-                                    }
-                                    background: Rectangle {
-                                        radius: 6
-                                        color: panelColor
-                                        border.color: borderColor
-                                    }
+                                slideshowDelaySeconds: controlRoot.slideshowDelaySeconds
+                                transitionDurationMs: controlRoot.transitionDurationMs
+                                outputScreenIndex: controlRoot.outputScreenIndex
+                                loopSlideshows: controlRoot.loopSlideshows
+                                loopVideos: controlRoot.loopVideos
+                                autoPlayNextVideo: controlRoot.autoPlayNextVideo
+                                screenCount: outputWindow ? outputWindow.screenCount : 1
+                                prefAccentColor: controlRoot.prefAccentColor
+                                useCustomFilePicker: controlRoot.useCustomFilePicker
 
-                                    GridLayout {
-                                        anchors.fill: parent
-                                        anchors.margins: 12
-                                        columns: 2
-                                        columnSpacing: 12
-                                        rowSpacing: 8
-
-                                        Label {
-                                            text: qsTr("Delay (s):")
-                                            color: textColor
-                                            horizontalAlignment: Text.AlignLeft
-                                            Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
-                                        }
-                                        SpinBox {
-                                            id: spinSlideshow
-                                            from: 1
-                                            to: 3600
-                                            value: slideshowDelaySeconds
-                                            Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
-                                            Layout.preferredWidth: 120
-                                            Layout.maximumWidth: 120
-                                            background: Rectangle {
-                                                radius: 4
-                                                color: backgroundColor
-                                                border.color: borderColor
-                                            }
-                                            contentItem: TextInput {
-                                                text: parent.displayText
-                                                font: parent.font
-                                                color: textColor
-                                                selectionColor: accentColor
-                                                selectedTextColor: backgroundColor
-                                                horizontalAlignment: Text.AlignHCenter
-                                                verticalAlignment: Text.AlignVCenter
-                                                readOnly: !parent.editable
-                                                validator: parent.validator
-                                            }
-                                            up.indicator: Rectangle {
-                                                x: parent.mirrored ? 0 : parent.width - width
-                                                height: parent.height
-                                                implicitWidth: 38
-                                                implicitHeight: 38
-                                                color: spinSlideshow.up.pressed ? Qt.darker(panelColor, 1.2) : panelColor
-                                                border.color: borderColor
-                                                radius: 4
-                                                Text {
-                                                    text: "+"
-                                                    font.pixelSize: 14
-                                                    color: subtleTextColor
-                                                    anchors.centerIn: parent
-                                                }
-                                            }
-                                            down.indicator: Rectangle {
-                                                x: parent.mirrored ? parent.width - width : 0
-                                                height: parent.height
-                                                implicitWidth: 38
-                                                implicitHeight: 38
-                                                color: spinSlideshow.down.pressed ? Qt.darker(panelColor, 1.2) : panelColor
-                                                border.color: borderColor
-                                                radius: 4
-                                                Text {
-                                                    text: "-"
-                                                    font.pixelSize: 14
-                                                    color: subtleTextColor
-                                                    anchors.centerIn: parent
-                                                }
-                                            }
-                                            onValueChanged: {
-                                                slideshowDelaySeconds = value;
-                                                if (preferences) {
-                                                    preferences.slideshowIntervalSeconds = value;
-                                                    preferences.save();
-                                                }
-                                            }
-                                        }
-
-                                        Label {
-                                            text: qsTr("Transition (ms):")
-                                            color: textColor
-                                            horizontalAlignment: Text.AlignLeft
-                                            Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
-                                        }
-                                        SpinBox {
-                                            id: spinTransition
-                                            from: 0
-                                            to: 10000
-                                            value: transitionDurationMs
-                                            stepSize: 50
-                                            Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
-                                            Layout.preferredWidth: 120
-                                            Layout.maximumWidth: 120
-                                            background: Rectangle {
-                                                radius: 4
-                                                color: backgroundColor
-                                                border.color: borderColor
-                                            }
-                                            contentItem: TextInput {
-                                                text: parent.displayText
-                                                font: parent.font
-                                                color: textColor
-                                                selectionColor: accentColor
-                                                selectedTextColor: backgroundColor
-                                                horizontalAlignment: Text.AlignHCenter
-                                                verticalAlignment: Text.AlignVCenter
-                                                readOnly: !parent.editable
-                                                validator: parent.validator
-                                            }
-                                            up.indicator: Rectangle {
-                                                x: parent.mirrored ? 0 : parent.width - width
-                                                height: parent.height
-                                                implicitWidth: 38
-                                                implicitHeight: 38
-                                                color: spinTransition.up.pressed ? Qt.darker(panelColor, 1.2) : panelColor
-                                                border.color: borderColor
-                                                radius: 4
-                                                Text {
-                                                    text: "+"
-                                                    font.pixelSize: 14
-                                                    color: subtleTextColor
-                                                    anchors.centerIn: parent
-                                                }
-                                            }
-                                            down.indicator: Rectangle {
-                                                x: parent.mirrored ? parent.width - width : 0
-                                                height: parent.height
-                                                implicitWidth: 38
-                                                implicitHeight: 38
-                                                color: spinTransition.down.pressed ? Qt.darker(panelColor, 1.2) : panelColor
-                                                border.color: borderColor
-                                                radius: 4
-                                                Text {
-                                                    text: "-"
-                                                    font.pixelSize: 14
-                                                    color: subtleTextColor
-                                                    anchors.centerIn: parent
-                                                }
-                                            }
-                                            onValueChanged: {
-                                                transitionDurationMs = value;
-                                                if (preferences) {
-                                                    preferences.transitionDurationMs = value;
-                                                    preferences.save();
-                                                }
-                                            }
-                                        }
-
-                                        Label {
-                                            text: qsTr("Loop slideshow:")
-                                            color: textColor
-                                            horizontalAlignment: Text.AlignLeft
-                                            Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
-                                        }
-                                        Switch {
-                                            id: switchLoopSlideshow
-                                            checked: loopSlideshows
-                                            Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
-                                            onCheckedChanged: loopSlideshows = checked
-                                            ToolTip.visible: hovered
-                                            ToolTip.text: qsTr("When enabled, slideshow continues from first image after the last one")
-
-                                            indicator: Rectangle {
-                                                implicitWidth: 48
-                                                implicitHeight: 26
-                                                x: switchLoopSlideshow.leftPadding
-                                                y: parent.height / 2 - height / 2
-                                                radius: 13
-                                                color: switchLoopSlideshow.checked ? accentColor : borderColor
-                                                border.color: switchLoopSlideshow.checked ? accentColor : borderColor
-
-                                                Rectangle {
-                                                    x: switchLoopSlideshow.checked ? parent.width - width - 2 : 2
-                                                    y: 2
-                                                    width: 22
-                                                    height: 22
-                                                    radius: 11
-                                                    color: panelColor
-                                                    Behavior on x {
-                                                        NumberAnimation {
-                                                            duration: 150
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
+                                onSlideshowDelayUpdated: {
+                                    controlRoot.slideshowDelaySeconds = value;
+                                    if (preferences)
+                                        preferences.slideshowIntervalSeconds = value;
                                 }
-
-                                GroupBox {
-                                    Layout.fillWidth: true
-                                    title: qsTr("Video")
-                                    label: Label {
-                                        text: qsTr("Video")
-                                        color: textColor
-                                    }
-                                    background: Rectangle {
-                                        radius: 6
-                                        color: panelColor
-                                        border.color: borderColor
-                                    }
-
-                                    GridLayout {
-                                        anchors.fill: parent
-                                        anchors.margins: 12
-                                        columns: 2
-                                        columnSpacing: 12
-                                        rowSpacing: 8
-
-                                        Label {
-                                            text: qsTr("Loop video list:")
-                                            color: textColor
-                                            horizontalAlignment: Text.AlignLeft
-                                            Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
-                                        }
-                                        Switch {
-                                            id: switchLoopVideos
-                                            checked: loopVideos
-                                            Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
-                                            onCheckedChanged: loopVideos = checked
-                                            ToolTip.visible: hovered
-                                            ToolTip.text: qsTr("When enabled, video playback continues from first video after the last one")
-
-                                            indicator: Rectangle {
-                                                implicitWidth: 48
-                                                implicitHeight: 26
-                                                x: switchLoopVideos.leftPadding
-                                                y: parent.height / 2 - height / 2
-                                                radius: 13
-                                                color: switchLoopVideos.checked ? accentColor : borderColor
-                                                border.color: switchLoopVideos.checked ? accentColor : borderColor
-
-                                                Rectangle {
-                                                    x: switchLoopVideos.checked ? parent.width - width - 2 : 2
-                                                    y: 2
-                                                    width: 22
-                                                    height: 22
-                                                    radius: 11
-                                                    color: panelColor
-                                                    Behavior on x {
-                                                        NumberAnimation {
-                                                            duration: 150
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-
-                                        Label {
-                                            text: qsTr("Auto-play next:")
-                                            color: textColor
-                                            horizontalAlignment: Text.AlignLeft
-                                            Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
-                                        }
-                                        Switch {
-                                            id: switchAutoPlayNextVideo
-                                            checked: autoPlayNextVideo
-                                            Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
-                                            onCheckedChanged: {
-                                                autoPlayNextVideo = checked;
-                                                if (preferences) {
-                                                    preferences.autoPlayNextVideo = checked;
-                                                }
-                                            }
-                                            ToolTip.visible: hovered
-                                            ToolTip.text: qsTr("When enabled, the next video plays automatically when the current one finishes")
-
-                                            indicator: Rectangle {
-                                                implicitWidth: 48
-                                                implicitHeight: 26
-                                                x: switchAutoPlayNextVideo.leftPadding
-                                                y: parent.height / 2 - height / 2
-                                                radius: 13
-                                                color: switchAutoPlayNextVideo.checked ? accentColor : borderColor
-                                                border.color: switchAutoPlayNextVideo.checked ? accentColor : borderColor
-
-                                                Rectangle {
-                                                    x: switchAutoPlayNextVideo.checked ? parent.width - width - 2 : 2
-                                                    y: 2
-                                                    width: 22
-                                                    height: 22
-                                                    radius: 11
-                                                    color: panelColor
-                                                    Behavior on x {
-                                                        NumberAnimation {
-                                                            duration: 150
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
+                                onTransitionDurationUpdated: {
+                                    controlRoot.transitionDurationMs = value;
+                                    if (preferences)
+                                        preferences.transitionDurationMs = value;
                                 }
-
-                                GroupBox {
-                                    Layout.fillWidth: true
-                                    title: qsTr("Output")
-                                    label: Label {
-                                        text: qsTr("Output")
-                                        color: textColor
-                                    }
-                                    background: Rectangle {
-                                        radius: 6
-                                        color: panelColor
-                                        border.color: borderColor
-                                    }
-
-                                    GridLayout {
-                                        anchors.fill: parent
-                                        anchors.margins: 12
-                                        columns: 2
-                                        columnSpacing: 12
-                                        rowSpacing: 8
-
-                                        Label {
-                                            text: qsTr("Screen index:")
-                                            color: textColor
-                                            horizontalAlignment: Text.AlignLeft
-                                            Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
-                                        }
-                                        SpinBox {
-                                            id: spinScreenIndex
-                                            from: 0
-                                            to: outputWindow ? Math.max(0, outputWindow.screenCount - 1) : 0
-                                            value: outputScreenIndex
-                                            Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
-                                            Layout.preferredWidth: 120
-                                            Layout.maximumWidth: 120
-                                            background: Rectangle {
-                                                radius: 4
-                                                color: backgroundColor
-                                                border.color: borderColor
-                                            }
-                                            contentItem: TextInput {
-                                                text: parent.displayText
-                                                font: parent.font
-                                                color: textColor
-                                                selectionColor: accentColor
-                                                selectedTextColor: backgroundColor
-                                                horizontalAlignment: Text.AlignHCenter
-                                                verticalAlignment: Text.AlignVCenter
-                                                readOnly: !parent.editable
-                                                validator: parent.validator
-                                            }
-                                            up.indicator: Rectangle {
-                                                x: parent.mirrored ? 0 : parent.width - width
-                                                height: parent.height
-                                                implicitWidth: 38
-                                                implicitHeight: 38
-                                                color: spinScreenIndex.up.pressed ? Qt.darker(panelColor, 1.2) : panelColor
-                                                border.color: borderColor
-                                                radius: 4
-                                                Text {
-                                                    text: "+"
-                                                    font.pixelSize: 14
-                                                    color: subtleTextColor
-                                                    anchors.centerIn: parent
-                                                }
-                                            }
-                                            down.indicator: Rectangle {
-                                                x: parent.mirrored ? parent.width - width : 0
-                                                height: parent.height
-                                                implicitWidth: 38
-                                                implicitHeight: 38
-                                                color: spinScreenIndex.down.pressed ? Qt.darker(panelColor, 1.2) : panelColor
-                                                border.color: borderColor
-                                                radius: 4
-                                                Text {
-                                                    text: "-"
-                                                    font.pixelSize: 14
-                                                    color: subtleTextColor
-                                                    anchors.centerIn: parent
-                                                }
-                                            }
-                                            onValueChanged: {
-                                                outputScreenIndex = value;
-                                                // Move the output window to the selected screen
-                                                if (outputWindow) {
-                                                    outputWindow.moveToScreen(value);
-                                                }
-                                                // Save to preferences
-                                                if (preferences) {
-                                                    preferences.outputScreenIndex = value;
-                                                    preferences.save();
-                                                }
-                                            }
-                                        }
-
-                                        Label {
-                                            text: qsTr("Available screens: %1").arg(outputWindow ? outputWindow.screenCount : 0)
-                                            color: subtleTextColor
-                                            font.pixelSize: 11
-                                            Layout.columnSpan: 2
-                                            Layout.alignment: Qt.AlignRight
-                                        }
-                                    }
+                                onOutputScreenIndexUpdated: {
+                                    controlRoot.outputScreenIndex = value;
+                                    if (preferences)
+                                        preferences.outputScreenIndex = value;
+                                    if (outputWindow)
+                                        outputWindow.moveToScreen(value);
                                 }
-
-                                GroupBox {
-                                    Layout.fillWidth: true
-                                    title: qsTr("Appearance")
-                                    label: Label {
-                                        text: qsTr("Appearance")
-                                        color: textColor
-                                    }
-                                    background: Rectangle {
-                                        radius: 6
-                                        color: panelColor
-                                        border.color: borderColor
-                                    }
-
-                                    GridLayout {
-                                        anchors.fill: parent
-                                        anchors.margins: 12
-                                        columns: 2
-                                        columnSpacing: 12
-                                        rowSpacing: 8
-
-                                        Label {
-                                            text: qsTr("Accent Color:")
-                                            color: textColor
-                                            horizontalAlignment: Text.AlignLeft
-                                            Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
-                                        }
-
-                                        // Color picker row
-                                        RowLayout {
-                                            Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
-                                            spacing: 4
-
-                                            // Color preview
-                                            Rectangle {
-                                                width: 32
-                                                height: 32
-                                                radius: 4
-                                                color: accentColor
-                                                border.color: borderColor
-                                                border.width: 1
-
-                                                MouseArea {
-                                                    anchors.fill: parent
-                                                    onClicked: accentColorPopup.open()
-                                                }
-                                            }
-
-                                            // Hex input
-                                            TextField {
-                                                id: accentHexInput
-                                                Layout.preferredWidth: 90
-                                                Layout.preferredHeight: 32
-                                                text: prefAccentColor.toUpperCase()
-                                                font.pixelSize: 12
-                                                font.family: "monospace"
-                                                horizontalAlignment: Text.AlignHCenter
-                                                selectByMouse: true
-
-                                                background: Rectangle {
-                                                    radius: 4
-                                                    color: Qt.darker(panelColor, 1.2)
-                                                    border.color: accentHexInput.activeFocus ? accentColor : borderColor
-                                                }
-
-                                                color: textColor
-
-                                                validator: RegExpValidator {
-                                                    regExp: /^#[0-9A-Fa-f]{6}$/
-                                                }
-
-                                                onEditingFinished: {
-                                                    if (acceptableInput) {
-                                                        prefAccentColor = text;
-                                                        if (preferences) {
-                                                            preferences.accentColor = text;
-                                                            preferences.save();
-                                                        }
-                                                    }
-                                                }
-                                            }
-
-                                            // Dropdown button
-                                            Rectangle {
-                                                width: 32
-                                                height: 32
-                                                radius: 4
-                                                color: accentDropdownMouse.containsMouse ? Qt.lighter(panelColor, 1.3) : panelColor
-                                                border.color: borderColor
-
-                                                Text {
-                                                    anchors.centerIn: parent
-                                                    text: "▼"
-                                                    color: textColor
-                                                    font.pixelSize: 10
-                                                }
-
-                                                MouseArea {
-                                                    id: accentDropdownMouse
-                                                    anchors.fill: parent
-                                                    hoverEnabled: true
-                                                    onClicked: accentColorPopup.open()
-                                                }
-                                            }
-
-                                            Popup {
-                                                id: accentColorPopup
-                                                x: -100
-                                                y: 36
-                                                width: 220
-                                                height: 120
-                                                modal: true
-                                                focus: true
-                                                closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
-
-                                                background: Rectangle {
-                                                    color: panelColor
-                                                    border.color: borderColor
-                                                    radius: 6
-                                                }
-
-                                                contentItem: ColumnLayout {
-                                                    spacing: 8
-
-                                                    Label {
-                                                        text: qsTr("Select Accent Color")
-                                                        color: textColor
-                                                        font.bold: true
-                                                        Layout.alignment: Qt.AlignHCenter
-                                                    }
-
-                                                    GridLayout {
-                                                        columns: 5
-                                                        rowSpacing: 4
-                                                        columnSpacing: 4
-                                                        Layout.alignment: Qt.AlignHCenter
-
-                                                        Repeater {
-                                                            model: ["#42A5F5", "#66BB6A", "#FFA726", "#EF5350", "#AB47BC", "#26C6DA", "#FFEE58", "#EC407A", "#78909C", "#8D6E63"]
-
-                                                            Rectangle {
-                                                                width: 32
-                                                                height: 32
-                                                                radius: 4
-                                                                color: modelData
-                                                                border.color: prefAccentColor.toUpperCase() === modelData.toUpperCase() ? textColor : borderColor
-                                                                border.width: prefAccentColor.toUpperCase() === modelData.toUpperCase() ? 2 : 1
-
-                                                                MouseArea {
-                                                                    anchors.fill: parent
-                                                                    onClicked: {
-                                                                        prefAccentColor = modelData;
-                                                                        accentHexInput.text = modelData.toUpperCase();
-                                                                        if (preferences) {
-                                                                            preferences.accentColor = modelData;
-                                                                            preferences.save();
-                                                                        }
-                                                                        accentColorPopup.close();
-                                                                    }
-                                                                }
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-
-                                        Label {
-                                            text: qsTr("UI Scale:")
-                                            color: textColor
-                                            horizontalAlignment: Text.AlignLeft
-                                            Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
-                                        }
-
-                                        RowLayout {
-                                            Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
-                                            spacing: 8
-
-                                            Slider {
-                                                id: uiScaleSlider
-                                                from: 0.5
-                                                to: 2.0
-                                                value: uiScale
-                                                stepSize: 0.1
-                                                Layout.preferredWidth: 120
-                                                Layout.preferredHeight: 32
-
-                                                handle: Rectangle {
-                                                    x: uiScaleSlider.leftPadding + uiScaleSlider.visualPosition * (uiScaleSlider.availableWidth - width)
-                                                    y: uiScaleSlider.topPadding + uiScaleSlider.availableHeight / 2 - height / 2
-                                                    width: 20
-                                                    height: 20
-                                                    radius: 10
-                                                    color: uiScaleSlider.pressed ? accentColor : panelColor
-                                                    border.color: accentColor
-                                                    border.width: 2
-                                                }
-
-                                                background: Rectangle {
-                                                    x: uiScaleSlider.leftPadding
-                                                    y: uiScaleSlider.topPadding + uiScaleSlider.availableHeight / 2 - height / 2
-                                                    width: uiScaleSlider.availableWidth
-                                                    height: 6
-                                                    radius: 3
-                                                    color: borderColor
-
-                                                    Rectangle {
-                                                        width: uiScaleSlider.visualPosition * parent.width
-                                                        height: parent.height
-                                                        radius: 3
-                                                        color: accentColor
-                                                    }
-                                                }
-
-                                                onValueChanged: {
-                                                    uiScale = value;
-                                                    if (preferences) {
-                                                        preferences.uiScale = value;
-                                                        preferences.save();
-                                                    }
-                                                }
-                                            }
-
-                                            Label {
-                                                text: Math.round(uiScaleSlider.value * 100) + "%"
-                                                color: textColor
-                                                font.pixelSize: 12
-                                                Layout.preferredWidth: 45
-                                                horizontalAlignment: Text.AlignRight
-                                            }
-                                        }
-
-                                        Label {
-                                            text: qsTr("Restart required to apply UI scale changes")
-                                            color: subtleTextColor
-                                            font.pixelSize: 11
-                                            font.italic: true
-                                            Layout.columnSpan: 2
-                                            Layout.alignment: Qt.AlignRight
-                                        }
-                                    }
+                                onLoopSlideshowsUpdated: controlRoot.loopSlideshows = enabled
+                                onLoopVideosUpdated: controlRoot.loopVideos = enabled
+                                onAutoPlayNextVideoUpdated: {
+                                    controlRoot.autoPlayNextVideo = enabled;
+                                    if (preferences)
+                                        preferences.autoPlayNextVideo = enabled;
                                 }
-
-                                Item {
-                                    Layout.fillHeight: true
+                                onAccentColorUpdated: {
+                                    controlRoot.prefAccentColor = color;
+                                    if (preferences)
+                                        preferences.accentColor = color;
+                                }
+                                onUseCustomFilePickerUpdated: {
+                                    controlRoot.useCustomFilePicker = enabled;
+                                    if (preferences)
+                                        preferences.useCustomFilePicker = enabled;
                                 }
                             }
                         }
@@ -2851,8 +2228,6 @@ Window {
     Component.onCompleted: {
         console.log("=== ControlWindow loaded ===");
         console.log("preferences object:", preferences);
-        console.log("preferences.uiScale:", preferences ? preferences.uiScale : "N/A");
-        console.log("uiScale property:", uiScale);
         console.log("prefAccentColor:", prefAccentColor);
 
         refreshLists();

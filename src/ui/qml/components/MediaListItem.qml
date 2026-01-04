@@ -4,71 +4,73 @@ import QtQuick.Controls 2.12
 Rectangle {
     id: control
 
-    // Theme colors
-    property color itemColor: typeof listItemColor !== "undefined" ? listItemColor : "#232323"
-    property color highlightColor: typeof listItemHighlight !== "undefined" ? listItemHighlight : "#29434E"
+    property string filePath: ""
+    property bool isCurrentItem: false
+
+    property color listItemCol: typeof listItemColor !== "undefined" ? listItemColor : "#232323"
+    property color highlightCol: typeof listItemHighlight !== "undefined" ? listItemHighlight : "#29434E"
     property color txtColor: typeof textColor !== "undefined" ? textColor : "#E0E0E0"
     property color subtleTxtColor: typeof subtleTextColor !== "undefined" ? subtleTextColor : "#9E9E9E"
     property color borderCol: typeof borderColor !== "undefined" ? borderColor : "#333333"
 
-    // UI scaling - use globalUiScale context property (set at startup)
-    property real scale: globalUiScale ? globalUiScale : 1.0
+    signal removeClicked
+    signal itemClicked
 
-    // Content properties
-    property string fileName: ""
-    property bool isSelected: false
-
-    // Signals
-    signal clicked
-    signal deleteClicked
-
-    height: Math.round(40 * scale)
-    color: isSelected ? highlightColor : itemColor
+    height: 40
+    color: isCurrentItem ? highlightCol : listItemCol
     radius: 3
     border.color: borderCol
 
     Text {
         anchors.verticalCenter: parent.verticalCenter
         anchors.left: parent.left
-        anchors.leftMargin: Math.round(8 * control.scale)
-        text: control.fileName
+        anchors.leftMargin: 8
+        text: fileNameFromPath(control.filePath)
         color: control.txtColor
-        font.pixelSize: Math.round(13 * control.scale)
         elide: Text.ElideRight
-        width: parent.width - Math.round(40 * control.scale)
+        width: parent.width - 40
+        font.pixelSize: 13
+
+        function fileNameFromPath(p) {
+            if (!p)
+                return "";
+            var s = String(p);
+            var parts = s.split("/");
+            return parts.length > 0 ? parts[parts.length - 1] : s;
+        }
     }
 
     // Delete button
     Rectangle {
         anchors.right: parent.right
-        anchors.rightMargin: Math.round(8 * control.scale)
+        anchors.rightMargin: 8
         anchors.verticalCenter: parent.verticalCenter
-        width: Math.round(20 * control.scale)
-        height: Math.round(20 * control.scale)
-        radius: Math.round(10 * control.scale)
-        color: delMouseArea.containsMouse ? Qt.lighter(control.itemColor, 1.5) : "transparent"
+        width: 20
+        height: 20
+        radius: 10
+        color: delMouseArea.containsMouse ? Qt.lighter(control.listItemCol, 1.5) : "transparent"
 
         Text {
             anchors.centerIn: parent
             text: "×"
             color: control.subtleTxtColor
-            font.pixelSize: Math.round(14 * control.scale)
+            font.pixelSize: 14
         }
 
         MouseArea {
             id: delMouseArea
             anchors.fill: parent
             hoverEnabled: true
-            onClicked: control.deleteClicked()
+            onClicked: control.removeClicked()
         }
     }
 
     MouseArea {
         anchors.left: parent.left
         anchors.right: parent.right
-        anchors.rightMargin: Math.round(36 * control.scale)
+        anchors.rightMargin: 36
         anchors.top: parent.top
         anchors.bottom: parent.bottom
-        onClicked: control.clicked()
+        onClicked: control.itemClicked()
     }
 }

@@ -17,7 +17,6 @@ struct AppConfig
 
     // UI customization
     QString accentColor = "#78909C"; // accent color for UI elements
-    double uiScale = 1.0;            // global UI scale factor (0.5 to 2.0)
 
     // Playback settings
     bool autoPlayNextVideo = true; // automatically play next video when current finishes

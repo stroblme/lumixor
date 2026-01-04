@@ -14,33 +14,31 @@ Item {
     property color subtleTextColor: "#9E9E9E"
     property color borderColor: "#333333"
 
-    // Preference values - should be bound to parent properties
+    // Settings values - passed from parent
     property int slideshowDelaySeconds: 5
     property int transitionDurationMs: 200
     property int outputScreenIndex: 1
     property bool loopSlideshows: true
     property bool loopVideos: true
+    property bool autoPlayNextVideo: true
     property int screenCount: 1
-
-    // UI customization
     property string prefAccentColor: "#42A5F5"
-    property real uiScale: 1.0
     property bool useCustomFilePicker: true
 
-    // Signals
-    signal slideshowDelayChanged(int value)
-    signal transitionDurationChanged(int value)
-    signal outputScreenIndexChanged(int value)
-    signal loopSlideshowsChanged(bool enabled)
-    signal loopVideosChanged(bool enabled)
-    signal accentColorChanged(string color)
-    signal uiScaleChanged(real scale)
-    signal useCustomFilePickerChanged(bool enabled)
+    // Signals to notify parent of changes (use unique names to avoid conflicts with auto-generated property change signals)
+    signal slideshowDelayUpdated(int value)
+    signal transitionDurationUpdated(int value)
+    signal outputScreenIndexUpdated(int value)
+    signal loopSlideshowsUpdated(bool enabled)
+    signal loopVideosUpdated(bool enabled)
+    signal autoPlayNextVideoUpdated(bool enabled)
+    signal accentColorUpdated(string color)
+    signal useCustomFilePickerUpdated(bool enabled)
 
     ColumnLayout {
         anchors.fill: parent
-        anchors.margins: 8
-        spacing: 8
+        anchors.margins: 16
+        spacing: 16
 
         StyledGroupBox {
             Layout.fillWidth: true
@@ -57,15 +55,15 @@ Item {
                 rowSpacing: 8
 
                 Label {
-                    text: qsTr("Delay (s):")
+                    text: qsTr("Delay (seconds):")
                     color: root.textColor
                     horizontalAlignment: Text.AlignLeft
                     Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
                 }
                 StyledSpinBox {
-                    id: spinSlideshow
+                    id: spinSlideshowDelay
                     from: 1
-                    to: 3600
+                    to: 60
                     value: root.slideshowDelaySeconds
                     Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
                     Layout.preferredWidth: 120
@@ -76,7 +74,9 @@ Item {
                     txtColor: root.textColor
                     subtleTxtColor: root.subtleTextColor
                     borderCol: root.borderColor
-                    onValueChanged: root.slideshowDelayChanged(value)
+                    onValueChanged: root.slideshowDelayUpdated(value)
+                    ToolTip.visible: hovered
+                    ToolTip.text: qsTr("Time to display each image before advancing")
                 }
 
                 Label {
@@ -88,9 +88,9 @@ Item {
                 StyledSpinBox {
                     id: spinTransition
                     from: 0
-                    to: 10000
-                    value: root.transitionDurationMs
+                    to: 2000
                     stepSize: 50
+                    value: root.transitionDurationMs
                     Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
                     Layout.preferredWidth: 120
                     Layout.maximumWidth: 120
@@ -100,7 +100,9 @@ Item {
                     txtColor: root.textColor
                     subtleTxtColor: root.subtleTextColor
                     borderCol: root.borderColor
-                    onValueChanged: root.transitionDurationChanged(value)
+                    onValueChanged: root.transitionDurationUpdated(value)
+                    ToolTip.visible: hovered
+                    ToolTip.text: qsTr("Duration of crossfade between images")
                 }
 
                 Label {
@@ -110,13 +112,13 @@ Item {
                     Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
                 }
                 StyledSwitch {
-                    id: switchLoopSlideshow
+                    id: switchLoopSlideshows
                     checked: root.loopSlideshows
                     Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
                     panelCol: root.panelColor
                     accentCol: root.accentColor
                     borderCol: root.borderColor
-                    onCheckedChanged: root.loopSlideshowsChanged(checked)
+                    onCheckedChanged: root.loopSlideshowsUpdated(checked)
                     ToolTip.visible: hovered
                     ToolTip.text: qsTr("When enabled, slideshow continues from first image after the last one")
                 }
@@ -150,9 +152,27 @@ Item {
                     panelCol: root.panelColor
                     accentCol: root.accentColor
                     borderCol: root.borderColor
-                    onCheckedChanged: root.loopVideosChanged(checked)
+                    onCheckedChanged: root.loopVideosUpdated(checked)
                     ToolTip.visible: hovered
                     ToolTip.text: qsTr("When enabled, video playback continues from first video after the last one")
+                }
+
+                Label {
+                    text: qsTr("Autoplay next video:")
+                    color: root.textColor
+                    horizontalAlignment: Text.AlignLeft
+                    Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
+                }
+                StyledSwitch {
+                    id: switchAutoPlayNextVideo
+                    checked: root.autoPlayNextVideo
+                    Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
+                    panelCol: root.panelColor
+                    accentCol: root.accentColor
+                    borderCol: root.borderColor
+                    onCheckedChanged: root.autoPlayNextVideoUpdated(checked)
+                    ToolTip.visible: hovered
+                    ToolTip.text: qsTr("When enabled, the next video in the list will automatically start playing after the current video")
                 }
             }
         }
@@ -191,13 +211,13 @@ Item {
                     txtColor: root.textColor
                     subtleTxtColor: root.subtleTextColor
                     borderCol: root.borderColor
-                    onValueChanged: root.outputScreenIndexChanged(value)
+                    onValueChanged: root.outputScreenIndexUpdated(value)
                 }
 
                 Label {
                     text: qsTr("Available screens: %1").arg(root.screenCount)
                     color: root.subtleTextColor
-                    font.pixelSize: 11 * root.uiScale
+                    font.pixelSize: 11
                     Layout.columnSpan: 2
                     Layout.alignment: Qt.AlignRight
                 }
@@ -232,50 +252,7 @@ Item {
                     borderColor: root.borderColor
                     Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
                     Layout.preferredWidth: 200
-                    onColorChanged: root.accentColorChanged(newColor.toString())
-                }
-
-                Label {
-                    text: qsTr("UI Scale:")
-                    color: root.textColor
-                    horizontalAlignment: Text.AlignLeft
-                    Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
-                }
-                RowLayout {
-                    Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
-                    spacing: 8
-
-                    StyledSlider {
-                        id: uiScaleSlider
-                        from: 0.5
-                        to: 2.0
-                        value: root.uiScale
-                        stepSize: 0.1
-                        Layout.preferredWidth: 120
-                        Layout.preferredHeight: 32
-                        bgColor: root.panelColor
-                        accentCol: root.accentColor
-                        borderCol: root.borderColor
-                        handleSize: 20
-                        trackHeight: 6
-                        onValueChanged: root.uiScaleChanged(value)
-                    }
-
-                    Label {
-                        text: Math.round(uiScaleSlider.value * 100) + "%"
-                        color: root.textColor
-                        font.pixelSize: 12
-                        Layout.preferredWidth: 45
-                        horizontalAlignment: Text.AlignRight
-                    }
-                }
-
-                Label {
-                    text: qsTr("Affects text size, buttons, and controls")
-                    color: root.subtleTextColor
-                    font.pixelSize: 11 * root.uiScale
-                    Layout.columnSpan: 2
-                    Layout.alignment: Qt.AlignRight
+                    onColorChanged: root.accentColorUpdated(newColor.toString())
                 }
 
                 Label {
@@ -291,7 +268,7 @@ Item {
                     panelCol: root.panelColor
                     accentCol: root.accentColor
                     borderCol: root.borderColor
-                    onCheckedChanged: root.useCustomFilePickerChanged(checked)
+                    onCheckedChanged: root.useCustomFilePickerUpdated(checked)
                     ToolTip.visible: hovered
                     ToolTip.text: qsTr("Use the custom dark-themed file picker instead of the native system dialog")
                 }
@@ -299,7 +276,7 @@ Item {
                 Label {
                     text: qsTr("Disable for native GTK/KDE dialogs")
                     color: root.subtleTextColor
-                    font.pixelSize: 11 * root.uiScale
+                    font.pixelSize: 11
                     Layout.columnSpan: 2
                     Layout.alignment: Qt.AlignRight
                 }

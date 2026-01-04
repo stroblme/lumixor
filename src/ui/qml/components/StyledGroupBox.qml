@@ -4,23 +4,26 @@ import QtQuick.Controls 2.12
 GroupBox {
     id: control
 
-    // Theme colors
     property color panelCol: typeof panelColor !== "undefined" ? panelColor : "#1E1E1E"
     property color txtColor: typeof textColor !== "undefined" ? textColor : "#E0E0E0"
     property color borderCol: typeof borderColor !== "undefined" ? borderColor : "#333333"
 
-    // UI scaling - use globalUiScale context property (set at startup)
-    property real scale: globalUiScale ? globalUiScale : 1.0
-
     label: Label {
+        x: control.leftPadding
+        width: control.availableWidth
         text: control.title
         color: control.txtColor
-        font.pixelSize: Math.round(13 * control.scale)
+        font.bold: true
+        font.pixelSize: 14
+        elide: Text.ElideRight
     }
 
     background: Rectangle {
-        radius: 6
-        color: control.panelCol
+        y: control.topPadding - control.bottomPadding
+        width: parent.width
+        height: parent.height - control.topPadding + control.bottomPadding
+        color: "transparent"
         border.color: control.borderCol
+        radius: 6
     }
 }

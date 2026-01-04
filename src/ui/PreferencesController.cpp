@@ -65,6 +65,16 @@ QString PreferencesController::accentColor() const
     return m_app ? m_app->config().accentColor : "#42A5F5";
 }
 
+bool PreferencesController::autoPlayNextVideo() const
+{
+    return m_app ? m_app->config().autoPlayNextVideo : true;
+}
+
+bool PreferencesController::useCustomFilePicker() const
+{
+    return m_app ? m_app->config().useCustomFilePicker : true;
+}
+
 void PreferencesController::setAccentColor(const QString &value)
 {
     if (!m_app)
@@ -77,32 +87,6 @@ void PreferencesController::setAccentColor(const QString &value)
     autoSave();
 }
 
-double PreferencesController::uiScale() const
-{
-    double scale = m_app ? m_app->config().uiScale : 1.0;
-    qDebug() << "PreferencesController::uiScale() returning:" << scale;
-    return scale;
-}
-
-void PreferencesController::setUiScale(double value)
-{
-    if (!m_app)
-        return;
-    // Clamp value between 0.5 and 2.0
-    value = qBound(0.5, value, 2.0);
-    AppConfig &cfg = m_app->mutableConfig();
-    if (qFuzzyCompare(cfg.uiScale, value))
-        return;
-    cfg.uiScale = value;
-    emit preferencesChanged();
-    autoSave();
-}
-
-bool PreferencesController::autoPlayNextVideo() const
-{
-    return m_app ? m_app->config().autoPlayNextVideo : true;
-}
-
 void PreferencesController::setAutoPlayNextVideo(bool value)
 {
     if (!m_app)
@@ -113,11 +97,6 @@ void PreferencesController::setAutoPlayNextVideo(bool value)
     cfg.autoPlayNextVideo = value;
     emit preferencesChanged();
     autoSave();
-}
-
-bool PreferencesController::useCustomFilePicker() const
-{
-    return m_app ? m_app->config().useCustomFilePicker : true;
 }
 
 void PreferencesController::setUseCustomFilePicker(bool value)

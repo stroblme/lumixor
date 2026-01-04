@@ -11,18 +11,11 @@ Button {
     property color txtColor: typeof textColor !== "undefined" ? textColor : "#E0E0E0"
     property color borderCol: typeof borderColor !== "undefined" ? borderColor : "#333333"
 
-    // UI scaling - use globalUiScale context property (set at startup)
-    property real scale: globalUiScale ? globalUiScale : 1.0
-
     property int radius: 6
-
-    Component.onCompleted: {
-        console.log("StyledButton - globalUiScale:", globalUiScale, "scale property:", scale);
-    }
 
     background: Rectangle {
         radius: control.radius
-        implicitHeight: Math.round(44 * control.scale)
+        implicitHeight: 44
         border.color: control.borderCol
         color: control.down ? control.pressedColor : control.hovered ? control.hoverColor : control.bgColor
     }
@@ -32,6 +25,6 @@ Button {
         color: control.txtColor
         horizontalAlignment: Text.AlignHCenter
         verticalAlignment: Text.AlignVCenter
-        font.pixelSize: Math.round(13 * control.scale)
+        font.pixelSize: 13
     }
 }

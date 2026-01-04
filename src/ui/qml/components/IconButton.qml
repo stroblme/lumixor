@@ -11,27 +11,22 @@ Button {
     property color txtColor: typeof textColor !== "undefined" ? textColor : "#E0E0E0"
     property color borderCol: typeof borderColor !== "undefined" ? borderColor : "#333333"
 
-    // UI scaling - use globalUiScale context property (set at startup)
-    property real scale: globalUiScale ? globalUiScale : 1.0
+    property string iconText: ""
+    property int radius: 6
 
-    property string iconText: "▶"
-    property int iconSize: Math.round(18 * scale)
-
-    implicitWidth: Math.round(44 * scale)
-    implicitHeight: Math.round(44 * scale)
+    implicitWidth: 44
+    implicitHeight: 44
 
     background: Rectangle {
-        radius: 6
-        implicitHeight: Math.round(44 * control.scale)
-        implicitWidth: Math.round(44 * control.scale)
+        radius: control.radius
         border.color: control.borderCol
-        color: control.down || control.checked ? control.pressedColor : control.hovered ? control.hoverColor : control.bgColor
+        color: control.down ? control.pressedColor : control.hovered ? control.hoverColor : control.bgColor
     }
 
     contentItem: Text {
         text: control.iconText
         color: control.txtColor
-        font.pixelSize: control.iconSize
+        font.pixelSize: 18
         horizontalAlignment: Text.AlignHCenter
         verticalAlignment: Text.AlignVCenter
     }

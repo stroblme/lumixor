@@ -14,32 +14,26 @@ class PreferencesController : public QObject
     Q_PROPERTY(int transitionDurationMs READ transitionDurationMs WRITE setTransitionDurationMs NOTIFY preferencesChanged)
     Q_PROPERTY(int outputScreenIndex READ outputScreenIndex WRITE setOutputScreenIndex NOTIFY preferencesChanged)
     Q_PROPERTY(QString accentColor READ accentColor WRITE setAccentColor NOTIFY preferencesChanged)
-    Q_PROPERTY(double uiScale READ uiScale WRITE setUiScale NOTIFY preferencesChanged)
     Q_PROPERTY(bool autoPlayNextVideo READ autoPlayNextVideo WRITE setAutoPlayNextVideo NOTIFY preferencesChanged)
     Q_PROPERTY(bool useCustomFilePicker READ useCustomFilePicker WRITE setUseCustomFilePicker NOTIFY preferencesChanged)
 
 public:
     explicit PreferencesController(Application *app, QObject *parent = nullptr);
 
+    // Getters
     int slideshowIntervalSeconds() const;
-    void setSlideshowIntervalSeconds(int value);
-
     int transitionDurationMs() const;
-    void setTransitionDurationMs(int value);
-
     int outputScreenIndex() const;
-    void setOutputScreenIndex(int value);
-
     QString accentColor() const;
-    void setAccentColor(const QString &value);
-
-    double uiScale() const;
-    void setUiScale(double value);
-
     bool autoPlayNextVideo() const;
-    void setAutoPlayNextVideo(bool value);
-
     bool useCustomFilePicker() const;
+
+    // Setters
+    void setSlideshowIntervalSeconds(int value);
+    void setTransitionDurationMs(int value);
+    void setOutputScreenIndex(int value);
+    void setAccentColor(const QString &color);
+    void setAutoPlayNextVideo(bool value);
     void setUseCustomFilePicker(bool value);
 
     Q_INVOKABLE bool save(QString path = QString());

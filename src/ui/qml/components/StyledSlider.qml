@@ -9,17 +9,12 @@ Slider {
     property color accentCol: typeof accentColor !== "undefined" ? accentColor : "#42A5F5"
     property color borderCol: typeof borderColor !== "undefined" ? borderColor : "#333333"
 
-    // UI scaling - use globalUiScale context property (set at startup)
-    property real scale: globalUiScale ? globalUiScale : 1.0
-
-    property int handleSize: Math.round(28 * scale)
-    property int trackHeight: Math.round(8 * scale)
-
-    implicitHeight: Math.round(44 * scale)
+    property int handleSize: 28
+    property int trackHeight: 8
 
     handle: Rectangle {
-        x: control.orientation === Qt.Horizontal ? control.leftPadding + control.visualPosition * (control.availableWidth - width) : control.leftPadding + control.availableWidth / 2 - width / 2
-        y: control.orientation === Qt.Horizontal ? control.topPadding + control.availableHeight / 2 - height / 2 : control.topPadding + control.visualPosition * (control.availableHeight - height)
+        x: control.leftPadding + (control.horizontal ? control.visualPosition * (control.availableWidth - width) : (control.availableWidth - width) / 2)
+        y: control.topPadding + (control.horizontal ? (control.availableHeight - height) / 2 : control.visualPosition * (control.availableHeight - height))
         width: control.handleSize
         height: control.handleSize
         radius: control.handleSize / 2
@@ -29,17 +24,17 @@ Slider {
     }
 
     background: Rectangle {
-        x: control.orientation === Qt.Horizontal ? control.leftPadding : control.leftPadding + control.availableWidth / 2 - width / 2
-        y: control.orientation === Qt.Horizontal ? control.topPadding + control.availableHeight / 2 - height / 2 : control.topPadding
-        width: control.orientation === Qt.Horizontal ? control.availableWidth : control.trackHeight
-        height: control.orientation === Qt.Horizontal ? control.trackHeight : control.availableHeight
+        x: control.leftPadding + (control.horizontal ? 0 : (control.availableWidth - width) / 2)
+        y: control.topPadding + (control.horizontal ? (control.availableHeight - height) / 2 : 0)
+        width: control.horizontal ? control.availableWidth : control.trackHeight
+        height: control.horizontal ? control.trackHeight : control.availableHeight
         radius: control.trackHeight / 2
         color: control.borderCol
 
         Rectangle {
-            width: control.orientation === Qt.Horizontal ? control.visualPosition * parent.width : parent.width
-            height: control.orientation === Qt.Horizontal ? parent.height : (1 - control.visualPosition) * parent.height
-            y: control.orientation === Qt.Horizontal ? 0 : control.visualPosition * parent.height
+            width: control.horizontal ? control.visualPosition * parent.width : parent.width
+            height: control.horizontal ? parent.height : (1 - control.visualPosition) * parent.height
+            y: control.horizontal ? 0 : control.visualPosition * parent.height
             radius: control.trackHeight / 2
             color: control.accentCol
         }

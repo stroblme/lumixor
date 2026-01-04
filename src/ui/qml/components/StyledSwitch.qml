@@ -9,25 +9,25 @@ Switch {
     property color accentCol: typeof accentColor !== "undefined" ? accentColor : "#42A5F5"
     property color borderCol: typeof borderColor !== "undefined" ? borderColor : "#333333"
 
-    // UI scaling - use globalUiScale context property (set at startup)
-    property real scale: globalUiScale ? globalUiScale : 1.0
+    implicitWidth: 48
+    implicitHeight: 26
 
     indicator: Rectangle {
-        implicitWidth: Math.round(48 * control.scale)
-        implicitHeight: Math.round(26 * control.scale)
+        implicitWidth: 48
+        implicitHeight: 26
         x: control.leftPadding
         y: parent.height / 2 - height / 2
-        radius: Math.round(13 * control.scale)
-        color: control.checked ? control.accentCol : control.borderCol
-        border.color: control.checked ? control.accentCol : control.borderCol
+        radius: 13
+        color: control.checked ? control.accentCol : control.panelCol
+        border.color: control.borderCol
 
         Rectangle {
-            x: control.checked ? parent.width - width - 2 : 2
-            y: 2
-            width: Math.round(22 * control.scale)
-            height: Math.round(22 * control.scale)
-            radius: Math.round(11 * control.scale)
-            color: control.panelCol
+            x: control.checked ? parent.width - width - 4 : 4
+            y: 4
+            width: 18
+            height: 18
+            radius: 9
+            color: "#FFFFFF"
 
             Behavior on x {
                 NumberAnimation {
