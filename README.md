@@ -49,19 +49,38 @@ You can get a preview in the right panel, where you can also find a blackout sli
 
 ## Known Bugs and Limitations
 
+- video briefly lags when slideshow image changes
 - no webm support
-- ui scaling doesn't work
 - layout is not responsive
 - no support for OS != Linux atm.
 
+## Related Software
+
+### Open Source
+
+- **OBS Studio** – Closest comparison. Scene-based compositor for streaming/recording. No live crossfade, beat-sync, or real-time layer blending. Designed for broadcasters, not live performers.
+- **VLC** – Powerful media player with broad codec support. Single-stream playback only; no multi-layer mixing, crossfade, or output separation.
+- **OpenStageControl** – OSC/MIDI control surface builder. Not a video mixer; could complement Lumixor as a custom controller UI.
+- **Hydra** – Browser-based live-coding visuals. Generative only; no file-based media playback or traditional GUI.
+- **Processing / openFrameworks** – Creative coding frameworks. Require programming to build visuals; not ready-to-use VJ applications.
+- **xjadeo** – Video player synced to external timecode (LTC/MTC). Playback only; no mixing, effects, or multi-source support.
+- **ffplay / mpv** – Lightweight CLI players. No GUI, no layer compositing, no live control.
+
+### Commercial (for reference)
+
+- **Resolume** – Industry-standard VJ software with effects, MIDI, projection mapping. Closed-source, expensive, heavy resource usage.
+- **VDMX** – Powerful but macOS-only and proprietary.
+- **GrandVJ** – Similar to Resolume; closed-source, Windows/macOS only.
+
 ## Roadmap (prioritized)
 
-1. MIDI & OSC control + learn mode; hotcues & cue lists.
-2. Shader effects, blending modes, per-layer transforms.
-3. Audio analysis (beat detection / FFT) and audio-reactive parameters.
-4. Timeline/cue automation + snapshot save/load.
-5. Projection mapping tools and multi-output layout editor.
-6. Better video backend (GStreamer/FFmpeg) & NDI / virtual output.
+1. Workspaces to quickly open up combinations of slideshows/ videos
+2. MIDI & OSC control + learn mode; hotcues & cue lists.
+3. Shader effects, blending modes, per-layer transforms.
+4. Audio analysis (beat detection / FFT) and audio-reactive parameters.
+5. Timeline/cue automation + snapshot save/load.
+6. Projection mapping tools and multi-output layout editor.
+7. Better video backend (GStreamer/FFmpeg) & NDI / virtual output.
 
 ## Disclaimer
 
