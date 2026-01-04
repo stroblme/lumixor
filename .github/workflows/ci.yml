@@ -160,9 +160,10 @@ jobs:
           ls -la AppDir/usr/plugins/platformthemes/ 2>/dev/null || echo "None"
 
           # Copy GStreamer plugins and libraries
-          echo "Copying GStreamer libraries..."
-          cp -L /usr/lib/x86_64-linux-gnu/libgst*.so* AppDir/usr/lib/ 2>/dev/null || true
-          cp -L /usr/lib/x86_64-linux-gnu/gstreamer-1.0/*.so AppDir/usr/lib/gstreamer-1.0/ 2>/dev/null || true
+          # NOTE: We intentionally do NOT bundle GStreamer anymore
+          # Bundling GStreamer causes version mismatch errors ("no element identity")
+          # The app will use system GStreamer which is more reliable
+          echo "Skipping GStreamer bundling - will use system GStreamer for compatibility"
 
           # Copy GStreamer base libraries
           cp -L /usr/lib/x86_64-linux-gnu/libgstvideo-1.0.so* AppDir/usr/lib/ 2>/dev/null || true
@@ -179,17 +180,14 @@ jobs:
           cp -L /usr/lib/x86_64-linux-gnu/libgstfft-1.0.so* AppDir/usr/lib/ 2>/dev/null || true
           cp -L /usr/lib/x86_64-linux-gnu/libgstcheck-1.0.so* AppDir/usr/lib/ 2>/dev/null || true
           cp -L /usr/lib/x86_64-linux-gnu/libgstcontroller-1.0.so* AppDir/usr/lib/ 2>/dev/null || true
-          cp -L /usr/lib/x86_64-linux-gnu/libgstnet-1.0.so* AppDir/usr/lib/ 2>/dev/null || true
-          cp -L /usr/lib/x86_64-linux-gnu/libgstcodecparsers-1.0.so* AppDir/usr/lib/ 2>/dev/null || true
-          cp -L /usr/lib/x86_64-linux-gnu/libgstbadaudio-1.0.so* AppDir/usr/lib/ 2>/dev/null || true
-          cp -L /usr/lib/x86_64-linux-gnu/libgstplayer-1.0.so* AppDir/usr/lib/ 2>/dev/null || true
-          cp -L /usr/lib/x86_64-linux-gnu/libgstinsertbin-1.0.so* AppDir/usr/lib/ 2>/dev/null || true
-          cp -L /usr/lib/x86_64-linux-gnu/libgstmpegts-1.0.so* AppDir/usr/lib/ 2>/dev/null || true
-          cp -L /usr/lib/x86_64-linux-gnu/libgstallocators-1.0.so* AppDir/usr/lib/ 2>/dev/null || true
+
+          # Do NOT copy GStreamer plugins - they must come from the system
+          # Mixing bundled and system GStreamer causes crashes
+          rm -rf AppDir/usr/lib/gstreamer-1.0/* 2>/dev/null || true
 
           # List GStreamer plugins for debugging
-          echo "GStreamer plugins copied:"
-          ls -la AppDir/usr/lib/gstreamer-1.0/ | head -20
+          echo "GStreamer plugins (should be empty - using system):"
+          ls -la AppDir/usr/lib/gstreamer-1.0/ 2>/dev/null || echo "Directory empty or not present"
 
           # Copy custom AppRun script that properly sets library paths
           cp ../resources/AppRun AppDir/AppRun

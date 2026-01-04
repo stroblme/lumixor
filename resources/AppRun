@@ -11,6 +11,7 @@ if [ "$DEBUG" = "1" ]; then
 fi
 
 # Library paths - bundled libraries MUST come first to avoid system conflicts
+# BUT we need to exclude GStreamer libraries to avoid version mismatches
 export LD_LIBRARY_PATH="${HERE}/usr/lib:${HERE}/lib:${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
 
 # Executable paths
@@ -31,12 +32,17 @@ export QTDIR="${HERE}/usr"
 # XDG data dirs
 export XDG_DATA_DIRS="${HERE}/usr/share:${XDG_DATA_DIRS:-/usr/local/share:/usr/share}"
 
-# GStreamer - use SYSTEM plugins, not bundled ones (more reliable)
-# The bundled GStreamer often has compatibility issues
+# GStreamer - MUST use SYSTEM plugins to avoid version mismatch
+# The bundled GStreamer plugins are built for Ubuntu 22.04 and will
+# cause "no element identity" errors on other systems
 unset GST_PLUGIN_PATH
 unset GST_PLUGIN_SYSTEM_PATH
 unset GST_PLUGIN_SYSTEM_PATH_1_0
 unset GST_PLUGIN_SCANNER
+
+# Remove bundled GStreamer from library path to force use of system GStreamer
+# This is critical - mixing GStreamer versions causes crashes
+export LD_LIBRARY_PATH=$(echo "$LD_LIBRARY_PATH" | sed 's|[^:]*gstreamer[^:]*:||g')
 
 # IMPORTANT: Also use system Qt multimedia plugins if bundled ones are missing
 # This allows video playback to work if the target system has Qt5 multimedia installed
