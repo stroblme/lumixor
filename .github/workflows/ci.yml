@@ -18,6 +18,7 @@ jobs:
             cmake \
             qtbase5-dev \
             qtmultimedia5-dev \
+            libqt5multimedia5-plugins \
             qtdeclarative5-dev \
             qtquickcontrols2-5-dev \
             libexiv2-dev \
