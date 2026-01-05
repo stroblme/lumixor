@@ -5,7 +5,7 @@
 <h3 align="center">An open-source VJ app</h3>
 <br/>
 
-This project attempts to fill the gap of a simple VJ controller that runs smoothly on small systems (i.e. Raspberry Pi) and covers basic features such as
+This project attempts to fill the gap of a simple VJ (Video-Jockey) controller that runs smoothly on small systems (i.e. Raspberry Pi) and covers basic features such as
 - video playback
 - slideshow of images
 - blackout and crossfade functionality
@@ -54,6 +54,9 @@ You can get a preview in the right panel, where you can also find a blackout sli
 
 ## Screenshots
 
+Following screenshots show the control window only.
+The content of the output window is identical to what you can see in the preview on the right.
+
 |                             Video                              |
 | :------------------------------------------------------------: |
 | <img src="resources/screenshots/screenshot-1.png" width="800"> |
@@ -61,6 +64,10 @@ You can get a preview in the right panel, where you can also find a blackout sli
 |                           Slideshow                            |
 | :------------------------------------------------------------: |
 | <img src="resources/screenshots/screenshot-2.png" width="800"> |
+
+|                          Preferences                           |
+| :------------------------------------------------------------: |
+| <img src="resources/screenshots/screenshot-3.png" width="800"> |
 
 ## Known Bugs and Limitations
 
