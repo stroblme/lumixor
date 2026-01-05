@@ -75,12 +75,13 @@ You can get a preview in the right panel, where you can also find a blackout sli
 ## Roadmap (prioritized)
 
 1. Workspaces to quickly open up combinations of slideshows/ videos
-2. MIDI & OSC control + learn mode; hotcues & cue lists.
-3. Shader effects, blending modes, per-layer transforms.
-4. Audio analysis (beat detection / FFT) and audio-reactive parameters.
-5. Timeline/cue automation + snapshot save/load.
-6. Projection mapping tools and multi-output layout editor.
-7. Better video backend (GStreamer/FFmpeg) & NDI / virtual output.
+2. Ambient light control (qlc+ connection via OSC)
+3. MIDI & OSC control + learn mode; hotcues & cue lists.
+4. Shader effects, blending modes, per-layer transforms.
+5. **WIP** Audio analysis (beat detection / FFT) and audio-reactive parameters.
+6. Timeline/cue automation + snapshot save/load.
+7. Projection mapping tools and multi-output layout editor.
+8. Better video backend (GStreamer/FFmpeg) & NDI / virtual output.
 
 ## Disclaimer
 
