@@ -1,5 +1,7 @@
 // src/audio/AudioAnalyzer.cpp
 #include "AudioAnalyzer.h"
+#include <QAudioFormat>
+#include <QAudioDeviceInfo>
 #include <QtMath>
 #include <QDebug>
 
@@ -19,10 +21,57 @@ AudioAnalyzer::~AudioAnalyzer()
     stop();
 }
 
+void AudioAnalyzer::setupAudioInput()
+{
+    QAudioFormat format;
+    format.setSampleRate(SAMPLE_RATE);
+    format.setChannelCount(1);
+    format.setSampleSize(16);
+    format.setCodec("audio/pcm");
+    format.setByteOrder(QAudioFormat::LittleEndian);
+    format.setSampleType(QAudioFormat::SignedInt);
+
+    // TODO: replace with direct video feed
+    QAudioDeviceInfo deviceInfo = QAudioDeviceInfo::defaultInputDevice();
+
+    if (!deviceInfo.isFormatSupported(format))
+    {
+        qWarning() << "AudioAnalyzer: Default format not supported, trying nearest";
+        format = deviceInfo.nearestFormat(format);
+    }
+
+    if (deviceInfo.deviceName().isEmpty())
+    {
+        qWarning() << "AudioAnalyzer: No audio input device available";
+        return;
+    }
+
+    qDebug() << "AudioAnalyzer: Using device:" << deviceInfo.deviceName();
+
+    m_audioInput = std::make_unique<QAudioInput>(deviceInfo, format);
+    m_audioInput->setBufferSize(BUFFER_SIZE * 2);
+}
+
 void AudioAnalyzer::start()
 {
     if (m_active)
         return;
+
+    setupAudioInput();
+
+    if (!m_audioInput)
+    {
+        qWarning() << "AudioAnalyzer: Failed to create audio input";
+        return;
+    }
+
+    m_audioDevice = m_audioInput->start();
+
+    if (!m_audioDevice)
+    {
+        qWarning() << "AudioAnalyzer: Failed to start audio input";
+        return;
+    }
 
     m_updateTimer.start(33); // ~30 fps
     m_active = true;
@@ -38,6 +87,13 @@ void AudioAnalyzer::stop()
 
     m_updateTimer.stop();
 
+    if (m_audioInput)
+    {
+        m_audioInput->stop();
+        m_audioInput.reset();
+    }
+    m_audioDevice = nullptr;
+
     // Clear spectrum
     m_spectrum.fill(0.0f);
     m_smoothedSpectrum.fill(0.0f);
@@ -51,7 +107,40 @@ void AudioAnalyzer::stop()
 
 void AudioAnalyzer::processAudioData()
 {
-    // This function would be used to process audio data if there was any input
+    if (!m_audioDevice || !m_audioInput)
+        return;
+
+    QByteArray data = m_audioDevice->readAll();
+
+    if (data.isEmpty())
+        return;
+
+    // Convert to float samples
+    QVector<float> samples;
+    samples.reserve(data.size() / 2);
+
+    const qint16 *rawData = reinterpret_cast<const qint16 *>(data.constData());
+    int sampleCount = data.size() / 2;
+
+    for (int i = 0; i < sampleCount; ++i)
+    {
+        samples.append(rawData[i] / 32768.0f);
+    }
+
+    if (samples.size() >= BUFFER_SIZE)
+    {
+        performFFT(samples.mid(samples.size() - BUFFER_SIZE, BUFFER_SIZE));
+    }
+    else if (samples.size() > 0)
+    {
+        // Pad with zeros if we don't have enough samples
+        QVector<float> padded(BUFFER_SIZE, 0.0f);
+        for (int i = 0; i < samples.size(); ++i)
+        {
+            padded[i] = samples[i];
+        }
+        performFFT(padded);
+    }
 }
 
 float AudioAnalyzer::hammingWindow(int n, int N)
@@ -124,7 +213,7 @@ void AudioAnalyzer::performFFT(const QVector<float> &samples)
 
         if (count > 0)
         {
-            newSpectrum[band] = (sum / count);
+            newSpectrum[band] = (sum / count) * m_gain;
         }
     }
 
@@ -178,5 +267,14 @@ void AudioAnalyzer::setActive(bool active)
     else
     {
         stop();
+    }
+}
+
+void AudioAnalyzer::setGain(qreal gain)
+{
+    if (!qFuzzyCompare(m_gain, gain))
+    {
+        m_gain = gain;
+        emit gainChanged();
     }
 }
