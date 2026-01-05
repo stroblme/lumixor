@@ -1,4 +1,9 @@
-# Lumixor
+<p align="center">
+<img src="resources/lumixor.svg" width="250" title="Logo">
+</p>
+<h1 align="center">Lumixor</h3>
+<h3 align="center">An open-source VJ app</h3>
+<br/>
 
 This project attempts to fill the gap of a simple VJ controller that runs smoothly on small systems (i.e. Raspberry Pi) and covers basic features such as
 - video playback
@@ -46,6 +51,16 @@ Each tab has an alpha slider, controlling the transparency of the media.
 You can add more media (slideshows/ videos) by clicking on the "+" at the right hand side of the tab bar.
 Note that the media is rendered in the order of the tabs from left to right (i.e. the rightmost tab will be rendered on top of the others).
 You can get a preview in the right panel, where you can also find a blackout slider that allows you to darken the output in the second window.
+
+## Screenshots
+
+|                             Video                              |
+| :------------------------------------------------------------: |
+| <img src="resources/screenshots/screenshot-1.png" width="800"> |
+
+|                           Slideshow                            |
+| :------------------------------------------------------------: |
+| <img src="resources/screenshots/screenshot-2.png" width="800"> |
 
 ## Known Bugs and Limitations
 
