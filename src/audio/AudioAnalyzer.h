@@ -54,11 +54,11 @@ private:
 
     QVector<float> m_spectrum;
     QVector<float> m_smoothedSpectrum;
-    int m_bandCount = 16;
+    int m_bandCount = 32;
     bool m_active = false;
     qreal m_gain = 1.0;
 
     static constexpr int SAMPLE_RATE = 44100;
     static constexpr int BUFFER_SIZE = 2048;
-    static constexpr float SMOOTHING_FACTOR = 0.5f;
+    static constexpr float SMOOTHING_FACTOR = 0.3f;
 };
