@@ -79,7 +79,7 @@ Rectangle {
                 // Draw peak indicator
                 if (root.showPeaks && root.peakValues.length > i) {
                     var peakY = height - (root.peakValues[i] * height);
-                    ctx.fillStyle = "#FFFFFF";
+                    ctx.fillStyle = "#EEEEEE";
                     ctx.fillRect(x, peakY - 2, barWidth, 2);
                 }
             }

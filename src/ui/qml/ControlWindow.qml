@@ -662,7 +662,7 @@ Window {
                                     text: qsTr("Welcome to Lumixor")
                                     color: textColor
                                     font.bold: true
-                                    font.pixelSize: 18
+                                    font.pixelSize: 20
                                     Layout.alignment: Qt.AlignHCenter
                                 }
 
