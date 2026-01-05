@@ -1410,125 +1410,214 @@ Window {
                                         }
                                     }
 
-                                    // Vertical volume slider - for video tabs only
+                                    // Combined sliders + link button (video tabs only)
                                     ColumnLayout {
                                         visible: !isSlideshow
                                         Layout.fillHeight: true
-                                        Layout.preferredWidth: 60
-                                        spacing: 8
+                                        Layout.preferredWidth: 45    // wide enough to cover both sliders
+                                        spacing: 6
 
-                                        Label {
-                                            text: qsTr("Volume")
-                                            color: textColor
-                                            font.pixelSize: 14
-                                            font.bold: true
-                                            Layout.alignment: Qt.AlignHCenter
-                                        }
-
-                                        Slider {
-                                            id: tabVolumeSlider
-                                            orientation: Qt.Vertical
-                                            from: 0.0
-                                            to: 1.0
-                                            value: tabData ? tabData.volume : 1.0
+                                        RowLayout {
+                                            Layout.fillWidth: true
                                             Layout.fillHeight: true
-                                            Layout.preferredWidth: 44
-                                            Layout.alignment: Qt.AlignHCenter
-                                            ToolTip.visible: hovered || pressed
-                                            ToolTip.text: qsTr("Volume: ") + Math.round(value * 100) + "%"
+                                            spacing: 8
 
-                                            // Make the handle larger for touch
-                                            handle: Rectangle {
-                                                x: tabVolumeSlider.leftPadding + tabVolumeSlider.availableWidth / 2 - width / 2
-                                                y: tabVolumeSlider.topPadding + tabVolumeSlider.visualPosition * (tabVolumeSlider.availableHeight - height)
-                                                width: 28
-                                                height: 28
-                                                radius: 14
-                                                color: tabVolumeSlider.pressed ? accentColor : panelColor
-                                                border.color: accentColor
-                                                border.width: 2
-                                            }
+                                            // Volume slider column
+                                            ColumnLayout {
+                                                Layout.fillHeight: true
+                                                Layout.fillWidth: true
+                                                spacing: 4
 
-                                            background: Rectangle {
-                                                x: tabVolumeSlider.leftPadding + tabVolumeSlider.availableWidth / 2 - width / 2
-                                                y: tabVolumeSlider.topPadding
-                                                width: 8
-                                                height: tabVolumeSlider.availableHeight
-                                                radius: 6
-                                                color: borderColor
-
-                                                // Filled from bottom
-                                                Rectangle {
-                                                    width: parent.width
-                                                    height: (1 - tabVolumeSlider.visualPosition) * parent.height
-                                                    y: tabVolumeSlider.visualPosition * parent.height
-                                                    radius: 6
-                                                    color: accentColor
+                                                Label {
+                                                    text: qsTr("Volume")
+                                                    color: textColor
+                                                    font.pixelSize: 14
+                                                    font.bold: true
+                                                    Layout.alignment: Qt.AlignHCenter
                                                 }
-                                            }
 
-                                            onValueChanged: {
-                                                if (tabData) {
-                                                    // Update volume in model
-                                                    mediaTabsModel.setProperty(tabContentItem.tabModelIndex, "volume", value);
+                                                Slider {
+                                                    id: tabVolumeSlider
+                                                    orientation: Qt.Vertical
+                                                    from: 0.0
+                                                    to: 1.0
+                                                    value: tabData ? tabData.volume : 1.0
+                                                    Layout.fillHeight: true
+                                                    Layout.alignment: Qt.AlignHCenter
+                                                    Layout.preferredWidth: 44
+                                                    ToolTip.visible: hovered || pressed
+                                                    ToolTip.text: qsTr("Volume: ") + Math.round(value * 100) + "%"
 
-                                                    // Also update OutputWindow
-                                                    if (outputWindow) {
-                                                        outputWindow.setVideoLayerVolume(tabData.tabId, value);
+                                                    handle: Rectangle {
+                                                        x: tabVolumeSlider.leftPadding + tabVolumeSlider.availableWidth / 2 - width / 2
+                                                        y: tabVolumeSlider.topPadding + tabVolumeSlider.visualPosition * (tabVolumeSlider.availableHeight - height)
+                                                        width: 28
+                                                        height: 28
+                                                        radius: 14
+                                                        color: tabVolumeSlider.pressed ? accentColor : panelColor
+                                                        border.color: accentColor
+                                                        border.width: 2
+                                                    }
+                                                    background: Rectangle {
+                                                        x: tabVolumeSlider.leftPadding + tabVolumeSlider.availableWidth / 2 - width / 2
+                                                        y: tabVolumeSlider.topPadding
+                                                        width: 8
+                                                        height: tabVolumeSlider.availableHeight
+                                                        radius: 6
+                                                        color: borderColor
+                                                        Rectangle {
+                                                            width: parent.width
+                                                            height: (1 - tabVolumeSlider.visualPosition) * parent.height
+                                                            y: tabVolumeSlider.visualPosition * parent.height
+                                                            radius: 6
+                                                            color: accentColor
+                                                        }
                                                     }
 
-                                                    // If sliders are linked, sync the brightness slider
-                                                    if (tabData.linkSliders && Math.abs(tabData.brightness - value) > 0.001) {
-                                                        mediaTabsModel.setProperty(tabContentItem.tabModelIndex, "brightness", value);
-                                                        // Also update OutputWindow brightness
+                                                    onValueChanged: {
+                                                        if (!tabData)
+                                                            return;
+                                                        mediaTabsModel.setProperty(tabContentItem.tabModelIndex, "volume", value);
                                                         if (outputWindow) {
-                                                            outputWindow.setMediaLayerBrightness(tabData.tabId, value);
-                                                            var zOrder = tabData.zOrder !== undefined ? tabData.zOrder : tabContentItem.tabModelIndex;
-                                                            if (tabData.currentPath) {
-                                                                outputWindow.setVideoLayer(tabData.tabId, tabData.currentPath, value, tabData.isPlaying, zOrder);
+                                                            outputWindow.setVideoLayerVolume(tabData.tabId, value);
+                                                        }
+                                                        // Link to brightness
+                                                        if (tabData.linkSliders && Math.abs(tabData.brightness - value) > 0.001) {
+                                                            mediaTabsModel.setProperty(tabContentItem.tabModelIndex, "brightness", value);
+                                                            if (outputWindow) {
+                                                                outputWindow.setMediaLayerBrightness(tabData.tabId, value);
+                                                                var zOrder = tabData.zOrder !== undefined ? tabData.zOrder : tabContentItem.tabModelIndex;
+                                                                if (tabData.currentPath) {
+                                                                    outputWindow.setVideoLayer(tabData.tabId, tabData.currentPath, value, tabData.isPlaying, zOrder);
+                                                                }
                                                             }
                                                         }
                                                     }
                                                 }
+
+                                                Label {
+                                                    text: Math.round((tabData ? tabData.volume : 1.0) * 100) + "%"
+                                                    color: textColor
+                                                    font.pixelSize: 14
+                                                    font.bold: true
+                                                    Layout.alignment: Qt.AlignHCenter
+                                                }
                                             }
-                                        }
 
-                                        Label {
-                                            text: Math.round((tabData ? tabData.volume : 1.0) * 100) + "%"
-                                            color: textColor
-                                            font.pixelSize: 14
-                                            font.bold: true
-                                            Layout.alignment: Qt.AlignHCenter
-                                        }
-                                    }
+                                            // Brightness/alpha slider column
+                                            ColumnLayout {
+                                                Layout.fillHeight: true
+                                                Layout.fillWidth: true
+                                                spacing: 4
 
-                                    // Link/unlink toggle button between volume and alpha sliders (video tabs only)
-                                    ColumnLayout {
-                                        visible: !isSlideshow
-                                        Layout.fillHeight: true
-                                        Layout.preferredWidth: 36
-                                        spacing: 4
+                                                Label {
+                                                    text: qsTr("Alpha")
+                                                    color: textColor
+                                                    font.pixelSize: 14
+                                                    font.bold: true
+                                                    Layout.alignment: Qt.AlignHCenter
+                                                }
 
-                                        Item {
-                                            Layout.fillHeight: true
-                                        }
+                                                Slider {
+                                                    id: tabBrightnessSlider
+                                                    orientation: Qt.Vertical
+                                                    from: 0.0
+                                                    to: 1.0
+                                                    value: tabData ? tabData.brightness : 1.0
+                                                    Layout.fillHeight: true
+                                                    Layout.alignment: Qt.AlignHCenter
+                                                    Layout.preferredWidth: 44
+                                                    ToolTip.visible: hovered || pressed
+                                                    ToolTip.text: qsTr("Video Alpha: ") + Math.round(value * 100) + "%"
 
+                                                    handle: Rectangle {
+                                                        x: tabBrightnessSlider.leftPadding + tabBrightnessSlider.availableWidth / 2 - width / 2
+                                                        y: tabBrightnessSlider.topPadding + tabBrightnessSlider.visualPosition * (tabBrightnessSlider.availableHeight - height)
+                                                        width: 28
+                                                        height: 28
+                                                        radius: 14
+                                                        color: tabBrightnessSlider.pressed ? accentColor : panelColor
+                                                        border.color: accentColor
+                                                        border.width: 2
+                                                    }
+                                                    background: Rectangle {
+                                                        x: tabBrightnessSlider.leftPadding + tabBrightnessSlider.availableWidth / 2 - width / 2
+                                                        y: tabBrightnessSlider.topPadding
+                                                        width: 8
+                                                        height: tabBrightnessSlider.availableHeight
+                                                        radius: 6
+                                                        color: borderColor
+                                                        Rectangle {
+                                                            width: parent.width
+                                                            height: (1 - tabBrightnessSlider.visualPosition) * parent.height
+                                                            y: tabBrightnessSlider.visualPosition * parent.height
+                                                            radius: 6
+                                                            color: accentColor
+                                                        }
+                                                    }
+
+                                                    onValueChanged: {
+                                                        if (!tabData)
+                                                            return;
+                                                        mediaTabsModel.setProperty(tabContentItem.tabModelIndex, "brightness", value);
+                                                        if (outputWindow) {
+                                                            outputWindow.setMediaLayerBrightness(tabData.tabId, value);
+                                                            var zOrder = tabData.zOrder !== undefined ? tabData.zOrder : tabContentItem.tabModelIndex;
+                                                            var currentPath = tabData.currentPath;
+                                                            if (currentPath) {
+                                                                outputWindow.setVideoLayer(tabData.tabId, currentPath, value, tabData.isPlaying, zOrder);
+                                                            }
+                                                        }
+                                                        // Link to volume
+                                                        if (tabData.linkSliders && Math.abs(tabData.volume - value) > 0.001) {
+                                                            mediaTabsModel.setProperty(tabContentItem.tabModelIndex, "volume", value);
+                                                            if (outputWindow) {
+                                                                outputWindow.setVideoLayerVolume(tabData.tabId, value);
+                                                            }
+                                                        }
+                                                    }
+                                                }
+
+                                                Label {
+                                                    text: Math.round((tabData ? tabData.brightness : 1.0) * 100) + "%"
+                                                    color: textColor
+                                                    font.pixelSize: 14
+                                                    font.bold: true
+                                                    Layout.alignment: Qt.AlignHCenter
+                                                }
+                                            }
+                                        } // end RowLayout with two sliders
+
+                                        // Wide link/unlink button below both sliders
                                         Rectangle {
                                             id: linkToggleButton
-                                            width: 32
-                                            height: 32
-                                            radius: 16
+                                            Layout.fillWidth: true
+                                            Layout.preferredHeight: 32
+                                            radius: 6
                                             color: linkToggleMouse.containsMouse ? Qt.lighter(panelColor, 1.3) : panelColor
                                             border.color: (tabData && tabData.linkSliders) ? accentColor : borderColor
                                             border.width: (tabData && tabData.linkSliders) ? 2 : 1
-                                            Layout.alignment: Qt.AlignHCenter
 
-                                            // Chain link icon
-                                            Text {
-                                                anchors.centerIn: parent
-                                                text: (tabData && tabData.linkSliders) ? "🔗" : "⛓"
-                                                font.pixelSize: 14
-                                                color: (tabData && tabData.linkSliders) ? accentColor : subtleTextColor
+                                            RowLayout {
+                                                anchors.fill: parent
+                                                anchors.margins: 6
+                                                spacing: 6
+
+                                                // Center the label horizontally and vertically
+                                                Item {
+                                                    Layout.fillWidth: true
+                                                }
+                                                Label {
+                                                    text: (tabData && tabData.linkSliders) ? qsTr("Unlink") : qsTr("Link")
+                                                    color: textColor
+                                                    font.pixelSize: 14
+                                                    horizontalAlignment: Text.AlignHCenter
+                                                    verticalAlignment: Text.AlignVCenter
+                                                    Layout.alignment: Qt.AlignVCenter | Qt.AlignHCenter
+                                                }
+                                                Item {
+                                                    Layout.fillWidth: true
+                                                }
                                             }
 
                                             MouseArea {
@@ -1545,113 +1634,6 @@ Window {
 
                                             ToolTip.visible: linkToggleMouse.containsMouse
                                             ToolTip.text: (tabData && tabData.linkSliders) ? qsTr("Sliders linked - click to unlink") : qsTr("Sliders unlinked - click to link")
-                                        }
-
-                                        Item {
-                                            Layout.fillHeight: true
-                                        }
-                                    }
-
-                                    // Vertical brightness slider - touch friendly
-                                    ColumnLayout {
-                                        Layout.fillHeight: true
-                                        Layout.preferredWidth: 60
-                                        spacing: 8
-
-                                        Label {
-                                            text: qsTr("Alpha")
-                                            color: textColor
-                                            font.pixelSize: 14
-                                            font.bold: true
-                                            Layout.alignment: Qt.AlignHCenter
-                                        }
-
-                                        Slider {
-                                            id: tabBrightnessSlider
-                                            orientation: Qt.Vertical
-                                            from: 0.0
-                                            to: 1.0
-                                            value: tabData ? tabData.brightness : 1.0
-                                            Layout.fillHeight: true
-                                            Layout.preferredWidth: 44
-                                            Layout.alignment: Qt.AlignHCenter
-                                            ToolTip.visible: hovered || pressed
-                                            ToolTip.text: (isSlideshow ? qsTr("Slideshow Alpha: ") : qsTr("Video Alpha: ")) + Math.round(value * 100) + "%"
-
-                                            // Make the handle larger for touch
-                                            handle: Rectangle {
-                                                x: tabBrightnessSlider.leftPadding + tabBrightnessSlider.availableWidth / 2 - width / 2
-                                                y: tabBrightnessSlider.topPadding + tabBrightnessSlider.visualPosition * (tabBrightnessSlider.availableHeight - height)
-                                                width: 28
-                                                height: 28
-                                                radius: 14
-                                                color: tabBrightnessSlider.pressed ? accentColor : panelColor
-                                                border.color: accentColor
-                                                border.width: 2
-                                            }
-
-                                            background: Rectangle {
-                                                x: tabBrightnessSlider.leftPadding + tabBrightnessSlider.availableWidth / 2 - width / 2
-                                                y: tabBrightnessSlider.topPadding
-                                                width: 8
-                                                height: tabBrightnessSlider.availableHeight
-                                                radius: 6
-                                                color: borderColor
-
-                                                // Filled from bottom (inverted - filled by default at 100%)
-                                                Rectangle {
-                                                    width: parent.width
-                                                    height: (1 - tabBrightnessSlider.visualPosition) * parent.height
-                                                    y: tabBrightnessSlider.visualPosition * parent.height
-                                                    radius: 6
-                                                    color: accentColor
-                                                }
-                                            }
-
-                                            onValueChanged: {
-                                                if (tabData) {
-                                                    // Update brightness in model for preview
-                                                    mediaTabsModel.setProperty(tabContentItem.tabModelIndex, "brightness", value);
-
-                                                    // Also update OutputWindow
-                                                    if (outputWindow) {
-                                                        outputWindow.setMediaLayerBrightness(tabData.tabId, value);
-
-                                                        var zOrder = tabData.zOrder !== undefined ? tabData.zOrder : tabContentItem.tabModelIndex;
-                                                        var currentPath = tabData.currentPath;
-
-                                                        // For slideshow, also check if this tab is the active slideshow
-                                                        if (isSlideshow && activeSlideshowTabId === tabData.tabId && slideshow && slideshow.currentImagePath) {
-                                                            currentPath = slideshow.currentImagePath;
-                                                        }
-
-                                                        if (currentPath) {
-                                                            if (isSlideshow) {
-                                                                outputWindow.setImageLayer(tabData.tabId, currentPath, value, zOrder);
-                                                            } else {
-                                                                outputWindow.setVideoLayer(tabData.tabId, currentPath, value, tabData.isPlaying, zOrder);
-                                                            }
-                                                        }
-                                                    }
-
-                                                    // If sliders are linked (video tabs only), sync the volume slider
-                                                    if (!isSlideshow && tabData.linkSliders && Math.abs(tabData.volume - value) > 0.001) {
-                                                        mediaTabsModel.setProperty(tabContentItem.tabModelIndex, "volume", value);
-                                                        // Also update OutputWindow volume
-                                                        if (outputWindow) {
-                                                            outputWindow.setVideoLayerVolume(tabData.tabId, value);
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-
-                                        Label {
-                                            text: Math.round((tabData ? tabData.brightness : 1.0) * 100) + "%"
-                                            color: textColor
-                                            font.pixelSize: 14
-                                            font.bold: true
-                                            Layout.alignment: Qt.AlignHCenter
                                         }
                                     }
                                 }
