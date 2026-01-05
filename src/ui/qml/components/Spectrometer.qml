@@ -18,7 +18,7 @@ Rectangle {
     property var peakValues: []
 
     color: bgColor
-    radius: 4
+    radius: 6
 
     onSpectrumDataChanged: {
         // Initialize peak values if needed
@@ -84,14 +84,5 @@ Rectangle {
                 }
             }
         }
-    }
-
-    // Placeholder when inactive
-    Label {
-        anchors.centerIn: parent
-        text: qsTr("Spectrometer Off")
-        color: "#666666"
-        font.pixelSize: 12
-        visible: !root.active || root.spectrumData.length === 0
     }
 }

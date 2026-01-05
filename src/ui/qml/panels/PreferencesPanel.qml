@@ -219,7 +219,7 @@ Item {
                 Label {
                     text: qsTr("Available screens: %1").arg(root.screenCount)
                     color: root.subtleTextColor
-                    font.pixelSize: 12
+                    font.pixelSize: 14
                     Layout.columnSpan: 2
                     Layout.alignment: Qt.AlignRight
                     Layout.bottomMargin: 8
@@ -279,7 +279,7 @@ Item {
                 Label {
                     text: qsTr("Disable for native GTK/KDE dialogs")
                     color: root.subtleTextColor
-                    font.pixelSize: 12
+                    font.pixelSize: 14
                     Layout.columnSpan: 2
                     Layout.alignment: Qt.AlignRight
                     Layout.bottomMargin: 8

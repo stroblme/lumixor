@@ -92,7 +92,7 @@ Item {
                     visible: root.isSlideshow
                     text: qsTr("Delay: ") + root.slideshowDelaySeconds + qsTr(" s")
                     color: root.textColor
-                    font.pixelSize: 13
+                    font.pixelSize: 14
                     Layout.alignment: Qt.AlignVCenter
                 }
 
@@ -127,7 +127,7 @@ Item {
                     visible: root.isSlideshow
                     text: (root.tabData && root.tabData.currentIndex >= 0 ? (root.tabData.currentIndex + 1) : 0) + "/" + (root.mediaModel ? root.mediaModel.count : 0)
                     color: root.subtleTextColor
-                    font.pixelSize: 12
+                    font.pixelSize: 14
                     Layout.alignment: Qt.AlignVCenter
                     Layout.preferredWidth: 50
                     horizontalAlignment: Text.AlignRight
@@ -209,7 +209,7 @@ Item {
                     visible: !root.isSlideshow
                     text: Utils.formatTime(root.tabData ? root.tabData.videoPosition : 0) + "/" + Utils.formatTime(root.tabData ? root.tabData.videoDuration : 0)
                     color: root.subtleTextColor
-                    font.pixelSize: 12
+                    font.pixelSize: 14
                     Layout.alignment: Qt.AlignVCenter
                     Layout.preferredWidth: 80
                     horizontalAlignment: Text.AlignRight
@@ -279,7 +279,7 @@ Item {
             Label {
                 text: qsTr("Volume")
                 color: root.textColor
-                font.pixelSize: 13
+                font.pixelSize: 14
                 font.bold: true
                 Layout.alignment: Qt.AlignHCenter
             }
@@ -321,7 +321,7 @@ Item {
             Label {
                 text: qsTr("Alpha")
                 color: root.textColor
-                font.pixelSize: 13
+                font.pixelSize: 14
                 font.bold: true
                 Layout.alignment: Qt.AlignHCenter
             }

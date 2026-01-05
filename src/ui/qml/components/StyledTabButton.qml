@@ -12,13 +12,13 @@ TabButton {
     property color borderCol: typeof borderColor !== "undefined" ? borderColor : "#333333"
 
     implicitWidth: 100
-    implicitHeight: 36
+    implicitHeight: 40
 
     background: Rectangle {
         color: control.checked ? control.panelCol : (control.hovered ? Qt.lighter(control.bgColor, 1.2) : control.bgColor)
         border.color: control.checked ? control.accentCol : control.borderCol
         border.width: control.checked ? 2 : 1
-        radius: 4
+        radius: 8
     }
 
     contentItem: Text {
@@ -27,6 +27,6 @@ TabButton {
         horizontalAlignment: Text.AlignHCenter
         verticalAlignment: Text.AlignVCenter
         elide: Text.ElideRight
-        font.pixelSize: 13
+        font.pixelSize: 16
     }
 }

@@ -17,7 +17,7 @@ SpinBox {
     contentItem: TextInput {
         z: 2
         text: control.textFromValue(control.value, control.locale)
-        font.pixelSize: 13
+        font.pixelSize: 14
         color: control.txtColor
         selectionColor: control.accentCol
         selectedTextColor: control.txtColor
@@ -33,7 +33,7 @@ SpinBox {
         height: parent.height
         implicitWidth: 28
         implicitHeight: 28
-        radius: 4
+        radius: 6
         color: control.up.pressed ? control.accentCol : control.up.hovered ? Qt.lighter(control.panelCol, 1.3) : control.panelCol
         border.color: control.borderCol
 
@@ -50,7 +50,7 @@ SpinBox {
         height: parent.height
         implicitWidth: 28
         implicitHeight: 28
-        radius: 4
+        radius: 6
         color: control.down.pressed ? control.accentCol : control.down.hovered ? Qt.lighter(control.panelCol, 1.3) : control.panelCol
         border.color: control.borderCol
 
@@ -65,7 +65,7 @@ SpinBox {
     background: Rectangle {
         implicitWidth: 120
         implicitHeight: 36
-        radius: 4
+        radius: 6
         color: control.bgColor
         border.color: control.borderCol
     }

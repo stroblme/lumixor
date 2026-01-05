@@ -85,7 +85,7 @@ Popup {
                     }
                     background: Rectangle {
                         color: parent.hovered ? "#3d3d3d" : "transparent"
-                        radius: 4
+                        radius: 6
                     }
                     contentItem: Text {
                         text: parent.text
@@ -121,7 +121,7 @@ Popup {
                     }
                     background: Rectangle {
                         color: parent.hovered && parent.enabled ? "#3d3d3d" : "transparent"
-                        radius: 4
+                        radius: 6
                     }
                     contentItem: Text {
                         text: "←"
@@ -142,7 +142,7 @@ Popup {
                     }
                     background: Rectangle {
                         color: parent.hovered ? "#3d3d3d" : "transparent"
-                        radius: 4
+                        radius: 6
                     }
                     contentItem: Text {
                         text: "🏠"
@@ -159,7 +159,7 @@ Popup {
                     color: "#1a1a1a"
                     border.color: pathInput.activeFocus ? "#0078d4" : "#3d3d3d"
                     border.width: 1
-                    radius: 4
+                    radius: 6
 
                     TextInput {
                         id: pathInput
@@ -168,7 +168,7 @@ Popup {
                         anchors.rightMargin: 8
                         verticalAlignment: Text.AlignVCenter
                         color: "#ffffff"
-                        font.pixelSize: 12
+                        font.pixelSize: 14
                         selectByMouse: true
                         text: folderModel.folder.toString().replace("file://", "")
                         onAccepted: {
@@ -243,7 +243,7 @@ Popup {
 
                         background: Rectangle {
                             color: parent.hovered ? "#2d2d2d" : "transparent"
-                            radius: 4
+                            radius: 6
                         }
 
                         RowLayout {
@@ -260,7 +260,7 @@ Popup {
                             Text {
                                 text: model.name
                                 color: "#cccccc"
-                                font.pixelSize: 12
+                                font.pixelSize: 14
                                 elide: Text.ElideRight
                                 Layout.fillWidth: true
                             }
@@ -320,7 +320,7 @@ Popup {
 
                         background: Rectangle {
                             color: isSelected ? "#0078d4" : (parent.hovered ? "#2d2d2d" : "transparent")
-                            radius: 4
+                            radius: 6
                         }
 
                         RowLayout {
@@ -356,7 +356,7 @@ Popup {
                             Text {
                                 text: fileName
                                 color: isSelected ? "#ffffff" : "#cccccc"
-                                font.pixelSize: 13
+                                font.pixelSize: 14
                                 elide: Text.ElideMiddle
                                 Layout.fillWidth: true
                             }
@@ -365,7 +365,7 @@ Popup {
                             Text {
                                 text: fileIsDir ? "" : formatSize(fileSize)
                                 color: isSelected ? "#dddddd" : "#888888"
-                                font.pixelSize: 11
+                                font.pixelSize: 14
                                 Layout.preferredWidth: 70
                                 horizontalAlignment: Text.AlignRight
 
@@ -453,7 +453,7 @@ Popup {
                     color: "#1a1a1a"
                     border.color: fileNameInput.activeFocus ? "#0078d4" : "#3d3d3d"
                     border.width: 1
-                    radius: 4
+                    radius: 6
                     visible: !filePicker.selectFolder
 
                     TextInput {
@@ -463,7 +463,7 @@ Popup {
                         anchors.rightMargin: 8
                         verticalAlignment: Text.AlignVCenter
                         color: "#ffffff"
-                        font.pixelSize: 12
+                        font.pixelSize: 14
                         selectByMouse: true
                         text: filePicker.selectedFiles.length > 0 ? filePicker.selectedFiles[0].toString().split('/').pop() : ""
                     }
@@ -481,13 +481,13 @@ Popup {
                         color: "#1a1a1a"
                         border.color: parent.pressed ? "#0078d4" : "#3d3d3d"
                         border.width: 1
-                        radius: 4
+                        radius: 6
                     }
 
                     contentItem: Text {
                         text: filterCombo.displayText
                         color: "#cccccc"
-                        font.pixelSize: 12
+                        font.pixelSize: 14
                         verticalAlignment: Text.AlignVCenter
                         leftPadding: 8
                         elide: Text.ElideRight
@@ -512,12 +512,12 @@ Popup {
                         color: parent.pressed ? "#2d2d2d" : (parent.hovered ? "#3d3d3d" : "#2a2a2a")
                         border.color: "#4d4d4d"
                         border.width: 1
-                        radius: 4
+                        radius: 6
                     }
                     contentItem: Text {
                         text: parent.text
                         color: "#cccccc"
-                        font.pixelSize: 12
+                        font.pixelSize: 14
                         horizontalAlignment: Text.AlignHCenter
                         verticalAlignment: Text.AlignVCenter
                     }
@@ -538,12 +538,12 @@ Popup {
                     }
                     background: Rectangle {
                         color: parent.enabled ? (parent.pressed ? "#005a9e" : (parent.hovered ? "#1e8ad4" : "#0078d4")) : "#2a2a2a"
-                        radius: 4
+                        radius: 6
                     }
                     contentItem: Text {
                         text: parent.text
                         color: parent.enabled ? "#ffffff" : "#666666"
-                        font.pixelSize: 12
+                        font.pixelSize: 14
                         font.weight: Font.Medium
                         horizontalAlignment: Text.AlignHCenter
                         verticalAlignment: Text.AlignVCenter

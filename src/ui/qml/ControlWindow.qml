@@ -276,43 +276,15 @@ Window {
                         }
 
                         // Fixed tabs - Preferences
-                        TabButton {
+                        StyledTabButton {
                             id: preferencesTab
                             text: qsTr("Preferences")
-                            implicitWidth: 100
-                            background: Rectangle {
-                                color: preferencesTab.checked ? panelColor : (preferencesTab.hovered ? Qt.lighter(backgroundColor, 1.2) : backgroundColor)
-                                border.color: preferencesTab.checked ? accentColor : borderColor
-                                border.width: preferencesTab.checked ? 2 : 1
-                                radius: 4
-                            }
-                            contentItem: Text {
-                                text: preferencesTab.text
-                                color: preferencesTab.checked ? textColor : subtleTextColor
-                                horizontalAlignment: Text.AlignHCenter
-                                verticalAlignment: Text.AlignVCenter
-                                elide: Text.ElideRight
-                            }
                         }
 
                         // Fixed tabs - Home
-                        TabButton {
+                        StyledTabButton {
                             id: homeTab
                             text: qsTr("Home")
-                            implicitWidth: 100
-                            background: Rectangle {
-                                color: homeTab.checked ? panelColor : (homeTab.hovered ? Qt.lighter(backgroundColor, 1.2) : backgroundColor)
-                                border.color: homeTab.checked ? accentColor : borderColor
-                                border.width: homeTab.checked ? 2 : 1
-                                radius: 4
-                            }
-                            contentItem: Text {
-                                text: homeTab.text
-                                color: homeTab.checked ? textColor : subtleTextColor
-                                horizontalAlignment: Text.AlignHCenter
-                                verticalAlignment: Text.AlignVCenter
-                                elide: Text.ElideRight
-                            }
                         }
 
                         // Dynamic media tabs with drag-and-drop support
@@ -320,10 +292,8 @@ Window {
                             id: mediaTabsRepeater
                             model: mediaTabsModel
 
-                            TabButton {
+                            StyledTabButton {
                                 id: mediaTabButton
-                                implicitWidth: 120
-
                                 // Visual offset for drag animation
                                 transform: Translate {
                                     x: mediaTabButton.visualOffset
@@ -371,14 +341,6 @@ Window {
                                     }
                                 ]
 
-                                // Add background for visibility
-                                background: Rectangle {
-                                    color: mediaTabButton.checked ? panelColor : (mediaTabButton.hovered ? Qt.lighter(backgroundColor, 1.2) : backgroundColor)
-                                    border.color: mediaTabButton.checked ? accentColor : borderColor
-                                    border.width: mediaTabButton.checked ? 2 : 1
-                                    radius: 4
-                                }
-
                                 contentItem: RowLayout {
                                     spacing: 4
 
@@ -404,6 +366,7 @@ Window {
 
                                     Text {
                                         text: model.tabName
+                                        font.pixelSize: 16
                                         color: mediaTabButton.checked ? textColor : subtleTextColor
                                         elide: Text.ElideRight
                                         Layout.fillWidth: true
@@ -556,7 +519,7 @@ Window {
                                 color: addTabButton.hovered ? Qt.lighter(backgroundColor, 1.2) : backgroundColor
                                 border.color: borderColor
                                 border.width: 1
-                                radius: 4
+                                radius: 6
                             }
 
                             contentItem: Text {
@@ -978,7 +941,7 @@ Window {
                                                 visible: isSlideshow
                                                 text: qsTr("Delay: ") + slideshowDelaySeconds + qsTr(" s")
                                                 color: textColor
-                                                font.pixelSize: 13
+                                                font.pixelSize: 14
                                                 Layout.alignment: Qt.AlignVCenter
                                             }
 
@@ -1014,13 +977,13 @@ Window {
                                                     y: slideshowProgressSlider.topPadding + slideshowProgressSlider.availableHeight / 2 - height / 2
                                                     width: slideshowProgressSlider.availableWidth
                                                     height: 8
-                                                    radius: 4
+                                                    radius: 6
                                                     color: borderColor
 
                                                     Rectangle {
                                                         width: slideshowProgressSlider.visualPosition * parent.width
                                                         height: parent.height
-                                                        radius: 4
+                                                        radius: 6
                                                         color: accentColor
                                                     }
                                                 }
@@ -1057,7 +1020,7 @@ Window {
                                                 visible: isSlideshow
                                                 text: (tabData && tabData.currentIndex >= 0 ? (tabData.currentIndex + 1) : 0) + "/" + (currentMediaModel ? currentMediaModel.count : 0)
                                                 color: subtleTextColor
-                                                font.pixelSize: 12
+                                                font.pixelSize: 14
                                                 Layout.alignment: Qt.AlignVCenter
                                                 Layout.preferredWidth: 50
                                                 horizontalAlignment: Text.AlignRight
@@ -1217,13 +1180,13 @@ Window {
                                                     y: videoProgressSlider.topPadding + videoProgressSlider.availableHeight / 2 - height / 2
                                                     width: videoProgressSlider.availableWidth
                                                     height: 8
-                                                    radius: 4
+                                                    radius: 6
                                                     color: borderColor
 
                                                     Rectangle {
                                                         width: videoProgressSlider.visualPosition * parent.width
                                                         height: parent.height
-                                                        radius: 4
+                                                        radius: 6
                                                         color: accentColor
                                                     }
                                                 }
@@ -1277,7 +1240,7 @@ Window {
                                                 visible: !isSlideshow
                                                 text: videoProgressSlider.formatTime(tabData ? tabData.videoPosition : 0) + "/" + videoProgressSlider.formatTime(tabData ? tabData.videoDuration : 0)
                                                 color: subtleTextColor
-                                                font.pixelSize: 12
+                                                font.pixelSize: 14
                                                 Layout.alignment: Qt.AlignVCenter
                                                 Layout.preferredWidth: 80
                                                 horizontalAlignment: Text.AlignRight
@@ -1304,7 +1267,7 @@ Window {
                                                     color: textColor
                                                     horizontalAlignment: Text.AlignHCenter
                                                     verticalAlignment: Text.AlignVCenter
-                                                    font.pixelSize: 13
+                                                    font.pixelSize: 14
                                                 }
                                                 onClicked: {
                                                     var files = controlBridge.openFileDialog();
@@ -1340,7 +1303,7 @@ Window {
                                                     color: textColor
                                                     horizontalAlignment: Text.AlignHCenter
                                                     verticalAlignment: Text.AlignVCenter
-                                                    font.pixelSize: 13
+                                                    font.pixelSize: 14
                                                 }
                                                 onClicked: {
                                                     var folder = controlBridge.openFolderDialog();
@@ -1371,7 +1334,7 @@ Window {
                                                 width: dynamicMediaList.width
                                                 height: 40
                                                 color: ListView.isCurrentItem ? listItemHighlight : listItemColor
-                                                radius: 3
+                                                radius: 6
                                                 border.color: borderColor
                                                 Text {
                                                     anchors.verticalCenter: parent.verticalCenter
@@ -1457,7 +1420,7 @@ Window {
                                         Label {
                                             text: qsTr("Volume")
                                             color: textColor
-                                            font.pixelSize: 13
+                                            font.pixelSize: 14
                                             font.bold: true
                                             Layout.alignment: Qt.AlignHCenter
                                         }
@@ -1491,7 +1454,7 @@ Window {
                                                 y: tabVolumeSlider.topPadding
                                                 width: 8
                                                 height: tabVolumeSlider.availableHeight
-                                                radius: 4
+                                                radius: 6
                                                 color: borderColor
 
                                                 // Filled from bottom
@@ -1499,7 +1462,7 @@ Window {
                                                     width: parent.width
                                                     height: (1 - tabVolumeSlider.visualPosition) * parent.height
                                                     y: tabVolumeSlider.visualPosition * parent.height
-                                                    radius: 4
+                                                    radius: 6
                                                     color: accentColor
                                                 }
                                             }
@@ -1598,7 +1561,7 @@ Window {
                                         Label {
                                             text: qsTr("Alpha")
                                             color: textColor
-                                            font.pixelSize: 13
+                                            font.pixelSize: 14
                                             font.bold: true
                                             Layout.alignment: Qt.AlignHCenter
                                         }
@@ -1632,7 +1595,7 @@ Window {
                                                 y: tabBrightnessSlider.topPadding
                                                 width: 8
                                                 height: tabBrightnessSlider.availableHeight
-                                                radius: 4
+                                                radius: 6
                                                 color: borderColor
 
                                                 // Filled from bottom (inverted - filled by default at 100%)
@@ -1640,7 +1603,7 @@ Window {
                                                     width: parent.width
                                                     height: (1 - tabBrightnessSlider.visualPosition) * parent.height
                                                     y: tabBrightnessSlider.visualPosition * parent.height
-                                                    radius: 4
+                                                    radius: 6
                                                     color: accentColor
                                                 }
                                             }
@@ -1770,7 +1733,7 @@ Window {
                         Layout.fillHeight: true
                         Layout.minimumHeight: 150
                         radius: 6
-                        color: backgroundColor
+                        color: panelColor
                         border.color: borderColor
 
                         ColumnLayout {
@@ -1802,7 +1765,7 @@ Window {
 
                                     width: Math.max(50, isHeightLimited ? previewContainer.height * previewContainer.outputAspect : previewContainer.width)
                                     height: Math.max(50, isHeightLimited ? previewContainer.height : previewContainer.width / previewContainer.outputAspect)
-                                    radius: 4
+                                    radius: 6
                                     color: "#000000"
                                     border.color: borderColor
                                     clip: true
@@ -1819,7 +1782,8 @@ Window {
                                             // Use direct model access for better reactivity
                                             property string mediaPath: model.currentPath ? model.currentPath : ""
                                             property real mediaBrightness: model.brightness !== undefined ? model.brightness : 1.0
-                                            property real mediaVolume: model.volume !== undefined ? model.volume : 1.0
+                                            // property real mediaVolume: model.volume !== undefined ? model.volume : 1.0
+                                            property real mediaVolume: 0
                                             property bool mediaPlaying: model.isPlaying ? model.isPlaying : false
                                             property string mediaType: model.tabType ? model.tabType : "video"
                                             property int seekPosition: model.seekPosition !== undefined ? model.seekPosition : -1
@@ -2063,7 +2027,7 @@ Window {
                     Rectangle {
                         id: spectrometerPanel
                         Layout.fillWidth: true
-                        implicitHeight: 80
+                        implicitHeight: 100
                         radius: 6
                         color: panelColor
                         border.color: borderColor
@@ -2080,62 +2044,13 @@ Window {
                                 Label {
                                     text: qsTr("Spectrometer")
                                     color: textColor
-                                    font.pixelSize: 13
+                                    font.pixelSize: 14
                                     font.bold: true
                                     Layout.alignment: Qt.AlignVCenter
                                 }
 
                                 Item {
                                     Layout.fillWidth: true
-                                }
-
-                                Label {
-                                    text: qsTr("Gain:")
-                                    color: subtleTextColor
-                                    font.pixelSize: 12
-                                    Layout.alignment: Qt.AlignVCenter
-                                }
-
-                                Slider {
-                                    id: spectrometerGainSlider
-                                    from: 0.5
-                                    to: 5.0
-                                    value: audioAnalyzer ? audioAnalyzer.gain : 1.0
-                                    Layout.preferredWidth: 80
-                                    Layout.preferredHeight: 24
-
-                                    onValueChanged: {
-                                        if (audioAnalyzer) {
-                                            audioAnalyzer.gain = value;
-                                        }
-                                    }
-
-                                    background: Rectangle {
-                                        x: spectrometerGainSlider.leftPadding
-                                        y: spectrometerGainSlider.topPadding + spectrometerGainSlider.availableHeight / 2 - height / 2
-                                        implicitWidth: 80
-                                        implicitHeight: 4
-                                        width: spectrometerGainSlider.availableWidth
-                                        height: implicitHeight
-                                        radius: 2
-                                        color: borderColor
-
-                                        Rectangle {
-                                            width: spectrometerGainSlider.visualPosition * parent.width
-                                            height: parent.height
-                                            color: accentColor
-                                            radius: 2
-                                        }
-                                    }
-
-                                    handle: Rectangle {
-                                        x: spectrometerGainSlider.leftPadding + spectrometerGainSlider.visualPosition * (spectrometerGainSlider.availableWidth - width)
-                                        y: spectrometerGainSlider.topPadding + spectrometerGainSlider.availableHeight / 2 - height / 2
-                                        implicitWidth: 12
-                                        implicitHeight: 12
-                                        radius: 6
-                                        color: spectrometerGainSlider.pressed ? Qt.lighter(accentColor, 1.2) : accentColor
-                                    }
                                 }
 
                                 Switch {
@@ -2179,11 +2094,16 @@ Window {
                                 id: spectrometer
                                 Layout.fillWidth: true
                                 Layout.fillHeight: true
-                                Layout.minimumHeight: 40
+                                Layout.minimumHeight: 50
                                 spectrumData: audioAnalyzer ? audioAnalyzer.spectrum : []
                                 barColor: accentColor
-                                bgColor: backgroundColor
+                                bgColor: panelColor
                                 active: audioAnalyzer ? audioAnalyzer.active : false
+                            }
+
+                            Item {
+                                Layout.fillHeight: true
+                                Layout.preferredHeight: 4
                             }
                         }
                     }
@@ -2210,7 +2130,7 @@ Window {
                                 Label {
                                     text: qsTr("Blackout")
                                     color: textColor
-                                    font.pixelSize: 13
+                                    font.pixelSize: 14
                                     font.bold: true
                                     Layout.alignment: Qt.AlignVCenter
                                 }
@@ -2242,14 +2162,14 @@ Window {
                                         y: brightnessSlider.topPadding + brightnessSlider.availableHeight / 2 - height / 2
                                         width: brightnessSlider.availableWidth
                                         height: 8
-                                        radius: 4
+                                        radius: 6
                                         color: borderColor
 
                                         // Filled from left (inverted - filled by default at 100%)
                                         Rectangle {
                                             width: brightnessSlider.visualPosition * parent.width
                                             height: parent.height
-                                            radius: 4
+                                            radius: 6
                                             color: accentColor
                                         }
                                     }

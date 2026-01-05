@@ -18,7 +18,7 @@ Rectangle {
 
     height: 40
     color: isCurrentItem ? highlightCol : listItemCol
-    radius: 3
+    radius: 6
     border.color: borderCol
 
     Text {
@@ -29,7 +29,7 @@ Rectangle {
         color: control.txtColor
         elide: Text.ElideRight
         width: parent.width - 40
-        font.pixelSize: 13
+        font.pixelSize: 14
 
         function fileNameFromPath(p) {
             if (!p)

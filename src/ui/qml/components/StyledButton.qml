@@ -25,6 +25,6 @@ Button {
         color: control.txtColor
         horizontalAlignment: Text.AlignHCenter
         verticalAlignment: Text.AlignVCenter
-        font.pixelSize: 13
+        font.pixelSize: 14
     }
 }
