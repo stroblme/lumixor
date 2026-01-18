@@ -30,6 +30,7 @@ echo "Detected OS: ${NAME:-Unknown} (ID=${ID:-unknown}, ID_LIKE=${ID_LIKE:-none}
 # Package lists
 OPENSUSE_PKGS=(
   libqt5-qtbase-devel
+  libQt5Multimedia5
   libqt5-qtmultimedia-devel
   libqt5-qtdeclarative-devel
   libqt5-qtquickcontrols2
@@ -40,10 +41,13 @@ OPENSUSE_PKGS=(
 )
 DEBIAN_PKGS=(
   qtbase5-dev
+  libqt5multimedia5
   qtmultimedia5-dev
   qtdeclarative5-dev
   qtquickcontrols2-5-dev
   qml-module-qtquick2
+  qml-module-qtmultimedia
+  qml-module-qt-labs-platform
   qml-module-qtquick-controls2
   qml-module-qtquick-layouts
   qml-module-qtquick-window2
