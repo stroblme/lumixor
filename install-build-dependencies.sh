@@ -33,6 +33,7 @@ OPENSUSE_PKGS=(
   libqt5-qtmultimedia-devel
   libqt5-qtdeclarative-devel
   libqt5-qtquickcontrols2
+  libqt5-qtquickcontrols2-private-headers-devel
   libexiv2-devel
   cmake
   gcc-c++
@@ -41,6 +42,7 @@ DEBIAN_PKGS=(
   qtbase5-dev
   qtmultimedia5-dev
   qtdeclarative5-dev
+  qtquickcontrols2-5-dev
   qml-module-qtquick2
   qml-module-qtquick-controls2
   qml-module-qtquick-layouts
