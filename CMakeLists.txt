@@ -59,3 +59,21 @@ target_link_libraries(lumixor-qt
     Qt5::Qml
     Qt5::QuickControls2
 )
+
+# Installation rules for user-scope installation
+include(GNUInstallDirs)
+
+# Install the executable to user's local bin directory
+install(TARGETS lumixor-qt
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+)
+
+# Install desktop entry
+install(FILES resources/lumixor.desktop
+    DESTINATION ${CMAKE_INSTALL_DATADIR}/applications
+)
+
+# Install icon
+install(FILES resources/lumixor.svg
+    DESTINATION ${CMAKE_INSTALL_DATADIR}/icons/hicolor/scalable/apps
+)

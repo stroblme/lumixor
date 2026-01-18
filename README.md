@@ -18,13 +18,15 @@ This project attempts to fill the gap of a simple VJ (Video-Jockey) controller t
 You can easily build the application yourself by
 1. Installing the required dependencies
 ```
-./install-build-dependencies.sh
+./scripts/install-build-dependencies.sh
 ```
 2. Building the application
 ```
-./build.sh
+./scripts/build.sh --install
 ```
-3. The output is then in `./build/lumixor-qt`
+
+Omit the `--install` flag if you don't want to install the applicaiton on your system.
+Passing `--run` instead will build and run the application. 
 
 ## Usage
 
