@@ -35,8 +35,8 @@ Item {
 
     ColumnLayout {
         anchors.fill: parent
-        anchors.margins: 16
-        spacing: 16
+        anchors.margins: 20
+        spacing: 20
 
         Components.StyledGroupBox {
             Layout.fillWidth: true
@@ -47,14 +47,15 @@ Item {
 
             GridLayout {
                 anchors.fill: parent
-                anchors.margins: 12
+                anchors.margins: 16
                 columns: 2
-                columnSpacing: 12
-                rowSpacing: 8
+                columnSpacing: 16
+                rowSpacing: 12
 
                 Label {
                     text: qsTr("Delay (seconds):")
                     color: root.textColor
+                    font.pixelSize: Components.Theme.fontSize
                     horizontalAlignment: Text.AlignLeft
                     Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
                 }
@@ -80,6 +81,7 @@ Item {
                 Label {
                     text: qsTr("Transition (ms):")
                     color: root.textColor
+                    font.pixelSize: Components.Theme.fontSize
                     horizontalAlignment: Text.AlignLeft
                     Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
                 }
@@ -106,6 +108,7 @@ Item {
                 Label {
                     text: qsTr("Loop slideshow:")
                     color: root.textColor
+                    font.pixelSize: Components.Theme.fontSize
                     horizontalAlignment: Text.AlignLeft
                     Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
                 }
@@ -133,14 +136,15 @@ Item {
 
             GridLayout {
                 anchors.fill: parent
-                anchors.margins: 12
+                anchors.margins: 16
                 columns: 2
-                columnSpacing: 12
-                rowSpacing: 8
+                columnSpacing: 16
+                rowSpacing: 12
 
                 Label {
                     text: qsTr("Loop video list:")
                     color: root.textColor
+                    font.pixelSize: Components.Theme.fontSize
                     horizontalAlignment: Text.AlignLeft
                     Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
                 }
@@ -159,6 +163,7 @@ Item {
                 Label {
                     text: qsTr("Autoplay next video:")
                     color: root.textColor
+                    font.pixelSize: Components.Theme.fontSize
                     horizontalAlignment: Text.AlignLeft
                     Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
                 }
@@ -186,14 +191,15 @@ Item {
 
             GridLayout {
                 anchors.fill: parent
-                anchors.margins: 12
+                anchors.margins: 16
                 columns: 2
-                columnSpacing: 12
-                rowSpacing: 8
+                columnSpacing: 16
+                rowSpacing: 12
 
                 Label {
                     text: qsTr("Screen index:")
                     color: root.textColor
+                    font.pixelSize: Components.Theme.fontSize
                     horizontalAlignment: Text.AlignLeft
                     Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
                 }
@@ -217,7 +223,7 @@ Item {
                 Label {
                     text: qsTr("Available screens: %1").arg(root.screenCount)
                     color: root.subtleTextColor
-                    font.pixelSize: 14
+                    font.pixelSize: Components.Theme.fontSize
                     Layout.columnSpan: 2
                     Layout.alignment: Qt.AlignRight
                     Layout.bottomMargin: 8
@@ -234,14 +240,15 @@ Item {
 
             GridLayout {
                 anchors.fill: parent
-                anchors.margins: 12
+                anchors.margins: 16
                 columns: 2
-                columnSpacing: 12
-                rowSpacing: 8
+                columnSpacing: 16
+                rowSpacing: 12
 
                 Label {
                     text: qsTr("Accent Color:")
                     color: root.textColor
+                    font.pixelSize: Components.Theme.fontSize
                     horizontalAlignment: Text.AlignLeft
                     Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
                 }

@@ -1,5 +1,6 @@
 import QtQuick 2.12
 import QtQuick.Controls 2.12
+import "." as Components
 
 Slider {
     id: control
@@ -9,8 +10,8 @@ Slider {
     property color accentCol: typeof accentColor !== "undefined" ? accentColor : "#78909C"
     property color borderCol: typeof borderColor !== "undefined" ? borderColor : "#333333"
 
-    property int handleSize: 28
-    property int trackHeight: 8
+    property int handleSize: Components.Theme.sliderHandleSize
+    property int trackHeight: Components.Theme.sliderTrackHeight
 
     handle: Rectangle {
         x: control.leftPadding + (control.horizontal ? control.visualPosition * (control.availableWidth - width) : (control.availableWidth - width) / 2)

@@ -1,5 +1,6 @@
 import QtQuick 2.12
 import QtQuick.Controls 2.12
+import "." as Components
 
 TabButton {
     id: control
@@ -11,14 +12,14 @@ TabButton {
     property color subtleTxtColor: typeof subtleTextColor !== "undefined" ? subtleTextColor : "#9E9E9E"
     property color borderCol: typeof borderColor !== "undefined" ? borderColor : "#333333"
 
-    implicitWidth: 100
-    implicitHeight: 40
+    implicitWidth: Components.Theme.tabButtonMinWidth
+    implicitHeight: Components.Theme.tabButtonHeight
 
     background: Rectangle {
         color: control.checked ? control.panelCol : (control.hovered ? Qt.lighter(control.bgColor, 1.2) : control.bgColor)
         border.color: control.checked ? control.accentCol : control.borderCol
         border.width: control.checked ? 2 : 1
-        radius: 8
+        radius: Components.Theme.borderRadius
     }
 
     contentItem: Text {
@@ -27,6 +28,6 @@ TabButton {
         horizontalAlignment: Text.AlignHCenter
         verticalAlignment: Text.AlignVCenter
         elide: Text.ElideRight
-        font.pixelSize: 16
+        font.pixelSize: Components.Theme.fontSizeLarge
     }
 }

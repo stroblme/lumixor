@@ -1,5 +1,6 @@
 import QtQuick 2.12
 import QtQuick.Controls 2.12
+import "." as Components
 
 Rectangle {
     id: control
@@ -20,9 +21,9 @@ Rectangle {
     signal clicked
     signal deleteClicked
 
-    height: 40
+    height: Components.Theme.listItemHeight
     color: isSelected ? highlightColor : itemColor
-    radius: 6
+    radius: Components.Theme.borderRadius
     border.color: borderCol
 
     // Display name: prefer fileName, fall back to extracting from filePath
@@ -31,29 +32,29 @@ Rectangle {
     Text {
         anchors.verticalCenter: parent.verticalCenter
         anchors.left: parent.left
-        anchors.leftMargin: 8
+        anchors.leftMargin: 10
         text: control.displayName
         color: control.txtColor
         elide: Text.ElideRight
-        width: parent.width - 40
-        font.pixelSize: 14
+        width: parent.width - 48
+        font.pixelSize: Components.Theme.fontSize
     }
 
     // Delete button
     Rectangle {
         anchors.right: parent.right
-        anchors.rightMargin: 8
+        anchors.rightMargin: 10
         anchors.verticalCenter: parent.verticalCenter
-        width: 20
-        height: 20
-        radius: 10
+        width: 24
+        height: 24
+        radius: 12
         color: delMouseArea.containsMouse ? Qt.lighter(control.itemColor, 1.5) : "transparent"
 
         Text {
             anchors.centerIn: parent
             text: "×"
             color: control.subtleTxtColor
-            font.pixelSize: 14
+            font.pixelSize: Components.Theme.fontSizeLarge
         }
 
         MouseArea {
@@ -67,7 +68,7 @@ Rectangle {
     MouseArea {
         anchors.left: parent.left
         anchors.right: parent.right
-        anchors.rightMargin: 36
+        anchors.rightMargin: 40
         anchors.top: parent.top
         anchors.bottom: parent.bottom
         onClicked: control.clicked()

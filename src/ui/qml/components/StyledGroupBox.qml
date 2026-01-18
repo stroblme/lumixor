@@ -1,5 +1,6 @@
 import QtQuick 2.12
 import QtQuick.Controls 2.12
+import "." as Components
 
 GroupBox {
     id: control
@@ -14,7 +15,7 @@ GroupBox {
         text: control.title
         color: control.txtColor
         font.bold: true
-        font.pixelSize: 14
+        font.pixelSize: Components.Theme.fontSize
         elide: Text.ElideRight
     }
 
@@ -24,6 +25,6 @@ GroupBox {
         height: parent.height - control.topPadding + control.bottomPadding
         color: "transparent"
         border.color: control.borderCol
-        radius: 6
+        radius: Components.Theme.borderRadius
     }
 }

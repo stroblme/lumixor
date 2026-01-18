@@ -1,5 +1,6 @@
 import QtQuick 2.12
 import QtQuick.Controls 2.12
+import "." as Components
 
 MenuItem {
     id: control
@@ -9,8 +10,8 @@ MenuItem {
     property color txtColor: typeof textColor !== "undefined" ? textColor : "#E0E0E0"
 
     background: Rectangle {
-        implicitWidth: 180
-        implicitHeight: 32
+        implicitWidth: 200
+        implicitHeight: 40
         color: control.highlighted ? Qt.lighter(control.panelCol, 1.3) : "transparent"
     }
 
@@ -19,6 +20,7 @@ MenuItem {
         color: control.txtColor
         horizontalAlignment: Text.AlignLeft
         verticalAlignment: Text.AlignVCenter
-        leftPadding: 8
+        leftPadding: 10
+        font.pixelSize: Components.Theme.fontSize
     }
 }

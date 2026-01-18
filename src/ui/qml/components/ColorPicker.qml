@@ -1,5 +1,6 @@
 import QtQuick 2.12
 import QtQuick.Controls 2.12
+import "." as Components
 
 Item {
     id: control
@@ -11,8 +12,8 @@ Item {
 
     signal colorChanged(color newColor)
 
-    implicitHeight: 28
-    implicitWidth: 220
+    implicitHeight: Components.Theme.switchHeight
+    implicitWidth: Math.round(Components.Theme.switchHeight * 8)
 
     // Preset colors
     property var presetColors: ["#78909C"  // Blue (default)
@@ -29,15 +30,15 @@ Item {
 
     Row {
         anchors.fill: parent
-        spacing: 2
+        spacing: Math.round(Components.Theme.spacing / 4)
 
         Repeater {
             model: control.presetColors
 
             Rectangle {
-                width: 20
-                height: 20
-                radius: 10
+                width: Components.Theme.switchHeight
+                height: Components.Theme.switchHeight
+                radius: Components.Theme.switchHeight / 2
                 color: modelData
                 border.color: control.selectedColor === modelData ? Qt.lighter(modelData, 1.5) : control.borderColor
                 border.width: control.selectedColor === modelData ? 2 : 1

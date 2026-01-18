@@ -1,5 +1,6 @@
 import QtQuick 2.12
 import QtQuick.Controls 2.12
+import "." as Components
 
 Button {
     id: control
@@ -11,11 +12,11 @@ Button {
     property color txtColor: typeof textColor !== "undefined" ? textColor : "#E0E0E0"
     property color borderCol: typeof borderColor !== "undefined" ? borderColor : "#333333"
 
-    property int radius: 6
+    property int radius: Components.Theme.borderRadius
 
     background: Rectangle {
         radius: control.radius
-        implicitHeight: 44
+        implicitHeight: Components.Theme.buttonHeight
         border.color: control.borderCol
         color: control.down ? control.pressedColor : control.hovered ? control.hoverColor : control.bgColor
     }
@@ -25,6 +26,6 @@ Button {
         color: control.txtColor
         horizontalAlignment: Text.AlignHCenter
         verticalAlignment: Text.AlignVCenter
-        font.pixelSize: 14
+        font.pixelSize: Components.Theme.fontSize
     }
 }

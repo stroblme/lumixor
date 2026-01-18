@@ -372,7 +372,7 @@ Window {
 
                                     Text {
                                         text: model.tabName
-                                        font.pixelSize: 16
+                                        font.pixelSize: Components.Theme.fontSize
                                         color: mediaTabButton.checked ? textColor : subtleTextColor
                                         elide: Text.ElideRight
                                         Layout.fillWidth: true
@@ -381,15 +381,15 @@ Window {
                                     }
                                     // Close button
                                     Rectangle {
-                                        width: 16
-                                        height: 16
-                                        radius: 8
+                                        width: Components.Theme.iconSize
+                                        height: Components.Theme.iconSize
+                                        radius: Components.Theme.iconSize / 2
                                         color: closeMouseArea.containsMouse ? Qt.lighter(panelColor, 1.5) : "transparent"
                                         Text {
                                             anchors.centerIn: parent
                                             text: "×"
                                             color: subtleTextColor
-                                            font.pixelSize: 14
+                                            font.pixelSize: Components.Theme.fontSize
                                             font.bold: true
                                         }
                                         MouseArea {
@@ -627,7 +627,7 @@ Window {
                                     text: qsTr("Welcome to Lumixor")
                                     color: textColor
                                     font.bold: true
-                                    font.pixelSize: 20
+                                    font.pixelSize: Components.Theme.fontSizeLarge
                                     Layout.alignment: Qt.AlignHCenter
                                 }
 
@@ -869,7 +869,7 @@ Window {
                                                 visible: isSlideshow
                                                 text: qsTr("Delay: ") + slideshowDelaySeconds + qsTr(" s")
                                                 color: textColor
-                                                font.pixelSize: 14
+                                                font.pixelSize: Components.Theme.fontSize
                                                 Layout.alignment: Qt.AlignVCenter
                                             }
 
@@ -924,7 +924,7 @@ Window {
                                                 visible: isSlideshow
                                                 text: (tabData && tabData.currentIndex >= 0 ? (tabData.currentIndex + 1) : 0) + "/" + (currentMediaModel ? currentMediaModel.count : 0)
                                                 color: subtleTextColor
-                                                font.pixelSize: 14
+                                                font.pixelSize: Components.Theme.fontSize
                                                 Layout.alignment: Qt.AlignVCenter
                                                 Layout.preferredWidth: 50
                                                 horizontalAlignment: Text.AlignRight
@@ -1099,7 +1099,7 @@ Window {
                                                 visible: !isSlideshow
                                                 text: videoProgressSlider.formatTime(tabData ? tabData.videoPosition : 0) + "/" + videoProgressSlider.formatTime(tabData ? tabData.videoDuration : 0)
                                                 color: subtleTextColor
-                                                font.pixelSize: 14
+                                                font.pixelSize: Components.Theme.fontSize
                                                 Layout.alignment: Qt.AlignVCenter
                                                 Layout.preferredWidth: 80
                                                 horizontalAlignment: Text.AlignRight
@@ -1238,7 +1238,7 @@ Window {
                                                 Label {
                                                     text: qsTr("Volume")
                                                     color: textColor
-                                                    font.pixelSize: 14
+                                                    font.pixelSize: Components.Theme.fontSize
                                                     font.bold: true
                                                     Layout.alignment: Qt.AlignHCenter
                                                 }
@@ -1282,7 +1282,7 @@ Window {
                                                 Label {
                                                     text: Math.round((tabData ? tabData.volume : 1.0) * 100) + "%"
                                                     color: textColor
-                                                    font.pixelSize: 14
+                                                    font.pixelSize: Components.Theme.fontSize
                                                     font.bold: true
                                                     Layout.alignment: Qt.AlignHCenter
                                                 }
@@ -1297,7 +1297,7 @@ Window {
                                                 Label {
                                                     text: qsTr("Alpha")
                                                     color: textColor
-                                                    font.pixelSize: 14
+                                                    font.pixelSize: Components.Theme.fontSize
                                                     font.bold: true
                                                     Layout.alignment: Qt.AlignHCenter
                                                 }
@@ -1358,7 +1358,7 @@ Window {
                                                 Label {
                                                     text: Math.round((tabData ? tabData.brightness : 1.0) * 100) + "%"
                                                     color: textColor
-                                                    font.pixelSize: 14
+                                                    font.pixelSize: Components.Theme.fontSize
                                                     font.bold: true
                                                     Layout.alignment: Qt.AlignHCenter
                                                 }
@@ -1388,7 +1388,7 @@ Window {
                                                 Label {
                                                     text: (tabData && tabData.linkSliders) ? qsTr("Unlink") : qsTr("Link")
                                                     color: textColor
-                                                    font.pixelSize: 14
+                                                    font.pixelSize: Components.Theme.fontSize
                                                     horizontalAlignment: Text.AlignHCenter
                                                     verticalAlignment: Text.AlignVCenter
                                                     Layout.alignment: Qt.AlignVCenter | Qt.AlignHCenter
@@ -1505,6 +1505,7 @@ Window {
                                 text: qsTr("Output Preview")
                                 color: textColor
                                 font.bold: true
+                                font.pixelSize: Components.Theme.fontSize
                             }
 
                             // Container that maintains the output window's aspect ratio
@@ -1804,7 +1805,7 @@ Window {
                                 Label {
                                     text: qsTr("Spectrometer")
                                     color: textColor
-                                    font.pixelSize: 14
+                                    font.pixelSize: Components.Theme.fontSize
                                     font.bold: true
                                     Layout.alignment: Qt.AlignVCenter
                                 }
@@ -1869,7 +1870,7 @@ Window {
                                 Label {
                                     text: qsTr("Blackout")
                                     color: textColor
-                                    font.pixelSize: 14
+                                    font.pixelSize: Components.Theme.fontSize
                                     font.bold: true
                                     Layout.alignment: Qt.AlignVCenter
                                 }
@@ -1897,7 +1898,7 @@ Window {
                                 Label {
                                     text: Math.round(brightnessSlider.value * 100) + "%"
                                     color: textColor
-                                    font.pixelSize: 14
+                                    font.pixelSize: Components.Theme.fontSize
                                     font.bold: true
                                     Layout.preferredWidth: 45
                                     horizontalAlignment: Text.AlignRight
@@ -1931,6 +1932,7 @@ Window {
                 verticalAlignment: Text.AlignVCenter
                 text: statusText
                 color: subtleTextColor
+                font.pixelSize: Components.Theme.fontSize
                 elide: Label.ElideRight
             }
         }

@@ -1,5 +1,6 @@
 import QtQuick 2.12
 import QtQuick.Controls 2.12
+import "." as Components
 
 Button {
     id: control
@@ -12,11 +13,11 @@ Button {
     property color borderCol: typeof borderColor !== "undefined" ? borderColor : "#333333"
 
     property string iconText: ""
-    property int iconSize: 18
-    property int radius: 6
+    property int iconSize: Components.Theme.iconSize
+    property int radius: Components.Theme.borderRadius
 
-    implicitWidth: 44
-    implicitHeight: 44
+    implicitWidth: Components.Theme.buttonWidth
+    implicitHeight: Components.Theme.buttonHeight
 
     background: Rectangle {
         radius: control.radius

@@ -96,7 +96,7 @@ Item {
                     id: slideshowStopBtn
                     visible: root.isSlideshow
                     iconText: "⏹"
-                    iconSize: 20
+                    iconSize: Components.Theme.iconSize
                     ToolTip.visible: hovered
                     ToolTip.text: qsTr("Stop Slideshow")
                     bgColor: root.panelColor
@@ -110,7 +110,7 @@ Item {
                     visible: root.isSlideshow
                     text: qsTr("Delay: ") + root.slideshowDelaySeconds + qsTr(" s")
                     color: root.textColor
-                    font.pixelSize: 14
+                    font.pixelSize: Components.Theme.fontSize
                     Layout.alignment: Qt.AlignVCenter
                 }
 
@@ -145,7 +145,7 @@ Item {
                     visible: root.isSlideshow
                     text: (root.tabData && root.tabData.currentIndex >= 0 ? (root.tabData.currentIndex + 1) : 0) + "/" + (root.mediaModel ? root.mediaModel.count : 0)
                     color: root.subtleTextColor
-                    font.pixelSize: 14
+                    font.pixelSize: Components.Theme.fontSize
                     Layout.alignment: Qt.AlignVCenter
                     Layout.preferredWidth: 50
                     horizontalAlignment: Text.AlignRight
@@ -172,7 +172,7 @@ Item {
                     id: videoStopBtn
                     visible: !root.isSlideshow
                     iconText: "⏹"
-                    iconSize: 20
+                    iconSize: Components.Theme.iconSize
                     ToolTip.visible: hovered
                     ToolTip.text: qsTr("Stop Video")
                     bgColor: root.panelColor
@@ -227,7 +227,7 @@ Item {
                     visible: !root.isSlideshow
                     text: root.formatTime(root.tabData ? root.tabData.videoPosition : 0) + "/" + root.formatTime(root.tabData ? root.tabData.videoDuration : 0)
                     color: root.subtleTextColor
-                    font.pixelSize: 14
+                    font.pixelSize: Components.Theme.fontSize
                     Layout.alignment: Qt.AlignVCenter
                     Layout.preferredWidth: 80
                     horizontalAlignment: Text.AlignRight
@@ -297,7 +297,7 @@ Item {
             Label {
                 text: qsTr("Volume")
                 color: root.textColor
-                font.pixelSize: 14
+                font.pixelSize: Components.Theme.fontSize
                 font.bold: true
                 Layout.alignment: Qt.AlignHCenter
             }
@@ -324,7 +324,7 @@ Item {
             Label {
                 text: Math.round((root.tabData ? root.tabData.volume : 1.0) * 100) + "%"
                 color: root.textColor
-                font.pixelSize: 14
+                font.pixelSize: Components.Theme.fontSize
                 font.bold: true
                 Layout.alignment: Qt.AlignHCenter
             }
@@ -339,7 +339,7 @@ Item {
             Label {
                 text: qsTr("Alpha")
                 color: root.textColor
-                font.pixelSize: 14
+                font.pixelSize: Components.Theme.fontSize
                 font.bold: true
                 Layout.alignment: Qt.AlignHCenter
             }
@@ -366,7 +366,7 @@ Item {
             Label {
                 text: Math.round((root.tabData ? root.tabData.brightness : 1.0) * 100) + "%"
                 color: root.textColor
-                font.pixelSize: 14
+                font.pixelSize: Components.Theme.fontSize
                 font.bold: true
                 Layout.alignment: Qt.AlignHCenter
             }

@@ -59,7 +59,6 @@
     </linearGradient>
     <meshgradient
        inkscape:collect="always"
-       id="meshgradient2"
        gradientUnits="userSpaceOnUse"
        x="0"
        y="5">
@@ -120,7 +119,7 @@
   <g
      id="SVGRepo_iconCarrier"
      inkscape:label="main-icon"
-     style="fill:url(#meshgradient2)">
+     >
     <defs
        id="defs1">
       <style

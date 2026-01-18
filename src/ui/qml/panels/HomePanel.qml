@@ -20,20 +20,21 @@ Item {
 
     ColumnLayout {
         anchors.fill: parent
-        anchors.margins: 16
-        spacing: 16
+        anchors.margins: Components.Theme.margins
+        spacing: Components.Theme.spacing
 
         Label {
             text: qsTr("Welcome to Lumixor")
             color: root.textColor
             font.bold: true
-            font.pixelSize: 18
+            font.pixelSize: Components.Theme.fontSizeLarge
             Layout.alignment: Qt.AlignHCenter
         }
 
         Label {
             text: qsTr("Add media files to get started")
             color: root.subtleTextColor
+            font.pixelSize: Components.Theme.fontSize
             Layout.alignment: Qt.AlignHCenter
         }
 
