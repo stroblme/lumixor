@@ -13,22 +13,6 @@ This project attempts to fill the gap of a simple VJ (Video-Jockey) controller t
 
 ## Installation
 
-### AppImage (Recommended)
-
-Download the latest AppImage from the [Releases](https://github.com/yourusername/lumixor/releases) page.
-
-For video playback support, you may need to install Qt5 multimedia plugins:
-```bash
-# Ubuntu/Debian
-sudo apt-get install qtmultimedia5-dev gstreamer1.0-plugins-good gstreamer1.0-plugins-bad gstreamer1.0-libav
-
-# Fedora
-sudo dnf install qt5-qtmultimedia gstreamer1-plugins-good gstreamer1-plugins-bad-free
-
-# Arch
-sudo pacman -S qt5-multimedia gst-plugins-good gst-plugins-bad gst-libav
-```
-
 ### Building from Source
 
 You can easily build the application yourself by
