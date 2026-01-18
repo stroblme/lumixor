@@ -21,9 +21,6 @@ struct AppConfig
     // Playback settings
     bool autoPlayNextVideo = true; // automatically play next video when current finishes
 
-    // File dialog settings
-    bool useCustomFilePicker = true; // use custom dark file picker instead of native dialog
-
     static AppConfig loadFromFile(const QString &filePath, bool *ok = nullptr);
     bool saveToFile(const QString &filePath, QString *error = nullptr) const;
 };

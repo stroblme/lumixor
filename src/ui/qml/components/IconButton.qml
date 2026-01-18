@@ -12,6 +12,7 @@ Button {
     property color borderCol: typeof borderColor !== "undefined" ? borderColor : "#333333"
 
     property string iconText: ""
+    property int iconSize: 18
     property int radius: 6
 
     implicitWidth: 44
@@ -20,13 +21,13 @@ Button {
     background: Rectangle {
         radius: control.radius
         border.color: control.borderCol
-        color: control.down ? control.pressedColor : control.hovered ? control.hoverColor : control.bgColor
+        color: (control.down || control.checked) ? control.pressedColor : control.hovered ? control.hoverColor : control.bgColor
     }
 
     contentItem: Text {
         text: control.iconText
         color: control.txtColor
-        font.pixelSize: 18
+        font.pixelSize: control.iconSize
         horizontalAlignment: Text.AlignHCenter
         verticalAlignment: Text.AlignVCenter
     }

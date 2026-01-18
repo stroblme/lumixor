@@ -4,7 +4,7 @@ import QtQuick.Controls 2.12
 import QtQuick.Layouts 1.12
 import QtMultimedia 5.15
 import Qt.labs.platform 1.1 as Platform
-import "components"
+import "components" as Components
 import "panels"
 
 Window {
@@ -37,9 +37,6 @@ Window {
     // Auto-play setting from preferences
     property bool autoPlayNextVideo: preferences ? preferences.autoPlayNextVideo : true
 
-    // File picker setting from preferences
-    property bool useCustomFilePicker: preferences ? preferences.useCustomFilePicker : true
-
     property int m_loadedVideoIndex: -1
     property bool isBlack: false
     property bool wasVideoPlaying: false
@@ -51,7 +48,7 @@ Window {
     property real slideshowBrightness: 1.0
     property real videoBrightness: 1.0
 
-    // Dark theme colors for the control UI
+    // Theme colors - dark theme with accent color override from preferences
     property color backgroundColor: "#121212"
     property color panelColor: "#1E1E1E"
     property color accentColor: prefAccentColor
@@ -231,6 +228,15 @@ Window {
         return p;
     }
 
+    // Helper to extract filename from path
+    function fileNameFromPath(p) {
+        if (!p)
+            return "";
+        var s = String(p);
+        var parts = s.split("/");
+        return parts.length > 0 ? parts[parts.length - 1] : s;
+    }
+
     ColumnLayout {
         anchors.fill: parent
         anchors.margins: 12
@@ -276,13 +282,13 @@ Window {
                         }
 
                         // Fixed tabs - Preferences
-                        StyledTabButton {
+                        Components.StyledTabButton {
                             id: preferencesTab
                             text: qsTr("Preferences")
                         }
 
                         // Fixed tabs - Home
-                        StyledTabButton {
+                        Components.StyledTabButton {
                             id: homeTab
                             text: qsTr("Home")
                         }
@@ -292,7 +298,7 @@ Window {
                             id: mediaTabsRepeater
                             model: mediaTabsModel
 
-                            StyledTabButton {
+                            Components.StyledTabButton {
                                 id: mediaTabButton
                                 // Visual offset for drag animation
                                 transform: Translate {
@@ -507,28 +513,17 @@ Window {
                         }
 
                         // Add tab button (+) - not a real tab, just a button
-                        TabButton {
+                        Components.IconButton {
                             id: addTabButton
                             width: 40
-                            checkable: false
+                            iconText: "+"
+                            iconSize: 18
+                            bgColor: backgroundColor
+                            hoverColor: Qt.lighter(backgroundColor, 1.2)
+                            txtColor: subtleTextColor
+                            borderCol: borderColor
                             onClicked: {
                                 addTabMenu.popup();
-                            }
-
-                            background: Rectangle {
-                                color: addTabButton.hovered ? Qt.lighter(backgroundColor, 1.2) : backgroundColor
-                                border.color: borderColor
-                                border.width: 1
-                                radius: 6
-                            }
-
-                            contentItem: Text {
-                                text: "+"
-                                color: subtleTextColor
-                                font.pixelSize: 18
-                                font.bold: true
-                                horizontalAlignment: Text.AlignHCenter
-                                verticalAlignment: Text.AlignVCenter
                             }
 
                             Menu {
@@ -541,41 +536,17 @@ Window {
                                     radius: 6
                                 }
 
-                                MenuItem {
-                                    id: slideshowMenuItem
+                                Components.StyledMenuItem {
                                     text: qsTr("New Slideshow Tab")
+                                    panelCol: panelColor
+                                    txtColor: textColor
                                     onTriggered: addMediaTab("slideshow")
-
-                                    background: Rectangle {
-                                        implicitWidth: 180
-                                        implicitHeight: 32
-                                        color: slideshowMenuItem.highlighted ? Qt.lighter(panelColor, 1.3) : "transparent"
-                                    }
-                                    contentItem: Text {
-                                        text: slideshowMenuItem.text
-                                        color: textColor
-                                        horizontalAlignment: Text.AlignLeft
-                                        verticalAlignment: Text.AlignVCenter
-                                        leftPadding: 8
-                                    }
                                 }
-                                MenuItem {
-                                    id: videoMenuItem
+                                Components.StyledMenuItem {
                                     text: qsTr("New Video Tab")
+                                    panelCol: panelColor
+                                    txtColor: textColor
                                     onTriggered: addMediaTab("video")
-
-                                    background: Rectangle {
-                                        implicitWidth: 180
-                                        implicitHeight: 32
-                                        color: videoMenuItem.highlighted ? Qt.lighter(panelColor, 1.3) : "transparent"
-                                    }
-                                    contentItem: Text {
-                                        text: videoMenuItem.text
-                                        color: textColor
-                                        horizontalAlignment: Text.AlignLeft
-                                        verticalAlignment: Text.AlignVCenter
-                                        leftPadding: 8
-                                    }
                                 }
                             }
                         }
@@ -609,7 +580,6 @@ Window {
                                 autoPlayNextVideo: controlRoot.autoPlayNextVideo
                                 screenCount: outputWindow ? outputWindow.screenCount : 1
                                 prefAccentColor: controlRoot.prefAccentColor
-                                useCustomFilePicker: controlRoot.useCustomFilePicker
 
                                 onSlideshowDelayUpdated: {
                                     controlRoot.slideshowDelaySeconds = value;
@@ -639,11 +609,6 @@ Window {
                                     controlRoot.prefAccentColor = color;
                                     if (preferences)
                                         preferences.accentColor = color;
-                                }
-                                onUseCustomFilePickerUpdated: {
-                                    controlRoot.useCustomFilePicker = enabled;
-                                    if (preferences)
-                                        preferences.useCustomFilePicker = enabled;
                                 }
                             }
                         }
@@ -681,23 +646,15 @@ Window {
                                     Layout.alignment: Qt.AlignHCenter
                                     spacing: 16
 
-                                    Button {
+                                    Components.StyledButton {
                                         id: btnHomeAddFiles
                                         text: qsTr("Add Files")
                                         Layout.preferredWidth: 140
                                         Layout.preferredHeight: 48
-                                        background: Rectangle {
-                                            radius: 6
-                                            border.color: borderColor
-                                            color: btnHomeAddFiles.down ? accentColor : btnHomeAddFiles.hovered ? Qt.lighter(panelColor, 1.25) : panelColor
-                                        }
-                                        contentItem: Text {
-                                            text: btnHomeAddFiles.text
-                                            color: textColor
-                                            horizontalAlignment: Text.AlignHCenter
-                                            verticalAlignment: Text.AlignVCenter
-                                            font.pixelSize: 14
-                                        }
+                                        bgColor: panelColor
+                                        pressedColor: accentColor
+                                        txtColor: textColor
+                                        borderCol: borderColor
                                         onClicked: {
                                             var files = controlBridge.openFileDialog();
                                             if (files.length === 0)
@@ -743,23 +700,15 @@ Window {
                                         ToolTip.text: qsTr("Add images or videos - creates new tabs automatically")
                                     }
 
-                                    Button {
+                                    Components.StyledButton {
                                         id: btnHomeAddFolder
                                         text: qsTr("Add Folder")
                                         Layout.preferredWidth: 140
                                         Layout.preferredHeight: 48
-                                        background: Rectangle {
-                                            radius: 6
-                                            border.color: borderColor
-                                            color: btnHomeAddFolder.down ? accentColor : btnHomeAddFolder.hovered ? Qt.lighter(panelColor, 1.25) : panelColor
-                                        }
-                                        contentItem: Text {
-                                            text: btnHomeAddFolder.text
-                                            color: textColor
-                                            horizontalAlignment: Text.AlignHCenter
-                                            verticalAlignment: Text.AlignVCenter
-                                            font.pixelSize: 14
-                                        }
+                                        bgColor: panelColor
+                                        pressedColor: accentColor
+                                        txtColor: textColor
+                                        borderCol: borderColor
                                         onClicked: {
                                             var folder = controlBridge.openFolderDialog();
                                             if (folder === "")
@@ -835,28 +784,17 @@ Window {
                                             spacing: 8
 
                                             // Slideshow controls - Play/Pause Icon Button
-                                            Button {
+                                            Components.IconButton {
                                                 id: slideshowPlayPauseBtn
                                                 visible: isSlideshow
                                                 checkable: true
-                                                Layout.preferredWidth: 44
-                                                Layout.preferredHeight: 44
+                                                iconText: checked ? "⏸" : "▶"
+                                                bgColor: panelColor
+                                                pressedColor: accentColor
+                                                txtColor: textColor
+                                                borderCol: borderColor
                                                 ToolTip.visible: hovered
                                                 ToolTip.text: checked ? qsTr("Pause Slideshow") : qsTr("Start Slideshow")
-                                                background: Rectangle {
-                                                    radius: 6
-                                                    implicitHeight: 44
-                                                    implicitWidth: 44
-                                                    border.color: borderColor
-                                                    color: slideshowPlayPauseBtn.down || slideshowPlayPauseBtn.checked ? accentColor : slideshowPlayPauseBtn.hovered ? Qt.lighter(panelColor, 1.25) : panelColor
-                                                }
-                                                contentItem: Text {
-                                                    text: slideshowPlayPauseBtn.checked ? "⏸" : "▶"
-                                                    color: textColor
-                                                    font.pixelSize: 18
-                                                    horizontalAlignment: Text.AlignHCenter
-                                                    verticalAlignment: Text.AlignVCenter
-                                                }
                                                 onCheckedChanged: {
                                                     if (checked) {
                                                         if (playbackController.isPlaying()) {
@@ -894,27 +832,17 @@ Window {
                                             }
 
                                             // Slideshow Stop Icon Button
-                                            Button {
+                                            Components.IconButton {
                                                 id: slideshowStopBtn
                                                 visible: isSlideshow
-                                                Layout.preferredWidth: 44
-                                                Layout.preferredHeight: 44
+                                                iconText: "⏹"
+                                                iconSize: 20
+                                                bgColor: panelColor
+                                                pressedColor: accentColor
+                                                txtColor: textColor
+                                                borderCol: borderColor
                                                 ToolTip.visible: hovered
                                                 ToolTip.text: qsTr("Stop Slideshow")
-                                                background: Rectangle {
-                                                    radius: 6
-                                                    implicitHeight: 44
-                                                    implicitWidth: 44
-                                                    border.color: borderColor
-                                                    color: slideshowStopBtn.down ? accentColor : slideshowStopBtn.hovered ? Qt.lighter(panelColor, 1.25) : panelColor
-                                                }
-                                                contentItem: Text {
-                                                    text: "⏹"
-                                                    color: textColor
-                                                    font.pixelSize: 20
-                                                    horizontalAlignment: Text.AlignHCenter
-                                                    verticalAlignment: Text.AlignVCenter
-                                                }
                                                 onClicked: {
                                                     // Stop and reset the slideshow
                                                     slideshow.reset();
@@ -946,7 +874,7 @@ Window {
                                             }
 
                                             // Slideshow Progress Slider
-                                            Slider {
+                                            Components.StyledSlider {
                                                 id: slideshowProgressSlider
                                                 visible: isSlideshow
                                                 Layout.fillWidth: true
@@ -957,36 +885,12 @@ Window {
                                                 stepSize: 1
                                                 snapMode: Slider.SnapAlways
                                                 enabled: currentMediaModel && currentMediaModel.count > 0
+                                                bgColor: panelColor
+                                                accentCol: accentColor
+                                                borderCol: borderColor
 
                                                 ToolTip.visible: hovered || pressed
                                                 ToolTip.text: qsTr("Image ") + (Math.round(value) + 1) + " / " + (currentMediaModel ? currentMediaModel.count : 0)
-
-                                                handle: Rectangle {
-                                                    x: slideshowProgressSlider.leftPadding + slideshowProgressSlider.visualPosition * (slideshowProgressSlider.availableWidth - width)
-                                                    y: slideshowProgressSlider.topPadding + slideshowProgressSlider.availableHeight / 2 - height / 2
-                                                    width: 28
-                                                    height: 28
-                                                    radius: 14
-                                                    color: slideshowProgressSlider.pressed ? accentColor : panelColor
-                                                    border.color: accentColor
-                                                    border.width: 2
-                                                }
-
-                                                background: Rectangle {
-                                                    x: slideshowProgressSlider.leftPadding
-                                                    y: slideshowProgressSlider.topPadding + slideshowProgressSlider.availableHeight / 2 - height / 2
-                                                    width: slideshowProgressSlider.availableWidth
-                                                    height: 8
-                                                    radius: 6
-                                                    color: borderColor
-
-                                                    Rectangle {
-                                                        width: slideshowProgressSlider.visualPosition * parent.width
-                                                        height: parent.height
-                                                        radius: 6
-                                                        color: accentColor
-                                                    }
-                                                }
 
                                                 onPressedChanged: {
                                                     if (!pressed && currentMediaModel && currentMediaModel.count > 0) {
@@ -1027,29 +931,18 @@ Window {
                                             }
 
                                             // Video controls - Play/Pause Icon Button
-                                            Button {
+                                            Components.IconButton {
                                                 id: dynamicPlayBtn
                                                 visible: !isSlideshow
                                                 checkable: true
                                                 checked: tabData ? tabData.isPlaying : false
-                                                Layout.preferredWidth: 44
-                                                Layout.preferredHeight: 44
+                                                iconText: checked ? "⏸" : "▶"
+                                                bgColor: panelColor
+                                                pressedColor: accentColor
+                                                txtColor: textColor
+                                                borderCol: borderColor
                                                 ToolTip.visible: hovered
                                                 ToolTip.text: checked ? qsTr("Pause Video") : qsTr("Play Video")
-                                                background: Rectangle {
-                                                    radius: 6
-                                                    implicitHeight: 44
-                                                    implicitWidth: 44
-                                                    border.color: borderColor
-                                                    color: dynamicPlayBtn.down || dynamicPlayBtn.checked ? accentColor : dynamicPlayBtn.hovered ? Qt.lighter(panelColor, 1.25) : panelColor
-                                                }
-                                                contentItem: Text {
-                                                    text: dynamicPlayBtn.checked ? "⏸" : "▶"
-                                                    color: textColor
-                                                    font.pixelSize: 18
-                                                    horizontalAlignment: Text.AlignHCenter
-                                                    verticalAlignment: Text.AlignVCenter
-                                                }
                                                 onClicked: {
                                                     var wasPlaying = tabData.isPlaying;
 
@@ -1098,27 +991,17 @@ Window {
                                             }
 
                                             // Video Stop Icon Button
-                                            Button {
+                                            Components.IconButton {
                                                 id: videoStopBtn
                                                 visible: !isSlideshow
-                                                Layout.preferredWidth: 44
-                                                Layout.preferredHeight: 44
+                                                iconText: "⏹"
+                                                iconSize: 20
+                                                bgColor: panelColor
+                                                pressedColor: accentColor
+                                                txtColor: textColor
+                                                borderCol: borderColor
                                                 ToolTip.visible: hovered
                                                 ToolTip.text: qsTr("Stop Video")
-                                                background: Rectangle {
-                                                    radius: 6
-                                                    implicitHeight: 44
-                                                    implicitWidth: 44
-                                                    border.color: borderColor
-                                                    color: videoStopBtn.down ? accentColor : videoStopBtn.hovered ? Qt.lighter(panelColor, 1.25) : panelColor
-                                                }
-                                                contentItem: Text {
-                                                    text: "⏹"
-                                                    color: textColor
-                                                    font.pixelSize: 20
-                                                    horizontalAlignment: Text.AlignHCenter
-                                                    verticalAlignment: Text.AlignVCenter
-                                                }
                                                 onClicked: {
                                                     // Stop video playback
                                                     dynamicPlayBtn.checked = false;
@@ -1140,7 +1023,7 @@ Window {
                                             }
 
                                             // Video Progress Slider
-                                            Slider {
+                                            Components.StyledSlider {
                                                 id: videoProgressSlider
                                                 visible: !isSlideshow
                                                 Layout.fillWidth: true
@@ -1148,6 +1031,9 @@ Window {
                                                 from: 0
                                                 to: tabData && tabData.videoDuration > 0 ? tabData.videoDuration : 1000
                                                 enabled: tabData && tabData.currentPath !== ""
+                                                bgColor: panelColor
+                                                accentCol: accentColor
+                                                borderCol: borderColor
 
                                                 // Only update from model when not being dragged
                                                 value: pressed ? value : (tabData ? tabData.videoPosition : 0)
@@ -1162,33 +1048,6 @@ Window {
                                                     var min = Math.floor(totalSec / 60);
                                                     var sec = totalSec % 60;
                                                     return min + ":" + (sec < 10 ? "0" : "") + sec;
-                                                }
-
-                                                handle: Rectangle {
-                                                    x: videoProgressSlider.leftPadding + videoProgressSlider.visualPosition * (videoProgressSlider.availableWidth - width)
-                                                    y: videoProgressSlider.topPadding + videoProgressSlider.availableHeight / 2 - height / 2
-                                                    width: 28
-                                                    height: 28
-                                                    radius: 14
-                                                    color: videoProgressSlider.pressed ? accentColor : panelColor
-                                                    border.color: accentColor
-                                                    border.width: 2
-                                                }
-
-                                                background: Rectangle {
-                                                    x: videoProgressSlider.leftPadding
-                                                    y: videoProgressSlider.topPadding + videoProgressSlider.availableHeight / 2 - height / 2
-                                                    width: videoProgressSlider.availableWidth
-                                                    height: 8
-                                                    radius: 6
-                                                    color: borderColor
-
-                                                    Rectangle {
-                                                        width: videoProgressSlider.visualPosition * parent.width
-                                                        height: parent.height
-                                                        radius: 6
-                                                        color: accentColor
-                                                    }
                                                 }
 
                                                 onPressedChanged: {
@@ -1252,23 +1111,14 @@ Window {
                                             }
 
                                             // Add media buttons
-                                            Button {
+                                            Components.StyledButton {
                                                 text: qsTr("Add Files")
                                                 Layout.preferredWidth: 100
                                                 Layout.preferredHeight: 44
-                                                background: Rectangle {
-                                                    radius: 6
-                                                    implicitHeight: 44
-                                                    border.color: borderColor
-                                                    color: parent.down ? accentColor : parent.hovered ? Qt.lighter(panelColor, 1.25) : panelColor
-                                                }
-                                                contentItem: Text {
-                                                    text: parent.text
-                                                    color: textColor
-                                                    horizontalAlignment: Text.AlignHCenter
-                                                    verticalAlignment: Text.AlignVCenter
-                                                    font.pixelSize: 14
-                                                }
+                                                bgColor: panelColor
+                                                pressedColor: accentColor
+                                                txtColor: textColor
+                                                borderCol: borderColor
                                                 onClicked: {
                                                     var files = controlBridge.openFileDialog();
                                                     var expectedType = isSlideshow ? "image" : "video";
@@ -1288,23 +1138,14 @@ Window {
                                                 }
                                             }
 
-                                            Button {
+                                            Components.StyledButton {
                                                 text: qsTr("Add Folder")
                                                 Layout.preferredWidth: 100
                                                 Layout.preferredHeight: 44
-                                                background: Rectangle {
-                                                    radius: 6
-                                                    implicitHeight: 44
-                                                    border.color: borderColor
-                                                    color: parent.down ? accentColor : parent.hovered ? Qt.lighter(panelColor, 1.25) : panelColor
-                                                }
-                                                contentItem: Text {
-                                                    text: parent.text
-                                                    color: textColor
-                                                    horizontalAlignment: Text.AlignHCenter
-                                                    verticalAlignment: Text.AlignVCenter
-                                                    font.pixelSize: 14
-                                                }
+                                                bgColor: panelColor
+                                                pressedColor: accentColor
+                                                txtColor: textColor
+                                                borderCol: borderColor
                                                 onClicked: {
                                                     var folder = controlBridge.openFolderDialog();
                                                     if (folder !== "") {
@@ -1330,80 +1171,46 @@ Window {
                                             model: currentMediaModel
                                             // Sync list selection with currently playing index
                                             currentIndex: tabData ? tabData.currentIndex : -1
-                                            delegate: Rectangle {
+                                            delegate: Components.MediaListItem {
                                                 width: dynamicMediaList.width
-                                                height: 40
-                                                color: ListView.isCurrentItem ? listItemHighlight : listItemColor
-                                                radius: 6
-                                                border.color: borderColor
-                                                Text {
-                                                    anchors.verticalCenter: parent.verticalCenter
-                                                    anchors.left: parent.left
-                                                    anchors.leftMargin: 8
-                                                    text: fileNameFromPath(model.path)
-                                                    color: textColor
-                                                    elide: Text.ElideRight
-                                                    width: parent.width - 40
-                                                }
-                                                // Delete button
-                                                Rectangle {
-                                                    anchors.right: parent.right
-                                                    anchors.rightMargin: 8
-                                                    anchors.verticalCenter: parent.verticalCenter
-                                                    width: 20
-                                                    height: 20
-                                                    radius: 10
-                                                    color: delMouseArea.containsMouse ? Qt.lighter(listItemColor, 1.5) : "transparent"
-                                                    Text {
-                                                        anchors.centerIn: parent
-                                                        text: "×"
-                                                        color: subtleTextColor
-                                                        font.pixelSize: 14
-                                                    }
-                                                    MouseArea {
-                                                        id: delMouseArea
-                                                        anchors.fill: parent
-                                                        hoverEnabled: true
-                                                        onClicked: {
-                                                            currentMediaModel.remove(index);
-                                                        }
-                                                    }
-                                                }
-                                                MouseArea {
-                                                    anchors.left: parent.left
-                                                    anchors.right: parent.right
-                                                    anchors.rightMargin: 36
-                                                    anchors.top: parent.top
-                                                    anchors.bottom: parent.bottom
-                                                    onClicked: {
-                                                        // Update the model's currentIndex (list will sync automatically via binding)
-                                                        mediaTabsModel.setProperty(tabContentItem.tabModelIndex, "currentIndex", index);
+                                                fileName: fileNameFromPath(model.path)
+                                                isSelected: ListView.isCurrentItem
+                                                itemColor: listItemColor
+                                                highlightColor: listItemHighlight
+                                                txtColor: textColor
+                                                subtleTxtColor: subtleTextColor
+                                                borderCol: borderColor
+                                                onClicked: {
+                                                    // Update the model's currentIndex (list will sync automatically via binding)
+                                                    mediaTabsModel.setProperty(tabContentItem.tabModelIndex, "currentIndex", index);
 
-                                                        if (isSlideshow) {
-                                                            // Update currentPath in model for preview
+                                                    if (isSlideshow) {
+                                                        // Update currentPath in model for preview
+                                                        mediaTabsModel.setProperty(tabContentItem.tabModelIndex, "currentPath", model.path);
+                                                        // Sync with SlideshowController if this tab is the active slideshow
+                                                        if (activeSlideshowTabId === tabData.tabId && slideshow) {
+                                                            slideshow.setCurrentIndex(index);
+                                                        }
+                                                        // Also update OutputWindow
+                                                        if (outputWindow) {
+                                                            var zOrder = tabData.zOrder !== undefined ? tabData.zOrder : tabContentItem.tabModelIndex;
+                                                            outputWindow.setImageLayer(tabData.tabId, model.path, tabData.brightness, zOrder);
+                                                        }
+                                                    } else {
+                                                        // For video: if currently playing, switch to the clicked video
+                                                        if (tabData.isPlaying) {
                                                             mediaTabsModel.setProperty(tabContentItem.tabModelIndex, "currentPath", model.path);
-                                                            // Sync with SlideshowController if this tab is the active slideshow
-                                                            if (activeSlideshowTabId === tabData.tabId && slideshow) {
-                                                                slideshow.setCurrentIndex(index);
-                                                            }
-                                                            // Also update OutputWindow
+                                                            mediaTabsModel.setProperty(tabContentItem.tabModelIndex, "videoPosition", 0);
+                                                            // Update OutputWindow
                                                             if (outputWindow) {
-                                                                var zOrder = tabData.zOrder !== undefined ? tabData.zOrder : tabContentItem.tabModelIndex;
-                                                                outputWindow.setImageLayer(tabData.tabId, model.path, tabData.brightness, zOrder);
-                                                            }
-                                                        } else {
-                                                            // For video: if currently playing, switch to the clicked video
-                                                            if (tabData.isPlaying) {
-                                                                mediaTabsModel.setProperty(tabContentItem.tabModelIndex, "currentPath", model.path);
-                                                                mediaTabsModel.setProperty(tabContentItem.tabModelIndex, "videoPosition", 0);
-                                                                // Update OutputWindow
-                                                                if (outputWindow) {
-                                                                    var videoZOrder = tabData.zOrder !== undefined ? tabData.zOrder : tabContentItem.tabModelIndex;
-                                                                    outputWindow.setVideoLayer(tabData.tabId, model.path, tabData.brightness, true, videoZOrder);
-                                                                }
+                                                                var videoZOrder = tabData.zOrder !== undefined ? tabData.zOrder : tabContentItem.tabModelIndex;
+                                                                outputWindow.setVideoLayer(tabData.tabId, model.path, tabData.brightness, true, videoZOrder);
                                                             }
                                                         }
                                                     }
+                                                }
+                                                onDeleteClicked: {
+                                                    currentMediaModel.remove(index);
                                                 }
                                             }
                                             ScrollBar.vertical: ScrollBar {}
@@ -1436,7 +1243,7 @@ Window {
                                                     Layout.alignment: Qt.AlignHCenter
                                                 }
 
-                                                Slider {
+                                                Components.StyledSlider {
                                                     id: tabVolumeSlider
                                                     orientation: Qt.Vertical
                                                     from: 0.0
@@ -1445,34 +1252,11 @@ Window {
                                                     Layout.fillHeight: true
                                                     Layout.alignment: Qt.AlignHCenter
                                                     Layout.preferredWidth: 44
+                                                    bgColor: panelColor
+                                                    accentCol: accentColor
+                                                    borderCol: borderColor
                                                     ToolTip.visible: hovered || pressed
                                                     ToolTip.text: qsTr("Volume: ") + Math.round(value * 100) + "%"
-
-                                                    handle: Rectangle {
-                                                        x: tabVolumeSlider.leftPadding + tabVolumeSlider.availableWidth / 2 - width / 2
-                                                        y: tabVolumeSlider.topPadding + tabVolumeSlider.visualPosition * (tabVolumeSlider.availableHeight - height)
-                                                        width: 28
-                                                        height: 28
-                                                        radius: 14
-                                                        color: tabVolumeSlider.pressed ? accentColor : panelColor
-                                                        border.color: accentColor
-                                                        border.width: 2
-                                                    }
-                                                    background: Rectangle {
-                                                        x: tabVolumeSlider.leftPadding + tabVolumeSlider.availableWidth / 2 - width / 2
-                                                        y: tabVolumeSlider.topPadding
-                                                        width: 8
-                                                        height: tabVolumeSlider.availableHeight
-                                                        radius: 6
-                                                        color: borderColor
-                                                        Rectangle {
-                                                            width: parent.width
-                                                            height: (1 - tabVolumeSlider.visualPosition) * parent.height
-                                                            y: tabVolumeSlider.visualPosition * parent.height
-                                                            radius: 6
-                                                            color: accentColor
-                                                        }
-                                                    }
 
                                                     onValueChanged: {
                                                         if (!tabData)
@@ -1518,7 +1302,7 @@ Window {
                                                     Layout.alignment: Qt.AlignHCenter
                                                 }
 
-                                                Slider {
+                                                Components.StyledSlider {
                                                     id: tabBrightnessSlider
                                                     orientation: Qt.Vertical
                                                     from: 0.0
@@ -1527,38 +1311,11 @@ Window {
                                                     Layout.fillHeight: true
                                                     Layout.preferredWidth: 44
                                                     Layout.alignment: Qt.AlignHCenter
+                                                    bgColor: panelColor
+                                                    accentCol: accentColor
+                                                    borderCol: borderColor
                                                     ToolTip.visible: hovered || pressed
                                                     ToolTip.text: (isSlideshow ? qsTr("Slideshow Alpha: ") : qsTr("Video Alpha: ")) + Math.round(value * 100) + "%"
-
-                                                    // Make the handle larger for touch
-                                                    handle: Rectangle {
-                                                        x: tabBrightnessSlider.leftPadding + tabBrightnessSlider.availableWidth / 2 - width / 2
-                                                        y: tabBrightnessSlider.topPadding + tabBrightnessSlider.visualPosition * (tabBrightnessSlider.availableHeight - height)
-                                                        width: 28
-                                                        height: 28
-                                                        radius: 14
-                                                        color: tabBrightnessSlider.pressed ? accentColor : panelColor
-                                                        border.color: accentColor
-                                                        border.width: 2
-                                                    }
-
-                                                    background: Rectangle {
-                                                        x: tabBrightnessSlider.leftPadding + tabBrightnessSlider.availableWidth / 2 - width / 2
-                                                        y: tabBrightnessSlider.topPadding
-                                                        width: 8
-                                                        height: tabBrightnessSlider.availableHeight
-                                                        radius: 6
-                                                        color: borderColor
-
-                                                        // Filled from bottom (inverted - filled by default at 100%)
-                                                        Rectangle {
-                                                            width: parent.width
-                                                            height: (1 - tabBrightnessSlider.visualPosition) * parent.height
-                                                            y: tabBrightnessSlider.visualPosition * parent.height
-                                                            radius: 6
-                                                            color: accentColor
-                                                        }
-                                                    }
 
                                                     onValueChanged: {
                                                         if (tabData) {
@@ -2056,44 +1813,23 @@ Window {
                                     Layout.fillWidth: true
                                 }
 
-                                Switch {
+                                Components.StyledSwitch {
                                     id: spectrometerSwitch
                                     checked: audioAnalyzer ? audioAnalyzer.active : false
                                     Layout.alignment: Qt.AlignVCenter
+                                    panelCol: panelColor
+                                    accentCol: accentColor
+                                    borderCol: borderColor
 
                                     onCheckedChanged: {
                                         if (audioAnalyzer) {
                                             audioAnalyzer.active = checked;
                                         }
                                     }
-
-                                    indicator: Rectangle {
-                                        implicitWidth: 40
-                                        implicitHeight: 20
-                                        x: spectrometerSwitch.leftPadding
-                                        y: parent.height / 2 - height / 2
-                                        radius: 10
-                                        color: spectrometerSwitch.checked ? accentColor : borderColor
-
-                                        Rectangle {
-                                            x: spectrometerSwitch.checked ? parent.width - width - 2 : 2
-                                            y: 2
-                                            width: 16
-                                            height: 16
-                                            radius: 8
-                                            color: "#FFFFFF"
-
-                                            Behavior on x {
-                                                NumberAnimation {
-                                                    duration: 100
-                                                }
-                                            }
-                                        }
-                                    }
                                 }
                             }
 
-                            Spectrometer {
+                            Components.Spectrometer {
                                 id: spectrometer
                                 Layout.fillWidth: true
                                 Layout.fillHeight: true
@@ -2138,44 +1874,18 @@ Window {
                                     Layout.alignment: Qt.AlignVCenter
                                 }
 
-                                Slider {
+                                Components.StyledSlider {
                                     id: brightnessSlider
                                     from: 0.0
                                     to: 1.0
                                     value: 1.0
                                     Layout.fillWidth: true
                                     Layout.preferredHeight: 44
+                                    bgColor: panelColor
+                                    accentCol: accentColor
+                                    borderCol: borderColor
                                     ToolTip.visible: hovered || pressed
                                     ToolTip.text: qsTr("Brightness: ") + Math.round(value * 100) + "%"
-
-                                    // Make the handle larger for touch
-                                    handle: Rectangle {
-                                        x: brightnessSlider.leftPadding + brightnessSlider.visualPosition * (brightnessSlider.availableWidth - width)
-                                        y: brightnessSlider.topPadding + brightnessSlider.availableHeight / 2 - height / 2
-                                        width: 28
-                                        height: 28
-                                        radius: 14
-                                        color: brightnessSlider.pressed ? accentColor : panelColor
-                                        border.color: accentColor
-                                        border.width: 2
-                                    }
-
-                                    background: Rectangle {
-                                        x: brightnessSlider.leftPadding
-                                        y: brightnessSlider.topPadding + brightnessSlider.availableHeight / 2 - height / 2
-                                        width: brightnessSlider.availableWidth
-                                        height: 8
-                                        radius: 6
-                                        color: borderColor
-
-                                        // Filled from left (inverted - filled by default at 100%)
-                                        Rectangle {
-                                            width: brightnessSlider.visualPosition * parent.width
-                                            height: parent.height
-                                            radius: 6
-                                            color: accentColor
-                                        }
-                                    }
 
                                     onValueChanged: {
                                         // Only change brightness of the real output window, not the embedded preview
@@ -2374,14 +2084,6 @@ Window {
             activeSlideshowTabId = -1;
             activeSlideshowTabIndex = -1;
         }
-    }
-
-    function fileNameFromPath(p) {
-        if (!p)
-            return "";
-        var s = String(p);
-        var parts = s.split("/");
-        return parts.length > 0 ? parts[parts.length - 1] : s;
     }
 
     // Width of the right-side preview + controls column, adjustable via splitter

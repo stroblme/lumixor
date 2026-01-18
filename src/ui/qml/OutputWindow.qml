@@ -2,7 +2,7 @@ import QtQuick 2.12
 import QtQuick.Window 2.12
 import QtQuick.Controls 2.12
 import QtMultimedia 5.15
-import "components"
+import "components" as Components
 
 Window {
     id: root
@@ -207,7 +207,7 @@ Window {
             id: mediaLayerRepeater
             model: mediaLayersModel
 
-            MediaLayer {
+            Components.MediaLayer {
                 anchors.fill: parent
                 z: model.zOrder !== undefined ? model.zOrder : index
                 layerPath: model.path ? model.path : ""

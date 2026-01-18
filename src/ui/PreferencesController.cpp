@@ -70,11 +70,6 @@ bool PreferencesController::autoPlayNextVideo() const
     return m_app ? m_app->config().autoPlayNextVideo : true;
 }
 
-bool PreferencesController::useCustomFilePicker() const
-{
-    return m_app ? m_app->config().useCustomFilePicker : true;
-}
-
 void PreferencesController::setAccentColor(const QString &value)
 {
     if (!m_app)
@@ -95,18 +90,6 @@ void PreferencesController::setAutoPlayNextVideo(bool value)
     if (cfg.autoPlayNextVideo == value)
         return;
     cfg.autoPlayNextVideo = value;
-    emit preferencesChanged();
-    autoSave();
-}
-
-void PreferencesController::setUseCustomFilePicker(bool value)
-{
-    if (!m_app)
-        return;
-    AppConfig &cfg = m_app->mutableConfig();
-    if (cfg.useCustomFilePicker == value)
-        return;
-    cfg.useCustomFilePicker = value;
     emit preferencesChanged();
     autoSave();
 }

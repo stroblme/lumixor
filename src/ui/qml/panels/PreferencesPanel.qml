@@ -1,7 +1,7 @@
 import QtQuick 2.12
 import QtQuick.Controls 2.12
 import QtQuick.Layouts 1.12
-import "../components"
+import "../components" as Components
 
 Item {
     id: root
@@ -23,7 +23,6 @@ Item {
     property bool autoPlayNextVideo: true
     property int screenCount: 1
     property string prefAccentColor: "#78909C"
-    property bool useCustomFilePicker: true
 
     // Signals to notify parent of changes (use unique names to avoid conflicts with auto-generated property change signals)
     signal slideshowDelayUpdated(int value)
@@ -33,14 +32,13 @@ Item {
     signal loopVideosUpdated(bool enabled)
     signal autoPlayNextVideoUpdated(bool enabled)
     signal accentColorUpdated(string color)
-    signal useCustomFilePickerUpdated(bool enabled)
 
     ColumnLayout {
         anchors.fill: parent
         anchors.margins: 16
         spacing: 16
 
-        StyledGroupBox {
+        Components.StyledGroupBox {
             Layout.fillWidth: true
             title: qsTr("Slideshow")
             panelCol: root.panelColor
@@ -60,7 +58,7 @@ Item {
                     horizontalAlignment: Text.AlignLeft
                     Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
                 }
-                StyledSpinBox {
+                Components.StyledSpinBox {
                     id: spinSlideshowDelay
                     from: 1
                     to: 60
@@ -85,7 +83,7 @@ Item {
                     horizontalAlignment: Text.AlignLeft
                     Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
                 }
-                StyledSpinBox {
+                Components.StyledSpinBox {
                     id: spinTransition
                     from: 0
                     to: 2000
@@ -111,7 +109,7 @@ Item {
                     horizontalAlignment: Text.AlignLeft
                     Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
                 }
-                StyledSwitch {
+                Components.StyledSwitch {
                     id: switchLoopSlideshows
                     checked: root.loopSlideshows
                     Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
@@ -126,7 +124,7 @@ Item {
             }
         }
 
-        StyledGroupBox {
+        Components.StyledGroupBox {
             Layout.fillWidth: true
             title: qsTr("Video")
             panelCol: root.panelColor
@@ -146,7 +144,7 @@ Item {
                     horizontalAlignment: Text.AlignLeft
                     Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
                 }
-                StyledSwitch {
+                Components.StyledSwitch {
                     id: switchLoopVideos
                     checked: root.loopVideos
                     Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
@@ -164,7 +162,7 @@ Item {
                     horizontalAlignment: Text.AlignLeft
                     Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
                 }
-                StyledSwitch {
+                Components.StyledSwitch {
                     id: switchAutoPlayNextVideo
                     checked: root.autoPlayNextVideo
                     Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
@@ -179,7 +177,7 @@ Item {
             }
         }
 
-        StyledGroupBox {
+        Components.StyledGroupBox {
             Layout.fillWidth: true
             title: qsTr("Output")
             panelCol: root.panelColor
@@ -199,7 +197,7 @@ Item {
                     horizontalAlignment: Text.AlignLeft
                     Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
                 }
-                StyledSpinBox {
+                Components.StyledSpinBox {
                     id: spinScreenIndex
                     from: 0
                     to: Math.max(0, root.screenCount - 1)
@@ -227,7 +225,7 @@ Item {
             }
         }
 
-        StyledGroupBox {
+        Components.StyledGroupBox {
             Layout.fillWidth: true
             title: qsTr("Appearance")
             panelCol: root.panelColor
@@ -247,7 +245,7 @@ Item {
                     horizontalAlignment: Text.AlignLeft
                     Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
                 }
-                ColorPicker {
+                Components.ColorPicker {
                     id: accentColorPicker
                     selectedColor: root.prefAccentColor
                     panelColor: root.panelColor
@@ -256,33 +254,6 @@ Item {
                     Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
                     Layout.preferredWidth: 200
                     onColorChanged: root.accentColorUpdated(newColor.toString())
-                }
-
-                Label {
-                    text: qsTr("Use custom file picker:")
-                    color: root.textColor
-                    horizontalAlignment: Text.AlignLeft
-                    Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
-                }
-                StyledSwitch {
-                    id: switchCustomFilePicker
-                    checked: root.useCustomFilePicker
-                    Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
-                    panelCol: root.panelColor
-                    accentCol: root.accentColor
-                    borderCol: root.borderColor
-                    onCheckedChanged: root.useCustomFilePickerUpdated(checked)
-                    ToolTip.visible: hovered
-                    ToolTip.text: qsTr("Use the custom dark-themed file picker instead of the native system dialog")
-                }
-
-                Label {
-                    text: qsTr("Disable for native GTK/KDE dialogs")
-                    color: root.subtleTextColor
-                    font.pixelSize: 14
-                    Layout.columnSpan: 2
-                    Layout.alignment: Qt.AlignRight
-                    Layout.bottomMargin: 8
                 }
             }
         }

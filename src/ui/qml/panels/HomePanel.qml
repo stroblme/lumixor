@@ -1,7 +1,7 @@
 import QtQuick 2.12
 import QtQuick.Controls 2.12
 import QtQuick.Layouts 1.12
-import "../components"
+import "../components" as Components
 
 Item {
     id: root
@@ -46,7 +46,7 @@ Item {
             Layout.alignment: Qt.AlignHCenter
             spacing: 16
 
-            StyledButton {
+            Components.StyledButton {
                 text: qsTr("Add Files")
                 Layout.preferredWidth: 140
                 Layout.preferredHeight: 48
@@ -59,7 +59,7 @@ Item {
                 ToolTip.text: qsTr("Add images or videos - creates new tabs automatically")
             }
 
-            StyledButton {
+            Components.StyledButton {
                 text: qsTr("Add Folder")
                 Layout.preferredWidth: 140
                 Layout.preferredHeight: 48

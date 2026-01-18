@@ -2,20 +2,20 @@ import QtQuick 2.12
 import QtQuick.Controls 2.12
 import QtQuick.Layouts 1.12
 import QtMultimedia 5.15
-import "../components"
+import "../components" as Components
 
 Item {
     id: root
 
-    // Theme colors
-    property color backgroundColor: Theme.backgroundColor
-    property color panelColor: Theme.panelColor
-    property color accentColor: Theme.accentColor
-    property color textColor: Theme.textColor
-    property color subtleTextColor: Theme.subtleTextColor
-    property color borderColor: Theme.borderColor
-    property color listItemColor: Theme.listItemColor
-    property color listItemHighlight: Theme.listItemHighlight
+    // Theme colors - defaults that can be overridden by parent
+    property color backgroundColor: "#121212"
+    property color panelColor: "#1E1E1E"
+    property color accentColor: "#78909C"
+    property color textColor: "#E0E0E0"
+    property color subtleTextColor: "#9E9E9E"
+    property color borderColor: "#333333"
+    property color listItemColor: "#232323"
+    property color listItemHighlight: "#29434E"
 
     // Tab data
     property var tabData: null
@@ -37,6 +37,24 @@ Item {
     signal slideshowPaused
     signal slideshowStopped
 
+    // Helper functions
+    function formatTime(ms) {
+        if (isNaN(ms) || ms < 0)
+            return "0:00";
+        var totalSec = Math.floor(ms / 1000);
+        var min = Math.floor(totalSec / 60);
+        var sec = totalSec % 60;
+        return min + ":" + (sec < 10 ? "0" : "") + sec;
+    }
+
+    function fileNameFromPath(p) {
+        if (!p)
+            return "";
+        var s = String(p);
+        var parts = s.split("/");
+        return parts.length > 0 ? parts[parts.length - 1] : s;
+    }
+
     RowLayout {
         anchors.fill: parent
         anchors.margins: 8
@@ -53,7 +71,7 @@ Item {
                 spacing: 8
 
                 // Slideshow Play/Pause Button
-                IconButton {
+                Components.IconButton {
                     id: slideshowPlayPauseBtn
                     visible: root.isSlideshow
                     checkable: true
@@ -74,7 +92,7 @@ Item {
                 }
 
                 // Slideshow Stop Button
-                IconButton {
+                Components.IconButton {
                     id: slideshowStopBtn
                     visible: root.isSlideshow
                     iconText: "⏹"
@@ -97,7 +115,7 @@ Item {
                 }
 
                 // Slideshow Progress Slider
-                StyledSlider {
+                Components.StyledSlider {
                     id: slideshowProgressSlider
                     visible: root.isSlideshow
                     Layout.fillWidth: true
@@ -134,7 +152,7 @@ Item {
                 }
 
                 // Video Play/Pause Button
-                IconButton {
+                Components.IconButton {
                     id: dynamicPlayBtn
                     visible: !root.isSlideshow
                     checkable: true
@@ -150,7 +168,7 @@ Item {
                 }
 
                 // Video Stop Button
-                IconButton {
+                Components.IconButton {
                     id: videoStopBtn
                     visible: !root.isSlideshow
                     iconText: "⏹"
@@ -165,7 +183,7 @@ Item {
                 }
 
                 // Video Progress Slider
-                StyledSlider {
+                Components.StyledSlider {
                     id: videoProgressSlider
                     visible: !root.isSlideshow
                     Layout.fillWidth: true
@@ -179,7 +197,7 @@ Item {
                     borderCol: root.borderColor
 
                     ToolTip.visible: hovered || pressed
-                    ToolTip.text: Utils.formatTime(value) + " / " + Utils.formatTime(root.tabData ? root.tabData.videoDuration : 0)
+                    ToolTip.text: root.formatTime(value) + " / " + root.formatTime(root.tabData ? root.tabData.videoDuration : 0)
 
                     onPressedChanged: {
                         if (pressed) {
@@ -207,7 +225,7 @@ Item {
                 // Video time label
                 Label {
                     visible: !root.isSlideshow
-                    text: Utils.formatTime(root.tabData ? root.tabData.videoPosition : 0) + "/" + Utils.formatTime(root.tabData ? root.tabData.videoDuration : 0)
+                    text: root.formatTime(root.tabData ? root.tabData.videoPosition : 0) + "/" + root.formatTime(root.tabData ? root.tabData.videoDuration : 0)
                     color: root.subtleTextColor
                     font.pixelSize: 14
                     Layout.alignment: Qt.AlignVCenter
@@ -220,7 +238,7 @@ Item {
                 }
 
                 // Add media buttons
-                StyledButton {
+                Components.StyledButton {
                     text: qsTr("Add Files")
                     Layout.preferredWidth: 100
                     Layout.preferredHeight: 44
@@ -231,7 +249,7 @@ Item {
                     onClicked: addFilesClicked()
                 }
 
-                StyledButton {
+                Components.StyledButton {
                     text: qsTr("Add Folder")
                     Layout.preferredWidth: 100
                     Layout.preferredHeight: 44
@@ -252,9 +270,9 @@ Item {
                 model: root.mediaModel
                 currentIndex: root.tabData ? root.tabData.currentIndex : -1
 
-                delegate: MediaListItem {
+                delegate: Components.MediaListItem {
                     width: dynamicMediaList.width
-                    fileName: Utils.fileNameFromPath(model.path)
+                    fileName: root.fileNameFromPath(model.path)
                     isSelected: dynamicMediaList.currentIndex === index
                     itemColor: root.listItemColor
                     highlightColor: root.listItemHighlight
@@ -284,7 +302,7 @@ Item {
                 Layout.alignment: Qt.AlignHCenter
             }
 
-            StyledSlider {
+            Components.StyledSlider {
                 id: tabVolumeSlider
                 orientation: Qt.Vertical
                 from: 0.0
@@ -326,7 +344,7 @@ Item {
                 Layout.alignment: Qt.AlignHCenter
             }
 
-            StyledSlider {
+            Components.StyledSlider {
                 id: tabBrightnessSlider
                 orientation: Qt.Vertical
                 from: 0.0

@@ -4,40 +4,39 @@ import QtQuick.Controls 2.12
 Rectangle {
     id: control
 
+    // Primary property: fileName for display
+    property string fileName: ""
+    // Alternative property: filePath (for backward compatibility)
     property string filePath: ""
-    property bool isCurrentItem: false
+    property bool isSelected: false
 
-    property color listItemCol: typeof listItemColor !== "undefined" ? listItemColor : "#232323"
-    property color highlightCol: typeof listItemHighlight !== "undefined" ? listItemHighlight : "#29434E"
+    // Theme colors - support both naming conventions
+    property color itemColor: typeof listItemColor !== "undefined" ? listItemColor : "#232323"
+    property color highlightColor: typeof listItemHighlight !== "undefined" ? listItemHighlight : "#29434E"
     property color txtColor: typeof textColor !== "undefined" ? textColor : "#E0E0E0"
     property color subtleTxtColor: typeof subtleTextColor !== "undefined" ? subtleTextColor : "#9E9E9E"
     property color borderCol: typeof borderColor !== "undefined" ? borderColor : "#333333"
 
-    signal removeClicked
-    signal itemClicked
+    signal clicked
+    signal deleteClicked
 
     height: 40
-    color: isCurrentItem ? highlightCol : listItemCol
+    color: isSelected ? highlightColor : itemColor
     radius: 6
     border.color: borderCol
+
+    // Display name: prefer fileName, fall back to extracting from filePath
+    readonly property string displayName: fileName !== "" ? fileName : fileNameFromPath(filePath)
 
     Text {
         anchors.verticalCenter: parent.verticalCenter
         anchors.left: parent.left
         anchors.leftMargin: 8
-        text: fileNameFromPath(control.filePath)
+        text: control.displayName
         color: control.txtColor
         elide: Text.ElideRight
         width: parent.width - 40
         font.pixelSize: 14
-
-        function fileNameFromPath(p) {
-            if (!p)
-                return "";
-            var s = String(p);
-            var parts = s.split("/");
-            return parts.length > 0 ? parts[parts.length - 1] : s;
-        }
     }
 
     // Delete button
@@ -48,7 +47,7 @@ Rectangle {
         width: 20
         height: 20
         radius: 10
-        color: delMouseArea.containsMouse ? Qt.lighter(control.listItemCol, 1.5) : "transparent"
+        color: delMouseArea.containsMouse ? Qt.lighter(control.itemColor, 1.5) : "transparent"
 
         Text {
             anchors.centerIn: parent
@@ -61,7 +60,7 @@ Rectangle {
             id: delMouseArea
             anchors.fill: parent
             hoverEnabled: true
-            onClicked: control.removeClicked()
+            onClicked: control.deleteClicked()
         }
     }
 
@@ -71,6 +70,14 @@ Rectangle {
         anchors.rightMargin: 36
         anchors.top: parent.top
         anchors.bottom: parent.bottom
-        onClicked: control.itemClicked()
+        onClicked: control.clicked()
+    }
+
+    function fileNameFromPath(p) {
+        if (!p)
+            return "";
+        var s = String(p);
+        var parts = s.split("/");
+        return parts.length > 0 ? parts[parts.length - 1] : s;
     }
 }

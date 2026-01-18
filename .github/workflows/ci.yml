@@ -1,175 +1,165 @@
 name: CI - Linux builds
 
 on:
-    push:
-    pull_request:
-    workflow_dispatch:
+  # push:
+  # pull_request:
+  workflow_dispatch:
 
 jobs:
-    build-ubuntu:
-        name: Build (Ubuntu)
-        runs-on: ubuntu-latest
-        steps:
-            - name: Checkout
-              uses: actions/checkout@v4
+  build-ubuntu:
+    name: Build (Ubuntu)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
-            - name: Install dependencies (apt)
-              run: |
-                  sudo apt-get update
-                  sudo apt-get install -y build-essential cmake ninja-build pkg-config git qtbase5-dev qml-module-qtquick-controls2 qtmultimedia5-dev libqt5multimediawidgets5 libqt5multimedia5-plugins libqt5multimedia5 libqt5qml5 libexiv2-dev
+      - name: Install dependencies
+        run: sudo ./install-build-dependencies
 
-            - name: Configure
-              run: |
-                  mkdir -p build
-                  cd build
-                  cmake .. -DCMAKE_BUILD_TYPE=Release
+      - name: Configure
+        run: |
+          mkdir -p build
+          cd build
+          cmake .. -DCMAKE_BUILD_TYPE=Release
 
-            - name: Build
-              run: cmake --build build -- -j$(nproc)
+      - name: Build
+        run: cmake --build build -- -j$(nproc)
 
-            - name: Package
-              run: |
-                  mkdir -p artifacts
-                  if [ -f build/lumixor-qt ]; then cp build/lumixor-qt artifacts/; fi
-                  tar -C build -czf artifacts/lumixor-ubuntu.tgz lumixor-qt || true
+      - name: Package
+        run: |
+          mkdir -p artifacts
+          if [ -f build/lumixor-qt ]; then cp build/lumixor-qt artifacts/; fi
+          tar -C build -czf artifacts/lumixor-ubuntu.tgz lumixor-qt || true
 
-            - name: Upload artifacts
-              uses: actions/upload-artifact@v4
-              with:
-                  name: lumixor-ubuntu
-                  path: artifacts/
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: lumixor-ubuntu
+          path: artifacts/
 
-    build-debian:
-        name: Build (Debian bookworm)
-        runs-on: ubuntu-latest
-        container:
-            image: debian:bookworm
-        steps:
-            - name: Checkout
-              uses: actions/checkout@v4
+  build-debian:
+    name: Build (Debian bookworm)
+    runs-on: ubuntu-latest
+    container:
+      image: debian:bookworm
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
-            - name: Install dependencies (apt)
-              run: |
-                  apt-get update
-                  apt-get install -y build-essential cmake pkg-config git qtbase5-dev qtmultimedia5-dev libqt5multimediawidgets5 qml-module-qtquick-controls2 libqt5multimedia5 libexiv2-dev
+      - name: Install dependencies
+        run: sudo ./install-build-dependencies
 
-            - name: Configure & Build
-              run: |
-                  mkdir -p build
-                  cd build
-                  cmake .. -DCMAKE_BUILD_TYPE=Release
-                  cmake --build . -- -j$(nproc)
+      - name: Configure & Build
+        run: |
+          mkdir -p build
+          cd build
+          cmake .. -DCMAKE_BUILD_TYPE=Release
+          cmake --build . -- -j$(nproc)
 
-            - name: Package
-              run: |
-                  mkdir -p artifacts
-                  if [ -f build/lumixor-qt ]; then cp build/lumixor-qt artifacts/; fi
-                  tar -C build -czf artifacts/lumixor-debian.tgz lumixor-qt || true
+      - name: Package
+        run: |
+          mkdir -p artifacts
+          if [ -f build/lumixor-qt ]; then cp build/lumixor-qt artifacts/; fi
+          tar -C build -czf artifacts/lumixor-debian.tgz lumixor-qt || true
 
-            - name: Upload artifacts
-              uses: actions/upload-artifact@v4
-              with:
-                  name: lumixor-debian
-                  path: artifacts/
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: lumixor-debian
+          path: artifacts/
 
-    build-fedora:
-        name: Build (Fedora)
-        runs-on: ubuntu-latest
-        container:
-            image: registry.fedoraproject.org/fedora:38
-        steps:
-            - name: Checkout
-              uses: actions/checkout@v4
+  build-fedora:
+    name: Build (Fedora)
+    runs-on: ubuntu-latest
+    container:
+      image: registry.fedoraproject.org/fedora:38
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
-            - name: Install dependencies (dnf)
-              run: |
-                  dnf -y update
-                  dnf -y install gcc-c++ cmake make pkgconfig qt5-qtbase-devel qt5-qtmultimedia-devel qt5-qtquickcontrols2-devel qt5-qtdeclarative-devel qt5-qtbase-devel qt5-qttools-devel libexiv2-devel
+      - name: Install dependencies
+        run: sudo ./install-build-dependencies
 
-            - name: Configure & Build
-              run: |
-                  mkdir -p build
-                  cd build
-                  cmake .. -DCMAKE_BUILD_TYPE=Release
-                  cmake --build . -- -j$(nproc)
+      - name: Configure & Build
+        run: |
+          mkdir -p build
+          cd build
+          cmake .. -DCMAKE_BUILD_TYPE=Release
+          cmake --build . -- -j$(nproc)
 
-            - name: Package
-              run: |
-                  mkdir -p artifacts
-                  if [ -f build/lumixor-qt ]; then cp build/lumixor-qt artifacts/; fi
-                  tar -C build -czf artifacts/lumixor-fedora.tgz lumixor-qt || true
+      - name: Package
+        run: |
+          mkdir -p artifacts
+          if [ -f build/lumixor-qt ]; then cp build/lumixor-qt artifacts/; fi
+          tar -C build -czf artifacts/lumixor-fedora.tgz lumixor-qt || true
 
-            - name: Upload artifacts
-              uses: actions/upload-artifact@v4
-              with:
-                  name: lumixor-fedora
-                  path: artifacts/
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: lumixor-fedora
+          path: artifacts/
 
-    build-opensuse:
-        name: Build (openSUSE Leap)
-        runs-on: ubuntu-latest
-        container:
-            image: opensuse/leap:15.5
-        steps:
-            - name: Checkout
-              uses: actions/checkout@v4
+  build-opensuse:
+    name: Build (openSUSE Leap)
+    runs-on: ubuntu-latest
+    container:
+      image: opensuse/leap:15.5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
-            - name: Install dependencies (zypper)
-              run: |
-                  zypper --non-interactive refresh || true
-                  zypper --non-interactive install --no-recommends -y gcc-c++ cmake make pkg-config libqt5-qtbase-devel libqt5-qtmultimedia-devel libqt5-qtquickcontrols2-devel libexiv2-devel
+      - name: Install dependencies
+        run: sudo ./install-build-dependencies
 
-            - name: Configure & Build
-              run: |
-                  mkdir -p build
-                  cd build
-                  cmake .. -DCMAKE_BUILD_TYPE=Release
-                  cmake --build . -- -j$(nproc)
+      - name: Configure & Build
+        run: |
+          mkdir -p build
+          cd build
+          cmake .. -DCMAKE_BUILD_TYPE=Release
+          cmake --build . -- -j$(nproc)
 
-            - name: Package
-              run: |
-                  mkdir -p artifacts
-                  if [ -f build/lumixor-qt ]; then cp build/lumixor-qt artifacts/; fi
-                  tar -C build -czf artifacts/lumixor-opensuse.tgz lumixor-qt || true
+      - name: Package
+        run: |
+          mkdir -p artifacts
+          if [ -f build/lumixor-qt ]; then cp build/lumixor-qt artifacts/; fi
+          tar -C build -czf artifacts/lumixor-opensuse.tgz lumixor-qt || true
 
-            - name: Upload artifacts
-              uses: actions/upload-artifact@v4
-              with:
-                  name: lumixor-opensuse
-                  path: artifacts/
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: lumixor-opensuse
+          path: artifacts/
 
-    build-opensuse-tumbleweed:
-        name: Build (openSUSE Tumbleweed)
-        runs-on: ubuntu-latest
-        container:
-            image: opensuse/tumbleweed
-        steps:
-            - name: Checkout
-              uses: actions/checkout@v4
+  build-opensuse-tumbleweed:
+    name: Build (openSUSE Tumbleweed)
+    runs-on: ubuntu-latest
+    container:
+      image: opensuse/tumbleweed
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
-            - name: Install dependencies (zypper)
-              run: |
-                  zypper --non-interactive refresh || true
-                  zypper --non-interactive install --no-recommends -y gcc-c++ cmake make pkg-config libqt5-qtbase-devel libqt5-qtmultimedia-devel libqt5-qtquickcontrols2-devel libexiv2-devel
+      - name: Install dependencies
+        run: sudo ./install-build-dependencies
 
-            - name: Configure & Build
-              run: |
-                  mkdir -p build
-                  cd build
-                  cmake .. -DCMAKE_BUILD_TYPE=Release
-                  cmake --build . -- -j$(nproc)
+      - name: Configure & Build
+        run: |
+          mkdir -p build
+          cd build
+          cmake .. -DCMAKE_BUILD_TYPE=Release
+          cmake --build . -- -j$(nproc)
 
-            - name: Package
-              run: |
-                  mkdir -p artifacts
-                  if [ -f build/lumixor-qt ]; then cp build/lumixor-qt artifacts/; fi
-                  tar -C build -czf artifacts/lumixor-opensuse-tumbleweed.tgz lumixor-qt || true
+      - name: Package
+        run: |
+          mkdir -p artifacts
+          if [ -f build/lumixor-qt ]; then cp build/lumixor-qt artifacts/; fi
+          tar -C build -czf artifacts/lumixor-opensuse-tumbleweed.tgz lumixor-qt || true
 
-            - name: Upload artifacts
-              uses: actions/upload-artifact@v4
-              with:
-                  name: lumixor-opensuse-tumbleweed
-                  path: artifacts/
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: lumixor-opensuse-tumbleweed
+          path: artifacts/
 
-    # Release job moved to .github/workflows/release.yml
-    # release: (moved to separate workflow file)
+  # Release job moved to .github/workflows/release.yml
+  # release: (moved to separate workflow file)
