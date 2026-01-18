@@ -1,256 +1,175 @@
-name: CI
+name: CI - Linux builds
 
 on:
-  push:
-    tags:
-      - "*"
-  workflow_dispatch:
+    push:
+    pull_request:
+    workflow_dispatch:
 
 jobs:
-  appimage:
-    runs-on: ubuntu-22.04
-    steps:
-      - uses: actions/checkout@v4
-      - name: Install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            cmake \
-            qtbase5-dev \
-            qtmultimedia5-dev \
-            libqt5multimedia5-plugins \
-            qtdeclarative5-dev \
-            qtquickcontrols2-5-dev \
-            libexiv2-dev \
-            libqt5svg5-dev \
-            libunwind-dev \
-            qml-module-qtquick2 \
-            qml-module-qtquick-window2 \
-            qml-module-qtquick-controls2 \
-            qml-module-qtquick-layouts \
-            qml-module-qtmultimedia \
-            qml-module-qt-labs-platform \
-            qt5-gtk-platformtheme \
-            qml-module-qtquick-dialogs \
-            libgstreamer1.0-dev \
-            libgstreamer-plugins-base1.0-dev \
-            gstreamer1.0-plugins-base \
-            gstreamer1.0-plugins-good \
-            gstreamer1.0-plugins-bad \
-            gstreamer1.0-plugins-ugly \
-            gstreamer1.0-libav \
-            gstreamer1.0-alsa \
-            gstreamer1.0-pulseaudio \
-            fuse \
-            libfuse2
-          # Show what multimedia packages are installed
-          echo "=== Installed Qt5 multimedia packages ==="
-          dpkg -l | grep -i qt.*multi || echo "No multimedia packages found"
-          echo "=== Looking for mediaservice plugins after install ==="
-          find /usr -type d -name "mediaservice" 2>/dev/null
-          find /usr -name "libgstmediaplayer*" 2>/dev/null
-          find /usr -name "libqgsttools*" 2>/dev/null
-      - name: Build
-        run: |
-          mkdir build
-          cd build
-          cmake ..
-          make -j$(nproc)
-      - name: Download linuxdeployqt
-        run: |
-          wget -c -nv "https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage"
-          chmod a+x linuxdeployqt-continuous-x86_64.AppImage
-      - name: Create AppImage
-        run: |
-          cd build
+    build-ubuntu:
+        name: Build (Ubuntu)
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
 
-          # Copy desktop file and icon
-          cp ../resources/lumixor.desktop lumixor-qt.desktop
-          cp ../resources/lumixor.svg lumixor-qt.svg
+            - name: Install dependencies (apt)
+              run: |
+                  sudo apt-get update
+                  sudo apt-get install -y build-essential cmake ninja-build pkg-config git qtbase5-dev qml-module-qtquick-controls2 qtmultimedia5-dev libqt5multimediawidgets5 libqt5multimedia5-plugins libqt5multimedia5 libqt5qml5 libexiv2-dev
 
-          # Get Qt paths
-          QT_PLUGIN_PATH=$(qmake -query QT_INSTALL_PLUGINS)
-          QT_QML_PATH=$(qmake -query QT_INSTALL_QML)
-          QT_LIB_PATH=$(qmake -query QT_INSTALL_LIBS)
+            - name: Configure
+              run: |
+                  mkdir -p build
+                  cd build
+                  cmake .. -DCMAKE_BUILD_TYPE=Release
 
-          echo "=== Qt paths ==="
-          echo "QT_PLUGIN_PATH: $QT_PLUGIN_PATH"
-          echo "QT_QML_PATH: $QT_QML_PATH"
-          echo "QT_LIB_PATH: $QT_LIB_PATH"
+            - name: Build
+              run: cmake --build build -- -j$(nproc)
 
-          echo "=== Searching for mediaservice plugins ==="
-          echo "QT_PLUGIN_PATH: $QT_PLUGIN_PATH"
-          ls -la $QT_PLUGIN_PATH/mediaservice/ 2>/dev/null || echo "None at QT_PLUGIN_PATH"
-          ls -la /usr/lib/x86_64-linux-gnu/qt5/plugins/mediaservice/ 2>/dev/null || echo "None at /usr/lib/x86_64-linux-gnu/qt5/plugins/mediaservice/"
-          echo "=== Searching system for mediaservice ==="
-          find /usr -type d -name "mediaservice" 2>/dev/null || echo "No mediaservice dirs found"
-          echo "=== Searching for gstreamer media plugins ==="
-          find /usr -name "*gstmedia*" -o -name "*qtmedia*" 2>/dev/null | head -20
-          echo "=== Searching for libqgsttools ==="
-          find /usr -name "libqgsttools*" 2>/dev/null
+            - name: Package
+              run: |
+                  mkdir -p artifacts
+                  if [ -f build/lumixor-qt ]; then cp build/lumixor-qt artifacts/; fi
+                  tar -C build -czf artifacts/lumixor-ubuntu.tgz lumixor-qt || true
 
-          # Create AppDir structure
-          mkdir -p AppDir/usr/bin
-          mkdir -p AppDir/usr/lib
-          mkdir -p AppDir/usr/lib/gstreamer-1.0
-          mkdir -p AppDir/usr/plugins
-          mkdir -p AppDir/usr/plugins/mediaservice
-          mkdir -p AppDir/usr/qml
-          mkdir -p AppDir/usr/share/icons/hicolor/256x256/apps
-          mkdir -p AppDir/usr/share/applications
+            - name: Upload artifacts
+              uses: actions/upload-artifact@v4
+              with:
+                  name: lumixor-ubuntu
+                  path: artifacts/
 
-          # Copy binary
-          cp lumixor-qt AppDir/usr/bin/
+    build-debian:
+        name: Build (Debian bookworm)
+        runs-on: ubuntu-latest
+        container:
+            image: debian:bookworm
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
 
-          # Verify binary is valid ELF
-          file AppDir/usr/bin/lumixor-qt
+            - name: Install dependencies (apt)
+              run: |
+                  apt-get update
+                  apt-get install -y build-essential cmake pkg-config git qtbase5-dev qtmultimedia5-dev libqt5multimediawidgets5 qml-module-qtquick-controls2 libqt5multimedia5 libexiv2-dev
 
-          # Copy desktop file and icon
-          cp lumixor-qt.desktop AppDir/usr/share/applications/
-          cp lumixor-qt.svg AppDir/usr/share/icons/hicolor/256x256/apps/
-          cp lumixor-qt.svg AppDir/lumixor-qt.svg
-          cp lumixor-qt.desktop AppDir/lumixor-qt.desktop
+            - name: Configure & Build
+              run: |
+                  mkdir -p build
+                  cd build
+                  cmake .. -DCMAKE_BUILD_TYPE=Release
+                  cmake --build . -- -j$(nproc)
 
-          # Copy required QML modules
-          QML_DIRS="QtQuick QtQuick.2 QtMultimedia Qt QtGraphicalEffects"
-          for dir in $QML_DIRS; do
-            if [ -d "$QT_QML_PATH/$dir" ]; then
-              cp -r "$QT_QML_PATH/$dir" AppDir/usr/qml/
-            fi
-          done
+            - name: Package
+              run: |
+                  mkdir -p artifacts
+                  if [ -f build/lumixor-qt ]; then cp build/lumixor-qt artifacts/; fi
+                  tar -C build -czf artifacts/lumixor-debian.tgz lumixor-qt || true
 
-          # Also copy from common alternative locations
-          for dir in $QML_DIRS; do
-            if [ -d "/usr/lib/x86_64-linux-gnu/qt5/qml/$dir" ]; then
-              cp -r "/usr/lib/x86_64-linux-gnu/qt5/qml/$dir" AppDir/usr/qml/ 2>/dev/null || true
-            fi
-          done
+            - name: Upload artifacts
+              uses: actions/upload-artifact@v4
+              with:
+                  name: lumixor-debian
+                  path: artifacts/
 
-          # List what we have for debugging
-          echo "QML modules copied:"
-          ls -la AppDir/usr/qml/
+    build-fedora:
+        name: Build (Fedora)
+        runs-on: ubuntu-latest
+        container:
+            image: registry.fedoraproject.org/fedora:38
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
 
-          # Copy all Qt5 libraries to ensure consistency
-          cp -L $QT_LIB_PATH/libQt5*.so.5 AppDir/usr/lib/ 2>/dev/null || true
+            - name: Install dependencies (dnf)
+              run: |
+                  dnf -y update
+                  dnf -y install gcc-c++ cmake make pkgconfig qt5-qtbase-devel qt5-qtmultimedia-devel qt5-qtquickcontrols2-devel qt5-qtdeclarative-devel qt5-qtbase-devel qt5-qttools-devel libexiv2-devel
 
-          # CRITICAL: Copy Qt multimedia plugins BEFORE running linuxdeployqt
-          echo "=== Copying mediaservice plugins ==="
-          cp -v $QT_PLUGIN_PATH/mediaservice/* AppDir/usr/plugins/mediaservice/ 2>/dev/null || true
-          cp -v /usr/lib/x86_64-linux-gnu/qt5/plugins/mediaservice/* AppDir/usr/plugins/mediaservice/ 2>/dev/null || true
+            - name: Configure & Build
+              run: |
+                  mkdir -p build
+                  cd build
+                  cmake .. -DCMAKE_BUILD_TYPE=Release
+                  cmake --build . -- -j$(nproc)
 
-          # Also copy libqgsttools which is required by the GStreamer media plugin
-          echo "=== Looking for libqgsttools ==="
-          find /usr -name "libqgsttools*" 2>/dev/null || echo "Not found"
-          cp -L /usr/lib/x86_64-linux-gnu/libqgsttools_p.so* AppDir/usr/lib/ 2>/dev/null || true
-          cp -L $QT_LIB_PATH/libqgsttools_p.so* AppDir/usr/lib/ 2>/dev/null || true
+            - name: Package
+              run: |
+                  mkdir -p artifacts
+                  if [ -f build/lumixor-qt ]; then cp build/lumixor-qt artifacts/; fi
+                  tar -C build -czf artifacts/lumixor-fedora.tgz lumixor-qt || true
 
-          echo "=== Mediaservice plugins in AppDir ==="
-          ls -la AppDir/usr/plugins/mediaservice/
+            - name: Upload artifacts
+              uses: actions/upload-artifact@v4
+              with:
+                  name: lumixor-fedora
+                  path: artifacts/
 
-          # Copy platform theme plugins for native file dialogs
-          mkdir -p AppDir/usr/plugins/platformthemes
-          cp -r $QT_PLUGIN_PATH/platformthemes/* AppDir/usr/plugins/platformthemes/ 2>/dev/null || true
-          cp -r /usr/lib/x86_64-linux-gnu/qt5/plugins/platformthemes/* AppDir/usr/plugins/platformthemes/ 2>/dev/null || true
+    build-opensuse:
+        name: Build (openSUSE Leap)
+        runs-on: ubuntu-latest
+        container:
+            image: opensuse/leap:15.5
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
 
-          # Copy GTK3 libraries needed for gtk3 platform theme
-          cp -L /usr/lib/x86_64-linux-gnu/libgtk-3.so* AppDir/usr/lib/ 2>/dev/null || true
-          cp -L /usr/lib/x86_64-linux-gnu/libgdk-3.so* AppDir/usr/lib/ 2>/dev/null || true
+            - name: Install dependencies (zypper)
+              run: |
+                  zypper --non-interactive refresh || true
+                  zypper --non-interactive install --no-recommends -y gcc-c++ cmake make pkg-config libqt5-qtbase-devel libqt5-qtmultimedia-devel libqt5-qtquickcontrols2-devel libexiv2-devel
 
-          echo "Platform theme plugins:"
-          ls -la AppDir/usr/plugins/platformthemes/ 2>/dev/null || echo "None"
+            - name: Configure & Build
+              run: |
+                  mkdir -p build
+                  cd build
+                  cmake .. -DCMAKE_BUILD_TYPE=Release
+                  cmake --build . -- -j$(nproc)
 
-          # Copy GStreamer plugins and libraries
-          # NOTE: We intentionally do NOT bundle GStreamer anymore
-          # Bundling GStreamer causes version mismatch errors ("no element identity")
-          # The app will use system GStreamer which is more reliable
-          echo "Skipping GStreamer bundling - will use system GStreamer for compatibility"
+            - name: Package
+              run: |
+                  mkdir -p artifacts
+                  if [ -f build/lumixor-qt ]; then cp build/lumixor-qt artifacts/; fi
+                  tar -C build -czf artifacts/lumixor-opensuse.tgz lumixor-qt || true
 
-          # Do NOT copy GStreamer libraries or plugins - use system entirely
-          # This prevents version mismatches between bundled libs and system plugins
-          echo "Skipping GStreamer bundling - will use system GStreamer for compatibility"
+            - name: Upload artifacts
+              uses: actions/upload-artifact@v4
+              with:
+                  name: lumixor-opensuse
+                  path: artifacts/
 
-          # Copy custom AppRun script that properly sets library paths
-          cp ../resources/AppRun AppDir/AppRun
-          chmod +x AppDir/AppRun
+    build-opensuse-tumbleweed:
+        name: Build (openSUSE Tumbleweed)
+        runs-on: ubuntu-latest
+        container:
+            image: opensuse/tumbleweed
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
 
-          # Run linuxdeployqt to bundle dependencies (but NOT create appimage yet)
-          ../linuxdeployqt-continuous-x86_64.AppImage AppDir/usr/share/applications/lumixor-qt.desktop -qmldir=../src/ui/qml -qmldir=AppDir/usr/qml -bundle-non-qt-libs -no-translations -no-copy-copyright-files -extra-plugins=iconengines,imageformats,platformthemes
+            - name: Install dependencies (zypper)
+              run: |
+                  zypper --non-interactive refresh || true
+                  zypper --non-interactive install --no-recommends -y gcc-c++ cmake make pkg-config libqt5-qtbase-devel libqt5-qtmultimedia-devel libqt5-qtquickcontrols2-devel libexiv2-devel
 
-          # CRITICAL: Copy mediaservice plugins AFTER linuxdeployqt
-          # linuxdeployqt doesn't handle mediaservice well, so we do it manually
-          echo "=== Post-linuxdeployqt: Copying mediaservice plugins ==="
-          mkdir -p AppDir/usr/plugins/mediaservice
+            - name: Configure & Build
+              run: |
+                  mkdir -p build
+                  cd build
+                  cmake .. -DCMAKE_BUILD_TYPE=Release
+                  cmake --build . -- -j$(nproc)
 
-          # Find and copy the GStreamer media service plugin
-          find /usr -name "libgstmediaplayer.so" -o -name "libgstcamerabin.so" -o -name "libgstaudiodecoder.so" 2>/dev/null | head -10
-          cp -v /usr/lib/x86_64-linux-gnu/qt5/plugins/mediaservice/*.so AppDir/usr/plugins/mediaservice/ 2>/dev/null || true
-          cp -v $(qmake -query QT_INSTALL_PLUGINS)/mediaservice/*.so AppDir/usr/plugins/mediaservice/ 2>/dev/null || true
+            - name: Package
+              run: |
+                  mkdir -p artifacts
+                  if [ -f build/lumixor-qt ]; then cp build/lumixor-qt artifacts/; fi
+                  tar -C build -czf artifacts/lumixor-opensuse-tumbleweed.tgz lumixor-qt || true
 
-          # Also copy libqgsttools_p which is required by the GStreamer plugins
-          echo "=== Copying libqgsttools_p ==="
-          find /usr -name "libqgsttools_p.so*" 2>/dev/null
-          cp -Lv /usr/lib/x86_64-linux-gnu/libqgsttools_p.so* AppDir/usr/lib/ 2>/dev/null || true
-          cp -Lv $(qmake -query QT_INSTALL_LIBS)/libqgsttools_p.so* AppDir/usr/lib/ 2>/dev/null || true
+            - name: Upload artifacts
+              uses: actions/upload-artifact@v4
+              with:
+                  name: lumixor-opensuse-tumbleweed
+                  path: artifacts/
 
-          # Verify what we have
-          echo "=== Mediaservice plugins in AppDir ==="
-          ls -la AppDir/usr/plugins/mediaservice/
-
-          echo "=== libqgsttools in AppDir ==="
-          ls -la AppDir/usr/lib/libqgsttools* 2>/dev/null || echo "Not found"
-
-          # Now create the AppImage
-          ../linuxdeployqt-continuous-x86_64.AppImage AppDir/usr/share/applications/lumixor-qt.desktop -appimage
-
-          # Final verification
-          echo "=== Final check: mediaservice plugins ==="
-          ls -la AppDir/usr/plugins/mediaservice/ 2>/dev/null || echo "MISSING!"
-      - name: Upload AppImage
-        uses: actions/upload-artifact@v4
-        with:
-          name: Lumixor-AppImage
-          path: build/*.AppImage
-
-  release:
-    runs-on: ubuntu-latest
-    needs: appimage
-    if: startsWith(github.ref, 'refs/tags/')
-    permissions:
-      contents: write
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: Download AppImage artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: Lumixor-AppImage
-          path: artifacts
-      - name: Generate changelog
-        id: changelog
-        run: |
-          # Get the previous tag
-          PREVIOUS_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
-          CURRENT_TAG=${GITHUB_REF#refs/tags/}
-
-          echo "## What's Changed in $CURRENT_TAG" > CHANGELOG.md
-          echo "" >> CHANGELOG.md
-
-          if [ -n "$PREVIOUS_TAG" ]; then
-            echo "### Commits since $PREVIOUS_TAG:" >> CHANGELOG.md
-            git log --pretty=format:"- %s (%h)" $PREVIOUS_TAG..HEAD >> CHANGELOG.md
-          else
-            echo "### All commits:" >> CHANGELOG.md
-            git log --pretty=format:"- %s (%h)" >> CHANGELOG.md
-          fi
-
-          echo "" >> CHANGELOG.md
-          echo "" >> CHANGELOG.md
-          echo "**Full Changelog**: https://github.com/${{ github.repository }}/compare/${PREVIOUS_TAG:-$(git rev-list --max-parents=0 HEAD)}...$CURRENT_TAG" >> CHANGELOG.md
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
-        with:
-          files: artifacts/*.AppImage
-          body_path: CHANGELOG.md
-          draft: false
-          prerelease: false
+    # Release job moved to .github/workflows/release.yml
+    # release: (moved to separate workflow file)

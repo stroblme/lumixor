@@ -28,8 +28,27 @@ os_like="${os_like,,}"    # lowercase ID_LIKE
 echo "Detected OS: ${NAME:-Unknown} (ID=${ID:-unknown}, ID_LIKE=${ID_LIKE:-none})"
 
 # Package lists
-OPENSUSE_PKGS=(libqt5-qtbase-devel libqt5-qtmultimedia-devel libexiv2-devel)
-DEBIAN_PKGS=(qtbase5-dev qtmultimedia5-dev libexiv2-dev)
+OPENSUSE_PKGS=(
+  libqt5-qtbase-devel
+  libqt5-qtmultimedia-devel
+  libqt5-qtdeclarative-devel
+  libqt5-qtquickcontrols2
+  libexiv2-devel
+  cmake
+  gcc-c++
+)
+DEBIAN_PKGS=(
+  qtbase5-dev
+  qtmultimedia5-dev
+  qtdeclarative5-dev
+  qml-module-qtquick2
+  qml-module-qtquick-controls2
+  qml-module-qtquick-layouts
+  qml-module-qtquick-window2
+  libexiv2-dev
+  cmake
+  build-essential
+)
 
 install_opensuse() {
   echo "Selected installer: zypper (openSUSE)"
