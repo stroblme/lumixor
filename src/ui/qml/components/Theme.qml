@@ -14,7 +14,7 @@ QtObject {
 
     // Global UI scaling factor (1.0 = 100%, 1.25 = 125%, etc.)
     // Adjust this value to scale the entire UI up or down
-    readonly property real scaleFactor: 1.25
+    readonly property real scaleFactor: 1.0
 
     // Base sizing constants (at scale factor 1.0)
     readonly property int baseButtonHeight: 44
