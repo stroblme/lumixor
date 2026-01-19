@@ -1,5 +1,6 @@
 module components
 singleton Theme 1.0 Theme.qml
+singleton Fonts 1.0 Fonts.qml
 StyledButton 1.0 StyledButton.qml
 IconButton 1.0 IconButton.qml
 StyledSlider 1.0 StyledSlider.qml

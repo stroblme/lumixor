@@ -12,10 +12,13 @@ Button {
     property color txtColor: typeof textColor !== "undefined" ? textColor : "#E0E0E0"
     property color borderCol: typeof borderColor !== "undefined" ? borderColor : "#333333"
 
+    property alias symbol: control.text
     property string iconText: ""
     property int iconSize: Components.Theme.iconSize
     property int radius: Components.Theme.borderRadius
 
+    font.family: Components.Font.solidIcons
+    font.weight: Components.Font.Regular
     implicitWidth: Components.Theme.buttonWidth
     implicitHeight: Components.Theme.buttonHeight
 
