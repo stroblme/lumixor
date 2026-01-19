@@ -33,7 +33,7 @@ QtObject {
     readonly property int baseTabButtonHeight: 40
     readonly property int baseTabButtonMinWidth: 100
     readonly property int baseListItemHeight: 40
-    readonly property int baseBorderRadius: 6
+    readonly property int baseBorderRadius: 8
     readonly property int baseSpacing: 10
     readonly property int baseMargins: 16
 

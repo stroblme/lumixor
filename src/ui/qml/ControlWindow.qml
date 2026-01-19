@@ -246,7 +246,7 @@ Window {
         Rectangle {
             Layout.fillWidth: true
             Layout.fillHeight: true
-            radius: 6
+            radius: Components.Theme.borderRadius
             color: panelColor
             border.color: borderColor
 
@@ -533,7 +533,7 @@ Window {
                                     implicitWidth: 180
                                     color: panelColor
                                     border.color: borderColor
-                                    radius: 6
+                                    radius: Components.Theme.borderRadius
                                 }
 
                                 Components.StyledMenuItem {
@@ -1371,7 +1371,7 @@ Window {
                                             visible: !isSlideshow
                                             Layout.fillWidth: true
                                             Layout.preferredHeight: 32
-                                            radius: 6
+                                            radius: Components.Theme.borderRadius
                                             color: linkToggleMouse.containsMouse ? Qt.lighter(panelColor, 1.3) : panelColor
                                             border.color: (tabData && tabData.linkSliders) ? accentColor : borderColor
                                             border.width: (tabData && tabData.linkSliders) ? 2 : 1
@@ -1422,9 +1422,13 @@ Window {
 
                 Rectangle {
                     id: rightSplitter
-                    width: 4
+                    width: 5
                     color: borderColor
                     Layout.fillHeight: true
+                    Layout.topMargin: 8
+                    Layout.bottomMargin: 8
+                    Layout.leftMargin: 8
+                    Layout.rightMargin: 8
 
                     MouseArea {
                         id: splitterMouseArea
@@ -1434,29 +1438,27 @@ Window {
                         property real dragStartX: 0
                         property real startRightWidth: 0
                         property real pendingWidth: 0
-                        property real splitterStartX: 0
 
                         onPressed: function (mouse) {
-                            // Capture the splitter's initial position in window coordinates
-                            splitterStartX = rightSplitter.mapToItem(controlRoot.contentItem, 0, 0).x;
-                            // Store where we clicked relative to the splitter
-                            dragStartX = mouse.x;
+                            // Capture the mouse position in window coordinates at press
+                            var windowPos = mapToItem(controlRoot.contentItem, mouse.x, mouse.y);
+                            dragStartX = windowPos.x;
                             startRightWidth = controlRoot.rightSideWidth;
                             pendingWidth = startRightWidth;
                         }
                         onPositionChanged: function (mouse) {
                             if (!pressed)
                                 return;
-                            // Calculate how far the mouse has moved from initial click position
-                            // mouse.x is relative to the MouseArea, which stays with the splitter
-                            // So we need to account for how much the splitter itself has moved
-                            var splitterCurrentX = rightSplitter.mapToItem(controlRoot.contentItem, 0, 0).x;
-                            var splitterDelta = splitterCurrentX - splitterStartX;
-                            var mouseDelta = mouse.x - dragStartX;
-                            // Total movement = how much splitter moved + mouse movement within splitter
-                            var totalDelta = splitterDelta + mouseDelta;
+                            // Get current mouse position in window coordinates
+                            var windowPos = mapToItem(controlRoot.contentItem, mouse.x, mouse.y);
+
+                            // Calculate how far mouse has moved from start (negative = moved left)
+                            var mouseDelta = windowPos.x - dragStartX;
+
+                            // New right width = start width minus the mouse movement
+                            // (moving left increases right panel, moving right decreases it)
                             var maxWidth = controlRoot.width / 2;
-                            pendingWidth = Math.max(120, Math.min(maxWidth, startRightWidth - totalDelta));
+                            pendingWidth = Math.max(120, Math.min(maxWidth, startRightWidth - mouseDelta / 2));
                         }
                         onReleased: {
                             controlRoot.rightSideWidth = pendingWidth;
@@ -1492,7 +1494,7 @@ Window {
                         Layout.fillWidth: true
                         Layout.fillHeight: true
                         Layout.minimumHeight: 150
-                        radius: 6
+                        radius: Components.Theme.borderRadius
                         color: panelColor
                         border.color: borderColor
 
@@ -1526,7 +1528,7 @@ Window {
 
                                     width: Math.max(50, isHeightLimited ? previewContainer.height * previewContainer.outputAspect : previewContainer.width)
                                     height: Math.max(50, isHeightLimited ? previewContainer.height : previewContainer.width / previewContainer.outputAspect)
-                                    radius: 6
+                                    radius: Components.Theme.borderRadius
                                     color: "#000000"
                                     border.color: borderColor
                                     clip: true
@@ -1789,7 +1791,7 @@ Window {
                         id: spectrometerPanel
                         Layout.fillWidth: true
                         implicitHeight: 100
-                        radius: 6
+                        radius: Components.Theme.borderRadius
                         color: panelColor
                         border.color: borderColor
 
@@ -1852,7 +1854,7 @@ Window {
                     Rectangle {
                         Layout.fillWidth: true
                         implicitHeight: 80
-                        radius: 6
+                        radius: Components.Theme.borderRadius
                         color: panelColor
                         border.color: borderColor
 
@@ -1921,7 +1923,7 @@ Window {
         Rectangle {
             Layout.fillWidth: true
             implicitHeight: 40
-            radius: 6
+            radius: Components.Theme.borderRadius
             color: panelColor
             border.color: borderColor
 

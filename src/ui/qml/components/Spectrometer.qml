@@ -1,6 +1,7 @@
 import QtQuick 2.12
 import QtQuick.Controls 2.12
 import QtQuick.Layouts 1.12
+import "../components" as Components
 
 Rectangle {
     id: root
@@ -18,7 +19,7 @@ Rectangle {
     property var peakValues: []
 
     color: bgColor
-    radius: 6
+    radius: Components.Theme.borderRadius
 
     onSpectrumDataChanged: {
         // Initialize peak values if needed
