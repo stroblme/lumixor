@@ -262,260 +262,269 @@ Window {
                     Layout.fillWidth: true
                     Layout.minimumWidth: Math.min(320, controlRoot.width * 0.35)
 
-                    TabBar {
-                        id: mainTabs
+                    RowLayout {
                         Layout.fillWidth: true
-                        currentIndex: 1 // Default to Home tab
+                        Layout.preferredHeight: Components.Theme.tabButtonHeight
+                        spacing: 4
 
-                        // Remove white background from TabBar
-                        background: Rectangle {
-                            color: "transparent"
-                        }
+                        // Wrapper to contain TabBar and allow it to be clipped
+                        Item {
+                            Layout.fillWidth: true
+                            Layout.preferredHeight: Components.Theme.tabButtonHeight
+                            clip: true
 
-                        // Prevent switching to the "+" tab
-                        onCurrentIndexChanged: {
-                            // The + button is at index (2 + mediaTabsModel.count)
-                            var addButtonIndex = 2 + mediaTabsModel.count;
-                            if (currentIndex >= addButtonIndex) {
-                                currentIndex = Math.max(0, addButtonIndex - 1);
-                            }
-                        }
+                            TabBar {
+                                id: mainTabs
+                                width: parent.width
+                                height: parent.height
+                                currentIndex: 1 // Default to Home tab
 
-                        // Fixed tabs - Preferences
-                        Components.StyledTabButton {
-                            id: preferencesTab
-                            text: qsTr("Preferences")
-                        }
-
-                        // Fixed tabs - Home
-                        Components.StyledTabButton {
-                            id: homeTab
-                            text: qsTr("Home")
-                        }
-
-                        // Dynamic media tabs with drag-and-drop support
-                        Repeater {
-                            id: mediaTabsRepeater
-                            model: mediaTabsModel
-
-                            Components.StyledTabButton {
-                                id: mediaTabButton
-                                // Visual offset for drag animation
-                                transform: Translate {
-                                    x: mediaTabButton.visualOffset
-                                    Behavior on x {
-                                        NumberAnimation {
-                                            duration: 200
-                                            easing.type: Easing.OutCubic
-                                        }
-                                    }
+                                // Remove white background from TabBar
+                                background: Rectangle {
+                                    color: "transparent"
                                 }
 
-                                property int tabIndex: index
-                                property real visualOffset: 0
-                                property bool beingDragged: false
+                                // Fixed tabs - Preferences
+                                Components.StyledTabButton {
+                                    id: preferencesTab
+                                    text: qsTr("Preferences")
+                                }
 
-                                // Calculate visual offset based on drag state
-                                states: [
-                                    State {
-                                        name: "dragging"
-                                        when: mediaTabButton.beingDragged
-                                        PropertyChanges {
-                                            target: mediaTabButton
-                                            z: 100
-                                            opacity: 0.8
+                                // Fixed tabs - Home
+                                Components.StyledTabButton {
+                                    id: homeTab
+                                    text: qsTr("Home")
+                                }
+
+                                // Dynamic media tabs with drag-and-drop support
+                                Repeater {
+                                    id: mediaTabsRepeater
+                                    model: mediaTabsModel
+
+                                    Components.StyledTabButton {
+                                        id: mediaTabButton
+                                        // Visual offset for drag animation
+                                        transform: Translate {
+                                            x: mediaTabButton.visualOffset
+                                            Behavior on x {
+                                                NumberAnimation {
+                                                    duration: 200
+                                                    easing.type: Easing.OutCubic
+                                                }
+                                            }
                                         }
-                                    }
-                                ]
 
-                                transitions: [
-                                    Transition {
-                                        from: "*"
-                                        to: "dragging"
-                                        NumberAnimation {
-                                            properties: "opacity"
-                                            duration: 100
-                                        }
-                                    },
-                                    Transition {
-                                        from: "dragging"
-                                        to: "*"
-                                        NumberAnimation {
-                                            properties: "opacity"
-                                            duration: 100
-                                        }
-                                    }
-                                ]
+                                        property int tabIndex: index
+                                        property real visualOffset: 0
+                                        property bool beingDragged: false
 
-                                contentItem: RowLayout {
-                                    spacing: 4
+                                        // Calculate visual offset based on drag state
+                                        states: [
+                                            State {
+                                                name: "dragging"
+                                                when: mediaTabButton.beingDragged
+                                                PropertyChanges {
+                                                    target: mediaTabButton
+                                                    z: 100
+                                                    opacity: 0.8
+                                                }
+                                            }
+                                        ]
 
-                                    // Drag handle indicator
-                                    Rectangle {
-                                        width: 8
-                                        height: 16
-                                        color: "transparent"
-                                        Column {
-                                            anchors.centerIn: parent
-                                            spacing: 2
-                                            Repeater {
-                                                model: 3
-                                                Rectangle {
-                                                    width: 8
-                                                    height: 2
-                                                    radius: 1
+                                        transitions: [
+                                            Transition {
+                                                from: "*"
+                                                to: "dragging"
+                                                NumberAnimation {
+                                                    properties: "opacity"
+                                                    duration: 100
+                                                }
+                                            },
+                                            Transition {
+                                                from: "dragging"
+                                                to: "*"
+                                                NumberAnimation {
+                                                    properties: "opacity"
+                                                    duration: 100
+                                                }
+                                            }
+                                        ]
+
+                                        contentItem: RowLayout {
+                                            spacing: 4
+
+                                            // Drag handle indicator
+                                            Rectangle {
+                                                width: 8
+                                                height: 16
+                                                color: "transparent"
+                                                Column {
+                                                    anchors.centerIn: parent
+                                                    spacing: 2
+                                                    Repeater {
+                                                        model: 3
+                                                        Rectangle {
+                                                            width: 8
+                                                            height: 2
+                                                            radius: 1
+                                                            color: subtleTextColor
+                                                        }
+                                                    }
+                                                }
+                                            }
+
+                                            Text {
+                                                text: model.tabName
+                                                font.pixelSize: Components.Theme.fontSize
+                                                color: mediaTabButton.checked ? textColor : subtleTextColor
+                                                elide: Text.ElideRight
+                                                Layout.fillWidth: true
+                                                horizontalAlignment: Text.AlignHCenter
+                                                verticalAlignment: Text.AlignVCenter
+                                            }
+                                            // Close button
+                                            Rectangle {
+                                                width: Components.Theme.iconSize
+                                                height: Components.Theme.iconSize
+                                                radius: Components.Theme.iconSize / 2
+                                                color: closeMouseArea.containsMouse ? Qt.lighter(panelColor, 1.5) : "transparent"
+                                                Text {
+                                                    anchors.centerIn: parent
+                                                    text: "×"
                                                     color: subtleTextColor
+                                                    font.pixelSize: Components.Theme.fontSize
+                                                    font.bold: true
+                                                }
+                                                MouseArea {
+                                                    id: closeMouseArea
+                                                    anchors.fill: parent
+                                                    hoverEnabled: true
+                                                    onClicked: {
+                                                        removeMediaTab(index);
+                                                    }
                                                 }
                                             }
                                         }
-                                    }
 
-                                    Text {
-                                        text: model.tabName
-                                        font.pixelSize: Components.Theme.fontSize
-                                        color: mediaTabButton.checked ? textColor : subtleTextColor
-                                        elide: Text.ElideRight
-                                        Layout.fillWidth: true
-                                        horizontalAlignment: Text.AlignHCenter
-                                        verticalAlignment: Text.AlignVCenter
-                                    }
-                                    // Close button
-                                    Rectangle {
-                                        width: Components.Theme.iconSize
-                                        height: Components.Theme.iconSize
-                                        radius: Components.Theme.iconSize / 2
-                                        color: closeMouseArea.containsMouse ? Qt.lighter(panelColor, 1.5) : "transparent"
-                                        Text {
-                                            anchors.centerIn: parent
-                                            text: "×"
-                                            color: subtleTextColor
-                                            font.pixelSize: Components.Theme.fontSize
-                                            font.bold: true
-                                        }
                                         MouseArea {
-                                            id: closeMouseArea
+                                            id: dragArea
                                             anchors.fill: parent
-                                            hoverEnabled: true
-                                            onClicked: {
-                                                removeMediaTab(index);
-                                            }
-                                        }
-                                    }
-                                }
+                                            anchors.rightMargin: 20 // Leave space for close button
 
-                                MouseArea {
-                                    id: dragArea
-                                    anchors.fill: parent
-                                    anchors.rightMargin: 20 // Leave space for close button
+                                            property real dragStartGlobalX: 0
+                                            property real lastGlobalX: 0
+                                            property bool isDragging: false
+                                            property int targetIndex: -1
 
-                                    property real dragStartGlobalX: 0
-                                    property real lastGlobalX: 0
-                                    property bool isDragging: false
-                                    property int targetIndex: -1
-
-                                    onPressed: {
-                                        // Store global position for accurate tracking
-                                        var globalPos = mapToGlobal(mouse.x, mouse.y);
-                                        dragStartGlobalX = globalPos.x;
-                                        lastGlobalX = globalPos.x;
-                                        isDragging = false;
-                                        targetIndex = mediaTabButton.tabIndex;
-                                    }
-
-                                    onPositionChanged: {
-                                        if (!pressed)
-                                            return;
-
-                                        var globalPos = mapToGlobal(mouse.x, mouse.y);
-                                        var totalDeltaX = globalPos.x - dragStartGlobalX;
-
-                                        // Start dragging after threshold
-                                        if (!isDragging && Math.abs(totalDeltaX) > 10) {
-                                            isDragging = true;
-                                            mediaTabButton.beingDragged = true;
-                                        }
-
-                                        if (isDragging) {
-                                            // Update visual position of dragged tab - follows mouse 1:1
-                                            mediaTabButton.visualOffset = totalDeltaX;
-
-                                            // Calculate target position
-                                            var tabWidth = mediaTabButton.width;
-                                            var currentIndex = mediaTabButton.tabIndex;
-                                            var draggedPositions = totalDeltaX / tabWidth;
-
-                                            // Determine new target index
-                                            var newTargetIndex = currentIndex + Math.round(draggedPositions);
-                                            newTargetIndex = Math.max(0, Math.min(mediaTabsModel.count - 1, newTargetIndex));
-
-                                            if (newTargetIndex !== targetIndex) {
-                                                targetIndex = newTargetIndex;
-                                                // Update visual offsets of other tabs
-                                                updateOtherTabOffsets(currentIndex, targetIndex, tabWidth);
+                                            onPressed: {
+                                                // Store global position for accurate tracking
+                                                var globalPos = mapToGlobal(mouse.x, mouse.y);
+                                                dragStartGlobalX = globalPos.x;
+                                                lastGlobalX = globalPos.x;
+                                                isDragging = false;
+                                                targetIndex = mediaTabButton.tabIndex;
                                             }
 
-                                            lastGlobalX = globalPos.x;
-                                        }
-                                    }
+                                            onPositionChanged: {
+                                                if (!pressed)
+                                                    return;
 
-                                    onReleased: {
-                                        if (!isDragging) {
-                                            // It was a click, switch to this tab
-                                            mainTabs.currentIndex = index + 2; // +2 for Preferences and Home
-                                        } else {
-                                            // Perform the actual move
-                                            var currentIndex = mediaTabButton.tabIndex;
-                                            if (targetIndex !== currentIndex && targetIndex >= 0) {
-                                                moveMediaTab(currentIndex, targetIndex);
-                                            }
+                                                var globalPos = mapToGlobal(mouse.x, mouse.y);
+                                                var totalDeltaX = globalPos.x - dragStartGlobalX;
 
-                                            // Reset all visual offsets
-                                            resetAllTabOffsets();
-                                        }
+                                                // Start dragging after threshold
+                                                if (!isDragging && Math.abs(totalDeltaX) > 10) {
+                                                    isDragging = true;
+                                                    mediaTabButton.beingDragged = true;
+                                                }
 
-                                        mediaTabButton.beingDragged = false;
-                                        mediaTabButton.visualOffset = 0;
-                                        isDragging = false;
-                                        targetIndex = -1;
-                                    }
+                                                if (isDragging) {
+                                                    // Update visual position of dragged tab - follows mouse 1:1
+                                                    mediaTabButton.visualOffset = totalDeltaX;
 
-                                    function updateOtherTabOffsets(draggedIndex, targetIdx, tabWidth) {
-                                        for (var i = 0; i < mediaTabsRepeater.count; i++) {
-                                            var tab = mediaTabsRepeater.itemAt(i);
-                                            if (tab && i !== draggedIndex) {
-                                                var offset = 0;
-                                                if (draggedIndex < targetIdx) {
-                                                    // Dragging right: tabs between draggedIndex and targetIdx shift left
-                                                    if (i > draggedIndex && i <= targetIdx) {
-                                                        offset = -tabWidth;
+                                                    // Calculate target position
+                                                    var tabWidth = mediaTabButton.width;
+                                                    var currentIndex = mediaTabButton.tabIndex;
+                                                    var draggedPositions = totalDeltaX / tabWidth;
+
+                                                    // Determine new target index
+                                                    var newTargetIndex = currentIndex + Math.round(draggedPositions);
+                                                    newTargetIndex = Math.max(0, Math.min(mediaTabsModel.count - 1, newTargetIndex));
+
+                                                    if (newTargetIndex !== targetIndex) {
+                                                        targetIndex = newTargetIndex;
+                                                        // Update visual offsets of other tabs
+                                                        updateOtherTabOffsets(currentIndex, targetIndex, tabWidth);
                                                     }
-                                                } else if (draggedIndex > targetIdx) {
-                                                    // Dragging left: tabs between targetIdx and draggedIndex shift right
-                                                    if (i >= targetIdx && i < draggedIndex) {
-                                                        offset = tabWidth;
+
+                                                    lastGlobalX = globalPos.x;
+                                                }
+                                            }
+
+                                            onReleased: {
+                                                if (!isDragging) {
+                                                    // It was a click, switch to this tab
+                                                    mainTabs.currentIndex = index + 2; // +2 for Preferences and Home
+                                                } else {
+                                                    // Perform the actual move
+                                                    var currentIndex = mediaTabButton.tabIndex;
+                                                    if (targetIndex !== currentIndex && targetIndex >= 0) {
+                                                        moveMediaTab(currentIndex, targetIndex);
+                                                    }
+
+                                                    // Reset all visual offsets
+                                                    resetAllTabOffsets();
+                                                }
+
+                                                mediaTabButton.beingDragged = false;
+                                                mediaTabButton.visualOffset = 0;
+                                                isDragging = false;
+                                                targetIndex = -1;
+                                            }
+
+                                            function updateOtherTabOffsets(draggedIndex, targetIdx, tabWidth) {
+                                                for (var i = 0; i < mediaTabsRepeater.count; i++) {
+                                                    var tab = mediaTabsRepeater.itemAt(i);
+                                                    if (tab && i !== draggedIndex) {
+                                                        var offset = 0;
+                                                        if (draggedIndex < targetIdx) {
+                                                            // Dragging right: tabs between draggedIndex and targetIdx shift left
+                                                            if (i > draggedIndex && i <= targetIdx) {
+                                                                offset = -tabWidth;
+                                                            }
+                                                        } else if (draggedIndex > targetIdx) {
+                                                            // Dragging left: tabs between targetIdx and draggedIndex shift right
+                                                            if (i >= targetIdx && i < draggedIndex) {
+                                                                offset = tabWidth;
+                                                            }
+                                                        }
+                                                        tab.visualOffset = offset;
                                                     }
                                                 }
-                                                tab.visualOffset = offset;
                                             }
-                                        }
-                                    }
 
-                                    function resetAllTabOffsets() {
-                                        for (var i = 0; i < mediaTabsRepeater.count; i++) {
-                                            var tab = mediaTabsRepeater.itemAt(i);
-                                            if (tab) {
-                                                tab.visualOffset = 0;
+                                            function resetAllTabOffsets() {
+                                                for (var i = 0; i < mediaTabsRepeater.count; i++) {
+                                                    var tab = mediaTabsRepeater.itemAt(i);
+                                                    if (tab) {
+                                                        tab.visualOffset = 0;
+                                                    }
+                                                }
                                             }
                                         }
                                     }
                                 }
-                            }
-                        }
+                            } // end TabBar
+                        } // end Item wrapper for TabBar
 
-                        // Add tab button (+) - not a real tab, just a button
+                        // Add tab button (+) - outside TabBar for proper rendering
                         Components.IconButton {
                             id: addTabButton
                             width: 40
+                            height: Components.Theme.tabButtonHeight
+                            Layout.preferredWidth: 40
+                            Layout.minimumWidth: 40
+                            Layout.preferredHeight: Components.Theme.tabButtonHeight
                             iconText: "+"
                             iconSize: 18
                             bgColor: backgroundColor
@@ -550,7 +559,7 @@ Window {
                                 }
                             }
                         }
-                    }
+                    } // end RowLayout for TabBar and add button
 
                     StackLayout {
                         id: tabStack
@@ -1220,20 +1229,21 @@ Window {
                                     // Combined sliders + link button (video tabs only)
                                     ColumnLayout {
                                         Layout.fillHeight: true
-                                        Layout.preferredWidth: 45    // wide enough to cover both sliders
+                                        Layout.preferredWidth: isSlideshow ? 50 : 100
+                                        Layout.maximumWidth: isSlideshow ? 50 : 100
                                         spacing: 6
 
                                         RowLayout {
                                             Layout.fillWidth: true
                                             Layout.fillHeight: true
-                                            spacing: 8
+                                            spacing: 4
 
                                             // Volume slider column
                                             ColumnLayout {
                                                 visible: !isSlideshow
                                                 Layout.fillHeight: true
-                                                Layout.fillWidth: true
-                                                spacing: 4
+                                                Layout.preferredWidth: 45
+                                                spacing: 8
 
                                                 Label {
                                                     text: qsTr("Volume")
@@ -1251,7 +1261,7 @@ Window {
                                                     value: tabData ? tabData.volume : 1.0
                                                     Layout.fillHeight: true
                                                     Layout.alignment: Qt.AlignHCenter
-                                                    Layout.preferredWidth: 44
+                                                    Layout.preferredWidth: 36
                                                     bgColor: panelColor
                                                     accentCol: accentColor
                                                     borderCol: borderColor
@@ -1291,7 +1301,7 @@ Window {
                                             // Brightness/alpha slider column
                                             ColumnLayout {
                                                 Layout.fillHeight: true
-                                                Layout.preferredWidth: 60
+                                                Layout.preferredWidth: 45
                                                 spacing: 8
 
                                                 Label {
@@ -1309,7 +1319,7 @@ Window {
                                                     to: 1.0
                                                     value: tabData ? tabData.brightness : 1.0
                                                     Layout.fillHeight: true
-                                                    Layout.preferredWidth: 44
+                                                    Layout.preferredWidth: 36
                                                     Layout.alignment: Qt.AlignHCenter
                                                     bgColor: panelColor
                                                     accentCol: accentColor
