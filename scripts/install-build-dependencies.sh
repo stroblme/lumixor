@@ -1,6 +1,54 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Detect OS early
+UNAME_OUT="$(uname -s || echo unknown)"
+
+if [[ "$UNAME_OUT" == "Darwin" ]]; then
+  ######################################################################
+  # macOS (Darwin) section
+  ######################################################################
+  echo "Detected OS: macOS"
+
+  if ! command -v brew >/dev/null 2>&1; then
+    echo "Homebrew is required but not installed."
+    echo "Install it from https://brew.sh/ and rerun this script."
+    exit 1
+  fi
+
+  MACOS_PKGS=(
+    qt
+    exiv2
+    cmake
+  )
+
+  echo "The following packages will be installed with Homebrew:"
+  printf '  %s\n' "${MACOS_PKGS[@]}"
+
+  # Update & install
+  brew update
+  brew install "${MACOS_PKGS[@]}" || true   # ignore 'already installed' errors
+
+  echo
+  echo "macOS dependencies installed (or already present)."
+
+  # Show a quick hint for Qt path
+  QT_PREFIX="$(brew --prefix qt 2>/dev/null || echo "")"
+  if [[ -n "$QT_PREFIX" ]]; then
+    echo
+    echo "Qt was installed at: $QT_PREFIX"
+    echo "If CMake can't find Qt, you may need to pass:"
+    echo "  cmake -DCMAKE_PREFIX_PATH=\"$QT_PREFIX\" .."
+  fi
+
+  echo "Done."
+  exit 0
+fi
+
+######################################################################
+# Linux section (unchanged logic)
+######################################################################
+
 # Detect sudo usage
 SUDO=""
 if [ "$EUID" -ne 0 ]; then
@@ -62,10 +110,8 @@ install_opensuse() {
     echo "zypper not found. Cannot install on this system."
     exit 1
   fi
-
   echo "The following packages will be installed for openSUSE:"
   printf '  %s\n' "${OPENSUSE_PKGS[@]}"
-
   echo "Installing build dependencies for openSUSE..."
   ${SUDO} zypper --non-interactive install "${OPENSUSE_PKGS[@]}"
   echo "openSUSE packages installed (or already present)."
@@ -82,15 +128,11 @@ install_debian() {
     echo "apt/apt-get not found. Cannot install on this system."
     exit 1
   fi
-
   echo "The following packages will be installed for Debian/Ubuntu:"
   printf '  %s\n' "${DEBIAN_PKGS[@]}"
-
   echo "Updating package lists..."
   ${SUDO} ${APT_CMD} update
-
   echo "Installing build dependencies for Debian/Ubuntu..."
-  # apt supports -y; apt-get uses -y as well
   ${SUDO} ${APT_CMD} install -y "${DEBIAN_PKGS[@]}"
   echo "Debian/Ubuntu packages installed (or already present)."
 }
@@ -102,7 +144,7 @@ elif [[ "$os_id" == debian || "$os_id" == ubuntu || "$os_like" == *debian* ]]; t
   install_debian
 else
   echo "Unsupported or unrecognized distribution: ID='${ID}' ID_LIKE='${ID_LIKE:-}'"
-  echo "This script currently supports openSUSE (zypper) and Debian/Ubuntu (apt)."
+  echo "This script currently supports macOS (Homebrew), openSUSE (zypper) and Debian/Ubuntu (apt)."
   exit 2
 fi
 
