@@ -20,7 +20,7 @@ GroupBox {
     }
 
     background: Rectangle {
-        y: control.topPadding - control.bottomPadding
+        y: control.topPadding - control.bottomPadding / 2
         width: parent.width
         height: parent.height - control.topPadding + control.bottomPadding
         color: "transparent"

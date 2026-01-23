@@ -40,6 +40,7 @@ Item {
 
         Components.StyledGroupBox {
             Layout.fillWidth: true
+            Layout.preferredHeight: 200
             title: qsTr("Slideshow")
             panelCol: root.panelColor
             txtColor: root.textColor
@@ -129,6 +130,7 @@ Item {
 
         Components.StyledGroupBox {
             Layout.fillWidth: true
+            Layout.preferredHeight: 140
             title: qsTr("Video")
             panelCol: root.panelColor
             txtColor: root.textColor
@@ -184,6 +186,7 @@ Item {
 
         Components.StyledGroupBox {
             Layout.fillWidth: true
+            Layout.preferredHeight: 140
             title: qsTr("Output")
             panelCol: root.panelColor
             txtColor: root.textColor
@@ -233,6 +236,7 @@ Item {
 
         Components.StyledGroupBox {
             Layout.fillWidth: true
+            Layout.preferredHeight: 100
             title: qsTr("Appearance")
             panelCol: root.panelColor
             txtColor: root.textColor
@@ -259,7 +263,7 @@ Item {
                     textColor: root.textColor
                     borderColor: root.borderColor
                     Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
-                    Layout.preferredWidth: 200
+                    Layout.preferredWidth: 280
                     onColorChanged: root.accentColorUpdated(newColor.toString())
                 }
             }
