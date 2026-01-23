@@ -73,9 +73,12 @@ Window {
     property int activeSlideshowTabId: -1
     property int activeSlideshowTabIndex: -1
 
+    // Number of fixed tabs before media tabs (Preferences only when media exists, Preferences+Home when no media)
+    property int fixedTabCount: mediaTabsModel.count > 0 ? 1 : 2
+
     // Helper to get the currently active media tab (or null if on Preferences/Home)
     function getActiveMediaTab() {
-        var idx = mainTabs.currentIndex - 2; // 0=Preferences, 1=Home, 2+=media tabs
+        var idx = mainTabs.currentIndex - fixedTabCount; // Preferences (+ Home when no media)
         if (idx >= 0 && idx < mediaTabsModel.count) {
             return mediaTabsModel.get(idx);
         }
@@ -118,8 +121,8 @@ Window {
             ,
             "isSeeking": false   // True while user is dragging the seek slider
         });
-        // Switch to the new tab
-        mainTabs.currentIndex = mediaTabsModel.count + 1; // +2 for Preferences/Home, -1 for 0-based
+        // Switch to the new tab (fixedTabCount will be 1 since we now have media)
+        mainTabs.currentIndex = mediaTabsModel.count; // 1 (Preferences) + count - 1 (0-based) = count
         return mediaTabsModel.count - 1;
     }
 
@@ -175,9 +178,9 @@ Window {
             }
             // Remove from shared model - OutputWindow will react automatically
             mediaTabsModel.remove(tabIndex);
-            // Switch to Home tab if we closed the current tab
-            if (mainTabs.currentIndex > mediaTabsModel.count + 1) {
-                mainTabs.currentIndex = 1;
+            // Switch to Home tab (or first media tab) if we closed the current tab
+            if (mainTabs.currentIndex > mediaTabsModel.count + fixedTabCount - 1) {
+                mainTabs.currentIndex = mediaTabsModel.count > 0 ? 1 : 1; // First media tab or Home
             }
         }
     }
@@ -298,10 +301,12 @@ Window {
                                         text: qsTr("Preferences")
                                     }
 
-                                    // Fixed tabs - Home
+                                    // Fixed tabs - Home (hidden when media tabs exist)
                                     Components.StyledTabButton {
                                         id: homeTab
                                         text: qsTr("Home")
+                                        visible: mediaTabsModel.count === 0
+                                        width: visible ? implicitWidth : 0
                                     }
 
                                     // Dynamic media tabs with drag-and-drop support
@@ -472,7 +477,7 @@ Window {
                                                 onReleased: {
                                                     if (!isDragging) {
                                                         // It was a click, switch to this tab
-                                                        mainTabs.currentIndex = index + 2; // +2 for Preferences and Home
+                                                        mainTabs.currentIndex = index + fixedTabCount; // +1 for Preferences (Home is hidden when media exists)
                                                     } else {
                                                         // Perform the actual move
                                                         var currentIndex = mediaTabButton.tabIndex;
@@ -574,7 +579,11 @@ Window {
                             Layout.fillWidth: true
                             Layout.fillHeight: true
                             Layout.topMargin: 8
-                            currentIndex: mainTabs.currentIndex
+                            // When Home tab is hidden (media exists), we need to map tab indices to stack indices
+                            // TabBar: [Preferences, Media1, Media2, ...] -> StackLayout: [Preferences, Home(hidden), Media1, Media2, ...]
+                            // When no media: TabBar index = StackLayout index
+                            // When media exists: StackLayout index = TabBar index + 1 (skip hidden Home) for indices > 0
+                            currentIndex: mediaTabsModel.count > 0 && mainTabs.currentIndex > 0 ? mainTabs.currentIndex + 1 : mainTabs.currentIndex
 
                             // Preferences tab content (embedded, no separate window)
                             Item {
@@ -631,7 +640,7 @@ Window {
                                 }
                             }
 
-                            // Home tab content
+                            // Home tab content (hidden when media tabs exist via index mapping)
                             Item {
                                 Layout.fillWidth: true
                                 Layout.fillHeight: true
@@ -641,6 +650,10 @@ Window {
                                     anchors.margins: 16
                                     spacing: 16
 
+                                    Item {
+                                        Layout.fillHeight: true
+                                        Layout.preferredHeight: 20
+                                    }
                                     Label {
                                         text: qsTr("Welcome to Lumixor")
                                         color: textColor
@@ -764,10 +777,6 @@ Window {
                                             ToolTip.visible: hovered
                                             ToolTip.text: qsTr("Recursively scan a folder - creates new tabs automatically")
                                         }
-                                    }
-
-                                    Item {
-                                        Layout.fillHeight: true
                                     }
                                 }
                             }
