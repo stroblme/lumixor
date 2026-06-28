@@ -23,6 +23,7 @@
     <file>panels/HomePanel.qml</file>
     <file>panels/PreferencesPanel.qml</file>
     <file>panels/MediaTabContent.qml</file>
+    <file>panels/PreviewPanel.qml</file>
     <file>components/Fonts.qml</file>
   </qresource>
 </RCC>

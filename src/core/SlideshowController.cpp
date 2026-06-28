@@ -107,7 +107,6 @@ void SlideshowController::start(int intervalMs)
             qDebug() << "Slideshow showing image index" << m_currentIndex << ":" << imagePath;
             m_currentImagePath = imagePath;
             emit currentImagePathChanged();
-            m_outputWindow->fadeToImage(imagePath);
         }
     }
 
@@ -245,7 +244,6 @@ void SlideshowController::advance()
         qDebug() << "Slideshow advance to" << m_currentIndex << ":" << imagePath;
         m_currentImagePath = imagePath;
         emit currentImagePathChanged();
-        m_outputWindow->fadeToImage(imagePath);
     }
 }
 

@@ -1,7 +1,5 @@
 import QtQuick 2.12
 import QtQuick.Window 2.12
-import QtQuick.Controls 2.12
-import QtMultimedia 5.15
 import "components" as Components
 
 Window {
@@ -12,50 +10,12 @@ Window {
     height: 600
     color: "#000000"
 
-    property bool isFading: false
-    property string pendingImage: ""
-    property string nextImage: ""
-    property string activeMedia: "image"
-
-    // External media tabs model from ControlWindow - the single source of truth
-    property var externalMediaTabsModel: null
-
-    // Unified media layers model - used when external model is not set (backward compatibility)
+    // Unified media layers model - the single source of truth for the output.
     ListModel {
         id: mediaLayersModel
     }
 
-    // Get the active model - prefer external model if set
-    function getActiveModel() {
-        return externalMediaTabsModel ? externalMediaTabsModel : mediaLayersModel;
-    }
-
-    // URL helpers
-    function urlForPath(p) {
-        if (!p)
-            return "";
-        if (p.indexOf(":/") !== -1)
-            return p;
-        if (p.startsWith("/"))
-            return "file://" + p;
-        return p;
-    }
-
-    function imageUrlForPath(p) {
-        if (!p)
-            return "";
-        if (p.indexOf(":/") !== -1)
-            return p;
-        if (p.startsWith("/"))
-            return "image://exif/" + encodeURIComponent(p);
-        return p;
-    }
-
-    // === Public API ===
-
-    function setExternalMediaTabsModel(model) {
-        externalMediaTabsModel = model;
-    }
+    // === Media layer API (called from ControlWindow and OutputWindow.cpp) ===
 
     // Update or add a media layer
     function setMediaLayer(tabId, mediaType, path, brightness, playing, zOrder) {
@@ -175,28 +135,6 @@ Window {
         console.log("OutputWindow: layer " + tabId + " not found for brightness update");
     }
 
-    // Legacy single player for backward compatibility
-    MediaPlayer {
-        id: player
-        autoPlay: false
-        onPlaybackStateChanged: {
-            if (playbackState === MediaPlayer.StoppedState) {
-                if (playbackController && playbackController.notifyMediaFinished)
-                    playbackController.notifyMediaFinished();
-            }
-        }
-    }
-
-    VideoOutput {
-        id: videoOutput
-        anchors.fill: parent
-        source: player
-        visible: false
-        fillMode: VideoOutput.PreserveAspectFit
-        opacity: 1.0
-        z: 1
-    }
-
     // Unified media layers container
     Item {
         id: mediaLayersContainer
@@ -226,16 +164,6 @@ Window {
         }
     }
 
-    // Legacy image item - hidden
-    Image {
-        id: imageItem
-        anchors.fill: parent
-        fillMode: Image.PreserveAspectFit
-        visible: false
-        opacity: 1.0
-        z: 0
-    }
-
     // Blackout overlay
     Rectangle {
         id: blackoutRect
@@ -253,83 +181,14 @@ Window {
         blackoutRect.visible = blackoutRect.opacity > 0.0;
     }
 
-    function setImageBrightness(level) {
-        imageItem.opacity = level;
+    // Escape hatch: never let a fullscreen output window trap the controls behind it.
+    // F toggles fullscreen; Escape returns to a normal, movable window.
+    Shortcut {
+        sequence: "F"
+        onActivated: root.visibility = (root.visibility === Window.FullScreen) ? Window.Windowed : Window.FullScreen
     }
-
-    function setVideoBrightness(level) {
-        videoOutput.opacity = level;
-    }
-
-    function setBlackout(enable) {
-        setBrightness(enable ? 0.0 : 1.0);
-        if (enable) {
-            player.pause();
-        }
-    }
-
-    function showVideo() {
-        activeMedia = "video";
-        videoOutput.visible = true;
-        imageItem.visible = true;
-        blackoutRect.visible = false;
-        blackoutRect.opacity = 0.0;
-    }
-
-    function showImage(path) {
-        activeMedia = "image";
-        imageItem.source = imageUrlForPath(path);
-        imageItem.opacity = 1.0;
-        imageItem.visible = true;
-        videoOutput.visible = true;
-        blackoutRect.visible = false;
-        blackoutRect.opacity = 0.0;
-    }
-
-    function fadeToImage(path) {
-        // Legacy function - disabled in favor of media layers system
-        console.log("fadeToImage called (legacy, ignored): " + path);
-    }
-
-    SequentialAnimation {
-        id: crossFade
-        running: false
-        NumberAnimation {
-            target: imageItem
-            property: "opacity"
-            from: 1
-            to: 0
-            duration: 200
-        }
-        ScriptAction {
-            script: imageItem.source = root.nextImage
-        }
-        NumberAnimation {
-            target: imageItem
-            property: "opacity"
-            from: 0
-            to: 1
-            duration: 200
-        }
-        onStopped: {
-            isFading = false;
-            if (pendingImage.length > 0) {
-                var p = pendingImage;
-                pendingImage = "";
-                nextImage = p;
-                crossFade.start();
-            }
-            imageItem.visible = true;
-            videoOutput.visible = true;
-            blackoutRect.visible = false;
-        }
-    }
-
-    Connections {
-        target: playbackController
-        onSourceChanged: player.source = playbackController.source
-        onPlayRequested: player.play()
-        onPauseRequested: player.pause()
-        onStopRequested: player.stop()
+    Shortcut {
+        sequence: "Escape"
+        onActivated: root.visibility = Window.Windowed
     }
 }

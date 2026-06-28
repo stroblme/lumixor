@@ -53,8 +53,15 @@ int main(int argc, char *argv[])
     engine.load(QUrl(QStringLiteral("qrc:/qml/ControlWindow.qml")));
 
     const auto screens = app.screens();
-    const int targetScreen = cfg.outputScreenIndex;
-    const bool singleScreen = screens.size() <= 1;
+    // The control window lives on the primary screen (index 0). Only auto-fullscreen
+    // the output when it has a *different* screen to live on; otherwise a fullscreen
+    // output covers the controls with no reliable way back (raise() is a no-op on
+    // Wayland). In the same-screen / single-screen case we keep it windowed and the
+    // user presses F on the output window to fullscreen it where they want.
+    int targetScreen = cfg.outputScreenIndex;
+    if (targetScreen < 0 || targetScreen >= screens.size())
+        targetScreen = screens.size() > 1 ? 1 : 0;
+    const bool outputOnOwnScreen = screens.size() > 1 && targetScreen != 0;
 
     QWindow *controlWindow = nullptr;
     QWindow *outWindow = nullptr;
@@ -88,12 +95,22 @@ int main(int argc, char *argv[])
                 outWindow = w;
                 w->resize(cfg.outputWidth, cfg.outputHeight);
             }
-            outputWindow.fullscreenOnScreen(targetScreen);
+            if (outputOnOwnScreen)
+            {
+                outputWindow.fullscreenOnScreen(targetScreen); // dedicated output screen
+            }
+            else if (w && !screens.isEmpty())
+            {
+                // Same screen as the controls (or single screen): stay windowed so it
+                // never covers the control window. Press F on it to fullscreen.
+                w->setScreen(screens[targetScreen]);
+            }
         }
     }
 
-    // On single screen, ensure control window is above output window
-    if (singleScreen && controlWindow && outWindow)
+    // When the output shares the control window's screen, keep the controls in front
+    // (best-effort; some compositors ignore raise()).
+    if (controlWindow && outWindow && !outputOnOwnScreen)
     {
         controlWindow->raise();
         controlWindow->requestActivate();

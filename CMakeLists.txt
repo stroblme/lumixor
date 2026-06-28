@@ -77,3 +77,18 @@ install(FILES resources/lumixor.desktop
 install(FILES resources/lumixor.svg
     DESTINATION ${CMAKE_INSTALL_DATADIR}/icons/hicolor/scalable/apps
 )
+
+# === Unit tests (off by default; `make test` enables them) ===
+option(BUILD_TESTS "Build unit tests" OFF)
+if(BUILD_TESTS)
+    enable_testing()
+    find_package(Qt5 COMPONENTS Test REQUIRED)
+
+    add_executable(tst_mediamanager
+        tests/tst_mediamanager.cpp
+        src/core/MediaManager.cpp
+    )
+    target_include_directories(tst_mediamanager PRIVATE src/core)
+    target_link_libraries(tst_mediamanager Qt5::Core Qt5::Test)
+    add_test(NAME mediamanager COMMAND tst_mediamanager)
+endif()

@@ -28,6 +28,16 @@ You can easily build the application yourself by
 Omit the `--install` flag if you don't want to install the applicaiton on your system.
 Passing `--run` instead will build and run the application. 
 
+Alternatively, use the Makefile shortcuts:
+```
+make deps      # install build dependencies
+make build     # build (incremental, Release by default)
+make install   # build and install to ~/.local
+make run       # build and run
+make help      # list all targets
+```
+Unlike the build script, `make build` reuses the existing build directory for incremental compiles.
+
 ## Usage
 
 On startup, two windows will open. One is the so called "Output Window", the other is the "Control Window".

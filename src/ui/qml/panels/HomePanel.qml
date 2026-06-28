@@ -3,26 +3,30 @@ import QtQuick.Controls 2.12
 import QtQuick.Layouts 1.12
 import "../components" as Components
 
+// Welcome screen shown when no media tabs exist. Emits signals; ControlWindow
+// opens the dialogs and creates the tabs.
 Item {
     id: root
 
     // Theme colors - passed from parent
-    property color backgroundColor: "#121212"
     property color panelColor: "#1E1E1E"
     property color accentColor: "#78909C"
     property color textColor: "#E0E0E0"
     property color subtleTextColor: "#9E9E9E"
     property color borderColor: "#333333"
 
-    // Signals
-    signal addFilesClicked(var files)
-    signal addFolderClicked(string folder)
+    signal addFilesClicked
+    signal addFolderClicked
 
     ColumnLayout {
         anchors.fill: parent
-        anchors.margins: Components.Theme.margins
-        spacing: Components.Theme.spacing
+        anchors.margins: 16
+        spacing: 16
 
+        Item {
+            Layout.fillHeight: true
+            Layout.preferredHeight: 20
+        }
         Label {
             text: qsTr("Welcome to Lumixor")
             color: root.textColor
@@ -34,7 +38,6 @@ Item {
         Label {
             text: qsTr("Add media files to get started")
             color: root.subtleTextColor
-            font.pixelSize: Components.Theme.fontSize
             Layout.alignment: Qt.AlignHCenter
         }
 
@@ -55,7 +58,7 @@ Item {
                 pressedColor: root.accentColor
                 txtColor: root.textColor
                 borderCol: root.borderColor
-                onClicked: root.addFilesClicked("")
+                onClicked: root.addFilesClicked()
                 ToolTip.visible: hovered
                 ToolTip.text: qsTr("Add images or videos - creates new tabs automatically")
             }
@@ -68,14 +71,10 @@ Item {
                 pressedColor: root.accentColor
                 txtColor: root.textColor
                 borderCol: root.borderColor
-                onClicked: root.addFolderClicked("")
+                onClicked: root.addFolderClicked()
                 ToolTip.visible: hovered
                 ToolTip.text: qsTr("Recursively scan a folder - creates new tabs automatically")
             }
-        }
-
-        Item {
-            Layout.fillHeight: true
         }
     }
 }

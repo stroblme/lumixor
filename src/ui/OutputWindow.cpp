@@ -76,60 +76,12 @@ int OutputWindow::screenCount() const
     return qApp->screens().size();
 }
 
-void OutputWindow::showVideo()
-{
-    qDebug() << "OutputWindow: showVideo()" << (m_root != nullptr);
-    if (!m_root)
-        return;
-    QMetaObject::invokeMethod(m_root, "showVideo");
-}
-
-void OutputWindow::showImage(const QString &path)
-{
-    qDebug() << "OutputWindow: showImage(" << path << ") root=" << (m_root != nullptr);
-    if (!m_root)
-        return;
-    QMetaObject::invokeMethod(m_root, "showImage", Q_ARG(QVariant, QVariant(path)));
-}
-
-void OutputWindow::fadeToImage(const QString &path)
-{
-    qDebug() << "OutputWindow: fadeToImage(" << path << ") root=" << (m_root != nullptr);
-    if (!m_root)
-        return;
-    QMetaObject::invokeMethod(m_root, "fadeToImage", Q_ARG(QVariant, QVariant(path)));
-}
-
-void OutputWindow::setBlackout(bool enable)
-{
-    qDebug() << "OutputWindow: setBlackout(" << enable << ")";
-    if (!m_root)
-        return;
-    QMetaObject::invokeMethod(m_root, "setBlackout", Q_ARG(QVariant, QVariant(enable)));
-}
-
 void OutputWindow::setBrightness(double level)
 {
     qDebug() << "OutputWindow: setBrightness(" << level << ")";
     if (!m_root)
         return;
     QMetaObject::invokeMethod(m_root, "setBrightness", Q_ARG(QVariant, QVariant(level)));
-}
-
-void OutputWindow::setImageBrightness(double level)
-{
-    qDebug() << "OutputWindow: setImageBrightness(" << level << ")";
-    if (!m_root)
-        return;
-    QMetaObject::invokeMethod(m_root, "setImageBrightness", Q_ARG(QVariant, QVariant(level)));
-}
-
-void OutputWindow::setVideoBrightness(double level)
-{
-    qDebug() << "OutputWindow: setVideoBrightness(" << level << ")";
-    if (!m_root)
-        return;
-    QMetaObject::invokeMethod(m_root, "setVideoBrightness", Q_ARG(QVariant, QVariant(level)));
 }
 
 void OutputWindow::setVideoLayer(int tabId, const QString &path, double brightness, bool playing, int zOrder)
@@ -230,14 +182,6 @@ void OutputWindow::seekVideoLayer(int tabId, int position)
     QMetaObject::invokeMethod(m_root, "seekVideoLayer",
                               Q_ARG(QVariant, QVariant(tabId)),
                               Q_ARG(QVariant, QVariant(position)));
-}
-
-void OutputWindow::setExternalMediaTabsModel(QObject *model)
-{
-    qDebug() << "OutputWindow: setExternalMediaTabsModel(" << model << ")";
-    if (!m_root)
-        return;
-    m_root->setProperty("externalMediaTabsModel", QVariant::fromValue(model));
 }
 
 void OutputWindow::close()

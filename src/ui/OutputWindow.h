@@ -23,13 +23,7 @@ signals:
     void screenCountChanged();
 
 public slots:
-    Q_INVOKABLE void showVideo();
-    Q_INVOKABLE void showImage(const QString &path);
-    Q_INVOKABLE void fadeToImage(const QString &path);
-    Q_INVOKABLE void setBlackout(bool enable);
     Q_INVOKABLE void setBrightness(double level);
-    Q_INVOKABLE void setImageBrightness(double level);
-    Q_INVOKABLE void setVideoBrightness(double level);
     Q_INVOKABLE void setVideoLayer(int tabId, const QString &path, double brightness, bool playing, int zOrder = -1);
     Q_INVOKABLE void setImageLayer(int tabId, const QString &path, double brightness, int zOrder);
     Q_INVOKABLE void setMediaLayerBrightness(int tabId, double brightness);
@@ -40,7 +34,6 @@ public slots:
     Q_INVOKABLE void setMediaLayerZOrder(int tabId, int zOrder);
     Q_INVOKABLE void stopMediaLayer(int tabId);
     Q_INVOKABLE void seekVideoLayer(int tabId, int position);
-    Q_INVOKABLE void setExternalMediaTabsModel(QObject *model);
 
 private:
     QObject *m_root = nullptr;
