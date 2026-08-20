@@ -8,6 +8,9 @@ class OutputBridge : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(int screenCount READ screenCount NOTIFY screenCountChanged)
+    // Shape of the output window, so the preview can be cropped and letterboxed the
+    // same way the audience sees it.
+    Q_PROPERTY(double outputAspect READ outputAspect NOTIFY outputAspectChanged)
 public:
     explicit OutputBridge(QObject *parent = nullptr);
 
@@ -18,9 +21,11 @@ public:
     void fullscreenOnScreen(int screenIndex = 1);
     Q_INVOKABLE void moveToScreen(int screenIndex);
     Q_INVOKABLE int screenCount() const;
+    double outputAspect() const;
 
 signals:
     void screenCountChanged();
+    void outputAspectChanged();
 
     // Playback progress of the output's own media layers. The controls follow these
     // rather than the preview, so the numbers describe what the audience sees and

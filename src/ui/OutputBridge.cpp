@@ -15,6 +15,22 @@ OutputBridge::OutputBridge(QObject *parent)
 void OutputBridge::setRootObject(QObject *root)
 {
     m_root = root;
+    if (QWindow *window = qobject_cast<QWindow *>(m_root))
+    {
+        connect(window, &QWindow::widthChanged, this, &OutputBridge::outputAspectChanged);
+        connect(window, &QWindow::heightChanged, this, &OutputBridge::outputAspectChanged);
+    }
+    emit outputAspectChanged();
+}
+
+double OutputBridge::outputAspect() const
+{
+    const QWindow *window = qobject_cast<const QWindow *>(m_root.data());
+    // 16:9 stands in until the output window exists, which is the shape of most
+    // projectors and what the preview used to assume unconditionally.
+    if (!window || window->width() <= 0 || window->height() <= 0)
+        return 16.0 / 9.0;
+    return double(window->width()) / double(window->height());
 }
 
 void OutputBridge::fullscreenOnScreen(int screenIndex)

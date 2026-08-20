@@ -10,7 +10,8 @@ Item {
 
     property var mediaTabsModel: null
 
-    // Use 16:9 aspect ratio as default (common for presentations)
+    // Shape of the output window. The 16:9 default only applies until a caller
+    // binds it, which ControlWindow does from outputWindow.outputAspect.
     property real outputAspect: 16 / 9
 
     Rectangle {

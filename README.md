@@ -67,7 +67,6 @@ The content of the output window is identical to what you can see in the preview
 
 ## Known Bugs and Limitations
 
-- video briefly lags when slideshow image changes
 - no webm support
 - layout is not responsive
 - no support for OS != Linux atm.

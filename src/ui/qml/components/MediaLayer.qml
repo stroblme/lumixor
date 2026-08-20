@@ -29,6 +29,12 @@ Item {
         ? (layerImage.visible && layerImage.status === Image.Ready)
         : (layerVideoOutput.visible && layerPlayer.status >= MediaPlayer.Loaded)
 
+    // Cap on the decoded size of a slideshow image, which bounds the texture the
+    // render thread has to upload while it is also compositing video. It is a fixed
+    // size rather than the item's own size so that resizing does not force a reload
+    // and so that the output window and the control window's preview share one decode.
+    readonly property size imageDecodeSize: Qt.size(3840, 2160)
+
     // Output signal for seek position reset
     signal seekComplete(int index)
 
@@ -47,14 +53,37 @@ Item {
         }
     }
 
-    // Image display (for slideshow type)
+    // Image display (for slideshow type). The source is set by layerImageNext once
+    // that decode finished, which makes this assignment a pixmap cache hit.
     Image {
         id: layerImage
         anchors.fill: parent
         fillMode: Image.PreserveAspectFit
+        sourceSize: root.imageDecodeSize
         visible: root.layerType === "slideshow" && root.layerPath !== ""
-        source: root.layerType === "slideshow" && root.layerPath !== "" ? Components.Utils.imageUrlForPath(root.layerPath) : ""
         opacity: root.layerBrightness
+    }
+
+    // Back buffer for the slideshow image. A synchronous decode runs on the GUI
+    // thread, and the GStreamer video backend blocks until the GUI thread accepts
+    // each frame, so it would stall playback for the length of the decode. Loading
+    // asynchronously here keeps the visible image up until the new one is ready,
+    // which a plain asynchronous Image does not do.
+    Image {
+        id: layerImageNext
+        visible: false
+        asynchronous: true
+        // fillMode and sourceSize are both part of the pixmap cache key, so they must
+        // match layerImage or the front buffer misses the cache and decodes again on
+        // the GUI thread.
+        fillMode: Image.PreserveAspectFit
+        sourceSize: root.imageDecodeSize
+        source: root.layerType === "slideshow" && root.layerPath !== "" ? Components.Utils.imageUrlForPath(root.layerPath) : ""
+        // Null covers the cleared path, which releases the front buffer's texture.
+        onStatusChanged: {
+            if (status === Image.Ready || status === Image.Null)
+                layerImage.source = source;
+        }
     }
 
     // Video display (for video type)

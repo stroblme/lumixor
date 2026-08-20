@@ -112,6 +112,21 @@ if(BUILD_TESTS)
         SOURCE_QML_DIR="${CMAKE_CURRENT_SOURCE_DIR}/src/ui/qml")
     add_test(NAME qmlresources COMMAND tst_qmlresources)
 
+    add_executable(tst_exifimageprovider tests/tst_exifimageprovider.cpp src/ui/ExifImageProvider.cpp)
+    target_include_directories(tst_exifimageprovider PRIVATE src)
+    target_link_libraries(tst_exifimageprovider Qt5::Test Qt5::Quick Qt5::Gui)
+    add_test(NAME exifimageprovider COMMAND tst_exifimageprovider)
+    set_tests_properties(exifimageprovider PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+
+    # Drives the real MediaLayer.qml against a spy image provider, so it needs the
+    # QML sources rather than the built resources.
+    add_executable(tst_medialayer tests/tst_medialayer.cpp)
+    target_link_libraries(tst_medialayer Qt5::Test Qt5::Quick Qt5::Qml)
+    target_compile_definitions(tst_medialayer PRIVATE
+        SOURCE_QML_DIR="${CMAKE_CURRENT_SOURCE_DIR}/src/ui/qml")
+    add_test(NAME medialayer COMMAND tst_medialayer)
+    set_tests_properties(medialayer PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+
     # Drives the real QML against the real controllers, so it needs the same sources
     # and resources as the application itself.
     add_executable(tst_controlwindow tests/tst_controlwindow.cpp ${SRC} ${HDR} ${RESOURCES})

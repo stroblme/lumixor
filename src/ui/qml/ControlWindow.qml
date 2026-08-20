@@ -506,6 +506,7 @@ Window {
                             Layout.fillWidth: true
                             Layout.fillHeight: true
 
+                            outputAspect: outputWindow.outputAspect
                             mediaTabsModel: controlRoot.mediaTabs
                         }
                     }

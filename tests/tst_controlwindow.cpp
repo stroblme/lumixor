@@ -123,6 +123,7 @@ private slots:
     void removingRunningSlideshowTabClearsActiveId();
     void preferencesAreTheSingleSourceOfTruth();
     void previewLayerReportsContentRect();
+    void previewFollowsOutputWindowAspectRatio();
     void outputDrivesVideoProgress();
     void outputDrivesPlaylistAdvance();
     void lastVideoStopsWhenLoopingIsOff();
@@ -338,6 +339,27 @@ static const char *kVideoSetup =
     "  mediaTabsModel.setProperty(row, 'isPlaying', true);"
     "  return row;"
     "})()";
+
+// The preview only shows what the audience will see if it is shaped like the output
+// window. A portrait image over a landscape video crops differently at 16:9 than at
+// 9:16, so a preview stuck at a fixed ratio misleads exactly when it matters.
+void TestControlWindow::previewFollowsOutputWindowAspectRatio()
+{
+    QWindow *outputWindow = qobject_cast<QWindow *>(m_outputRoot);
+    QVERIFY(outputWindow);
+
+    outputWindow->resize(800, 600);
+    QTRY_COMPARE(m_output->outputAspect(), 800.0 / 600.0);
+    QTRY_COMPARE(findByProperty("outputAspect", "outputAspect").toDouble(), 800.0 / 600.0);
+
+    // A vertical output, which is where a fixed 16:9 preview is most wrong.
+    outputWindow->resize(1080, 1920);
+    QTRY_COMPARE(m_output->outputAspect(), 1080.0 / 1920.0);
+    QTRY_COMPARE(findByProperty("outputAspect", "outputAspect").toDouble(), 1080.0 / 1920.0);
+
+    outputWindow->resize(800, 600);
+    QVERIFY2(g_warnings.isEmpty(), qPrintable(g_warnings.join("\n")));
+}
 
 void TestControlWindow::outputDrivesVideoProgress()
 {
