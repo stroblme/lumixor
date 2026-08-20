@@ -9,6 +9,8 @@
 #include <QVariantList>
 #include <memory>
 
+#include "SpectrumAnalyzer.h"
+
 class AudioAnalyzer : public QObject
 {
     Q_OBJECT
@@ -22,9 +24,9 @@ public:
     ~AudioAnalyzer();
 
     QVariantList spectrum() const;
-    int bandCount() const { return m_bandCount; }
+    int bandCount() const { return m_analyzer.bandCount(); }
     bool isActive() const { return m_active; }
-    qreal gain() const { return m_gain; }
+    qreal gain() const { return m_analyzer.gain(); }
 
     Q_INVOKABLE void start();
     Q_INVOKABLE void stop();
@@ -45,20 +47,14 @@ private slots:
 
 private:
     void setupAudioInput();
-    void performFFT(const QVector<float> &samples);
-    float hammingWindow(int n, int N);
 
     std::unique_ptr<QAudioInput> m_audioInput;
     QIODevice *m_audioDevice = nullptr;
     QTimer m_updateTimer;
 
-    QVector<float> m_spectrum;
-    QVector<float> m_smoothedSpectrum;
-    int m_bandCount = 20;
-    bool m_active = false;
-    qreal m_gain = 1.2;
-
     static constexpr int SAMPLE_RATE = 44100;
     static constexpr int BUFFER_SIZE = 2048;
-    static constexpr float SMOOTHING_FACTOR = 0.3f;
+
+    SpectrumAnalyzer m_analyzer{BUFFER_SIZE};
+    bool m_active = false;
 };
