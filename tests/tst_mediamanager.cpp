@@ -3,6 +3,7 @@
 #include <QtTest>
 #include <QTemporaryDir>
 #include <QFile>
+#include <QSignalSpy>
 #include "MediaManager.h"
 
 class TestMediaManager : public QObject
@@ -14,6 +15,7 @@ private slots:
     void getMediaType();
     void addMedia_filtersUnknownAndTracksState();
     void getMediaPathsFromFolder_filtersByType();
+    void addMediaFromFolder_notifiesOnce();
 };
 
 void TestMediaManager::getMediaType_data()
@@ -87,6 +89,35 @@ void TestMediaManager::getMediaPathsFromFolder_filtersByType()
     const QStringList videos = m.getMediaPathsFromFolder(dir.path(), "video");
     QCOMPARE(videos.size(), 1);
     QVERIFY(videos.first().endsWith("c.mp4"));
+}
+
+void TestMediaManager::addMediaFromFolder_notifiesOnce()
+{
+    QTemporaryDir dir;
+    QVERIFY(dir.isValid());
+
+    for (const QString &name : {"a.jpg", "b.png", "c.mp4", "d.txt"})
+    {
+        QFile f(dir.filePath(name));
+        QVERIFY(f.open(QIODevice::WriteOnly));
+        f.write("x");
+        f.close();
+    }
+
+    MediaManager m;
+    QSignalSpy spy(&m, &MediaManager::itemsChanged);
+
+    QCOMPARE(m.addMediaFromFolder(dir.path()), 3);
+    QCOMPARE(m.count(), 3);
+    // One notification for the whole import: emitting per file makes QML rebuild the
+    // full item list once per file.
+    QCOMPARE(spy.count(), 1);
+
+    // A folder with nothing usable must not notify at all.
+    QTemporaryDir empty;
+    QVERIFY(empty.isValid());
+    QCOMPARE(m.addMediaFromFolder(empty.path()), 0);
+    QCOMPARE(spy.count(), 1);
 }
 
 QTEST_GUILESS_MAIN(TestMediaManager)
