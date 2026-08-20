@@ -84,13 +84,13 @@ The content of the output window is identical to what you can see in the preview
 - **xjadeo** – Video player synced to external timecode (LTC/MTC). Playback only; no mixing, effects, or multi-source support.
 - **ffplay / mpv** – Lightweight CLI players. No GUI, no layer compositing, no live control.
 
-### Commercial (for reference)
+### Commercial
 
 - **Resolume** – Industry-standard VJ software with effects, MIDI, projection mapping. Closed-source, expensive, heavy resource usage.
 - **VDMX** – Powerful but macOS-only and proprietary.
 - **GrandVJ** – Similar to Resolume; closed-source, Windows/macOS only.
 
-## Roadmap (prioritized)
+## Roadmap
 
 1. Workspaces to quickly open up combinations of slideshows/ videos
 2. Ambient light control (qlc+ connection via OSC)
@@ -100,8 +100,3 @@ The content of the output window is identical to what you can see in the preview
 6. Timeline/cue automation + snapshot save/load.
 7. Projection mapping tools and multi-output layout editor.
 8. Better video backend (GStreamer/FFmpeg) & NDI / virtual output.
-
-## Disclaimer
-
-As my skills in the C++/QT-QML Language are quite limited, I heavily relied on LLM-assistance when creating this project.
-Altough I'm trying to keep things as clean and structured as possible, expect some LLM typical artifacts of code generation. 
