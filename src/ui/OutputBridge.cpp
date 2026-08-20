@@ -1,24 +1,23 @@
-#include "OutputWindow.h"
+#include "OutputBridge.h"
 #include <QMetaObject>
 #include <QWindow>
 #include <QScreen>
 #include <QGuiApplication>
 #include <QDebug>
 
-OutputWindow::OutputWindow(PlaybackController *playbackController,
-                           QObject *parent)
-    : QObject(parent),
-      m_playbackController(playbackController)
+OutputBridge::OutputBridge(QObject *parent)
+    : QObject(parent)
 {
+    connect(qApp, &QGuiApplication::screenAdded, this, &OutputBridge::screenCountChanged);
+    connect(qApp, &QGuiApplication::screenRemoved, this, &OutputBridge::screenCountChanged);
 }
 
-void OutputWindow::setRootObject(QObject *root)
+void OutputBridge::setRootObject(QObject *root)
 {
     m_root = root;
-    qDebug() << "OutputWindow: attached to QML root" << root;
 }
 
-void OutputWindow::fullscreenOnScreen(int screenIndex)
+void OutputBridge::fullscreenOnScreen(int screenIndex)
 {
     if (!m_root)
         return;
@@ -41,12 +40,9 @@ void OutputWindow::fullscreenOnScreen(int screenIndex)
         target = screens.at(0);
     }
 
-    qDebug() << "OutputWindow::fullscreenOnScreen - target screen:" << screenIndex
-             << "name:" << target->name()
-             << "geometry:" << target->geometry();
 
     // First, ensure we're not in fullscreen mode to allow screen change
-    if (window->windowState() == Qt::WindowFullScreen)
+    if (window->windowState() & Qt::WindowFullScreen)
     {
         window->showNormal();
     }
@@ -55,38 +51,29 @@ void OutputWindow::fullscreenOnScreen(int screenIndex)
     window->setScreen(target);
     QRect geo = target->geometry();
     window->setGeometry(geo);
-
-    // Process events to ensure the window move is completed
-    qApp->processEvents();
-
-    // Now go fullscreen on the target screen
     window->showFullScreen();
 
-    qDebug() << "OutputWindow::fullscreenOnScreen - window now at:" << window->geometry();
 }
 
-void OutputWindow::moveToScreen(int screenIndex)
+void OutputBridge::moveToScreen(int screenIndex)
 {
-    qDebug() << "OutputWindow::moveToScreen(" << screenIndex << ")";
     fullscreenOnScreen(screenIndex);
 }
 
-int OutputWindow::screenCount() const
+int OutputBridge::screenCount() const
 {
     return qApp->screens().size();
 }
 
-void OutputWindow::setBrightness(double level)
+void OutputBridge::setBrightness(double level)
 {
-    qDebug() << "OutputWindow: setBrightness(" << level << ")";
     if (!m_root)
         return;
     QMetaObject::invokeMethod(m_root, "setBrightness", Q_ARG(QVariant, QVariant(level)));
 }
 
-void OutputWindow::setVideoLayer(int tabId, const QString &path, double brightness, bool playing, int zOrder)
+void OutputBridge::setVideoLayer(int tabId, const QString &path, double brightness, bool playing, int zOrder)
 {
-    qDebug() << "OutputWindow: setVideoLayer(" << tabId << "," << path << "," << brightness << "," << playing << "," << zOrder << ")";
     if (!m_root)
         return;
     QMetaObject::invokeMethod(m_root, "setVideoLayer",
@@ -97,9 +84,8 @@ void OutputWindow::setVideoLayer(int tabId, const QString &path, double brightne
                               Q_ARG(QVariant, QVariant(zOrder)));
 }
 
-void OutputWindow::setImageLayer(int tabId, const QString &path, double brightness, int zOrder)
+void OutputBridge::setImageLayer(int tabId, const QString &path, double brightness, int zOrder)
 {
-    qDebug() << "OutputWindow: setImageLayer(" << tabId << "," << path << "," << brightness << "," << zOrder << ")";
     if (!m_root)
         return;
     QMetaObject::invokeMethod(m_root, "setImageLayer",
@@ -109,9 +95,8 @@ void OutputWindow::setImageLayer(int tabId, const QString &path, double brightne
                               Q_ARG(QVariant, QVariant(zOrder)));
 }
 
-void OutputWindow::setMediaLayerBrightness(int tabId, double brightness)
+void OutputBridge::setMediaLayerBrightness(int tabId, double brightness)
 {
-    qDebug() << "OutputWindow: setMediaLayerBrightness(" << tabId << "," << brightness << ")";
     if (!m_root)
         return;
     QMetaObject::invokeMethod(m_root, "setMediaLayerBrightness",
@@ -119,9 +104,8 @@ void OutputWindow::setMediaLayerBrightness(int tabId, double brightness)
                               Q_ARG(QVariant, QVariant(brightness)));
 }
 
-void OutputWindow::setVideoLayerVolume(int tabId, double volume)
+void OutputBridge::setVideoLayerVolume(int tabId, double volume)
 {
-    qDebug() << "OutputWindow: setVideoLayerVolume(" << tabId << "," << volume << ")";
     if (!m_root)
         return;
     QMetaObject::invokeMethod(m_root, "setVideoLayerVolume",
@@ -129,35 +113,15 @@ void OutputWindow::setVideoLayerVolume(int tabId, double volume)
                               Q_ARG(QVariant, QVariant(volume)));
 }
 
-void OutputWindow::removeVideoLayer(int tabId)
+void OutputBridge::removeMediaLayer(int tabId)
 {
-    qDebug() << "OutputWindow: removeVideoLayer(" << tabId << ")";
-    if (!m_root)
-        return;
-    QMetaObject::invokeMethod(m_root, "removeVideoLayer", Q_ARG(QVariant, QVariant(tabId)));
-}
-
-void OutputWindow::removeMediaLayer(int tabId)
-{
-    qDebug() << "OutputWindow: removeMediaLayer(" << tabId << ")";
     if (!m_root)
         return;
     QMetaObject::invokeMethod(m_root, "removeMediaLayer", Q_ARG(QVariant, QVariant(tabId)));
 }
 
-void OutputWindow::setVideoLayerZOrder(int tabId, int zOrder)
+void OutputBridge::setMediaLayerZOrder(int tabId, int zOrder)
 {
-    qDebug() << "OutputWindow: setVideoLayerZOrder(" << tabId << "," << zOrder << ")";
-    if (!m_root)
-        return;
-    QMetaObject::invokeMethod(m_root, "setVideoLayerZOrder",
-                              Q_ARG(QVariant, QVariant(tabId)),
-                              Q_ARG(QVariant, QVariant(zOrder)));
-}
-
-void OutputWindow::setMediaLayerZOrder(int tabId, int zOrder)
-{
-    qDebug() << "OutputWindow: setMediaLayerZOrder(" << tabId << "," << zOrder << ")";
     if (!m_root)
         return;
     QMetaObject::invokeMethod(m_root, "setMediaLayerZOrder",
@@ -165,18 +129,16 @@ void OutputWindow::setMediaLayerZOrder(int tabId, int zOrder)
                               Q_ARG(QVariant, QVariant(zOrder)));
 }
 
-void OutputWindow::stopMediaLayer(int tabId)
+void OutputBridge::stopMediaLayer(int tabId)
 {
-    qDebug() << "OutputWindow: stopMediaLayer(" << tabId << ")";
     if (!m_root)
         return;
     QMetaObject::invokeMethod(m_root, "stopMediaLayer",
                               Q_ARG(QVariant, QVariant(tabId)));
 }
 
-void OutputWindow::seekVideoLayer(int tabId, int position)
+void OutputBridge::seekVideoLayer(int tabId, int position)
 {
-    qDebug() << "OutputWindow: seekVideoLayer(" << tabId << ", " << position << ")";
     if (!m_root)
         return;
     QMetaObject::invokeMethod(m_root, "seekVideoLayer",
@@ -184,9 +146,8 @@ void OutputWindow::seekVideoLayer(int tabId, int position)
                               Q_ARG(QVariant, QVariant(position)));
 }
 
-void OutputWindow::close()
+void OutputBridge::close()
 {
-    qDebug() << "OutputWindow: close() root=" << (m_root != nullptr);
     if (!m_root)
         return;
 

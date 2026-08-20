@@ -1,15 +1,15 @@
 #pragma once
 #include <QObject>
+#include <QPointer>
 
-#include "../core/PlaybackController.h"
-
-class OutputWindow : public QObject
+// Proxy to the QML output window: forwards layer and brightness calls to the root
+// object of OutputWindow.qml. Not a window itself, despite the previous name.
+class OutputBridge : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(int screenCount READ screenCount NOTIFY screenCountChanged)
 public:
-    explicit OutputWindow(PlaybackController *playbackController,
-                          QObject *parent = nullptr);
+    explicit OutputBridge(QObject *parent = nullptr);
 
     // Attach the QML root Window object (call after engine has loaded the QML)
     Q_INVOKABLE void setRootObject(QObject *root);
@@ -28,14 +28,11 @@ public slots:
     Q_INVOKABLE void setImageLayer(int tabId, const QString &path, double brightness, int zOrder);
     Q_INVOKABLE void setMediaLayerBrightness(int tabId, double brightness);
     Q_INVOKABLE void setVideoLayerVolume(int tabId, double volume);
-    Q_INVOKABLE void removeVideoLayer(int tabId);
     Q_INVOKABLE void removeMediaLayer(int tabId);
-    Q_INVOKABLE void setVideoLayerZOrder(int tabId, int zOrder);
     Q_INVOKABLE void setMediaLayerZOrder(int tabId, int zOrder);
     Q_INVOKABLE void stopMediaLayer(int tabId);
     Q_INVOKABLE void seekVideoLayer(int tabId, int position);
 
 private:
-    QObject *m_root = nullptr;
-    PlaybackController *m_playbackController = nullptr;
+    QPointer<QObject> m_root;
 };

@@ -21,7 +21,10 @@ static int readExifOrientationFromFile(const QString &filePath)
     if (!file.open(QIODevice::ReadOnly))
         return 1;
 
-    QByteArray data = file.readAll();
+    // EXIF lives in the APP1 segment near the start of the file; an APP1 segment is
+    // at most 64 KB. Reading the whole file would pull tens of MB into RAM per
+    // thumbnail just to find a 2-byte tag.
+    const QByteArray data = file.read(128 * 1024);
     file.close();
 
     int pos = data.indexOf("Exif");
@@ -50,7 +53,7 @@ static int readExifOrientationFromFile(const QString &filePath)
 
     auto read16 = [&](int off) -> quint16
     {
-        if (off + 2 > data.size())
+        if (off < 0 || off + 2 > data.size())
             return 0;
         const uchar *p = reinterpret_cast<const uchar *>(data.constData() + off);
         return isLittleEndian ? (quint16(p[0]) | (quint16(p[1]) << 8))
@@ -59,7 +62,7 @@ static int readExifOrientationFromFile(const QString &filePath)
 
     auto read32 = [&](int off) -> quint32
     {
-        if (off + 4 > data.size())
+        if (off < 0 || off + 4 > data.size())
             return 0;
         const uchar *p = reinterpret_cast<const uchar *>(data.constData() + off);
         if (isLittleEndian)
@@ -83,17 +86,18 @@ static int readExifOrientationFromFile(const QString &filePath)
     if (magic != 42)
         return 1;
 
-    // Offset to 1st IFD, relative to start of TIFF header (pos)
-    quint32 ifd0Offset = read32(pos + 4);
-    if (ifd0Offset == 0 || pos + int(ifd0Offset) >= data.size())
+    // Offset to 1st IFD, relative to start of TIFF header (pos). Computed in 64-bit
+    // so an out-of-range value cannot wrap into a negative int.
+    const qint64 ifd0Offset = read32(pos + 4);
+    if (ifd0Offset == 0 || pos + ifd0Offset + 2 > data.size())
         return 1;
 
-    int ifdOffset = pos + int(ifd0Offset);
+    const int ifdOffset = int(pos + ifd0Offset);
 
     // Number of directory entries (2 bytes)
-    quint16 entryCount = read16(ifdOffset);
-    int entriesBase = ifdOffset + 2;
-    if (entriesBase + entryCount * 12 > data.size())
+    const quint16 entryCount = read16(ifdOffset);
+    const int entriesBase = ifdOffset + 2;
+    if (qint64(entriesBase) + qint64(entryCount) * 12 > data.size())
         return 1;
 
     // Each IFD entry is 12 bytes

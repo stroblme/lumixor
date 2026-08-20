@@ -1,4 +1,5 @@
 #include "ControlBridge.h"
+#include "../core/MediaTypes.h"
 #include <QFileDialog>
 
 ControlBridge::ControlBridge(QObject *parent)
@@ -8,8 +9,7 @@ ControlBridge::ControlBridge(QObject *parent)
 
 QStringList ControlBridge::openFileDialog(const QString &caption)
 {
-    return QFileDialog::getOpenFileNames(nullptr, caption, QString(),
-                                         "Media Files (*.jpg *.jpeg *.png *.bmp *.mp4 *.mov *.mkv *.avi);;Images (*.jpg *.jpeg *.png *.bmp);;Videos (*.mp4 *.mov *.mkv *.avi);;All Files (*)");
+    return QFileDialog::getOpenFileNames(nullptr, caption, QString(), MediaTypes::dialogFilter());
 }
 
 QString ControlBridge::openFolderDialog(const QString &caption)
