@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Install dependencies
         run: sudo ./scripts/install-build-dependencies.sh
@@ -32,7 +32,7 @@ jobs:
           tar -C build -czf artifacts/lumixor-ubuntu.tgz lumixor-qt || true
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: lumixor-ubuntu
           path: artifacts/
