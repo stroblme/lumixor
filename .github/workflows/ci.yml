@@ -1,8 +1,8 @@
 name: CI - Linux builds
 
 on:
-  # push:
-  # pull_request:
+  push:
+  pull_request:
   workflow_dispatch:
 
 jobs:
@@ -17,13 +17,13 @@ jobs:
         run: sudo ./scripts/install-build-dependencies.sh
 
       - name: Configure
-        run: |
-          mkdir -p build
-          cd build
-          cmake .. -DCMAKE_BUILD_TYPE=Release
+        run: cmake -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTS=ON
 
       - name: Build
         run: cmake --build build -- -j$(nproc)
+
+      - name: Test
+        run: ctest --test-dir build --output-on-failure
 
       - name: Package
         run: |
