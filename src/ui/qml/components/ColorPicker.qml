@@ -6,9 +6,9 @@ Item {
     id: control
 
     property color selectedColor: "#78909C"
-    property color panelColor: "#1E1E1E"
-    property color textColor: "#E0E0E0"
-    property color borderColor: "#333333"
+    property color panelColor: Components.Theme.panelColor
+    property color textColor: Components.Theme.textColor
+    property color borderColor: Components.Theme.borderColor
 
     signal colorChanged(color newColor)
 
@@ -16,7 +16,7 @@ Item {
     implicitWidth: Math.round(Components.Theme.switchHeight * 8)
 
     // Preset colors
-    property var presetColors: ["#78909C"  // Blue (default)
+    property var presetColors: ["#78909C"  // Blue Grey (default)
         , "#66BB6A"  // Green
         , "#FFA726"  // Orange
         , "#EF5350"  // Red
@@ -24,7 +24,6 @@ Item {
         , "#42A5F5"  // Cyan
         , "#FFEE58"  // Yellow
         , "#EC407A"  // Pink
-        , "#78909C"  // Blue Grey
         , "#8D6E63"   // Brown
     ]
 

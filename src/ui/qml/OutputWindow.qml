@@ -17,24 +17,35 @@ Window {
 
     // === Media layer API (called from ControlWindow and OutputWindow.cpp) ===
 
+    // Row of a layer by tab id, or -1. Every accessor below went through its own copy
+    // of this scan.
+    function indexOfLayer(tabId) {
+        for (var i = 0; i < mediaLayersModel.count; i++) {
+            if (mediaLayersModel.get(i).tabId === tabId)
+                return i;
+        }
+        return -1;
+    }
+
+    function setLayerProperty(tabId, name, value) {
+        var i = indexOfLayer(tabId);
+        if (i >= 0)
+            mediaLayersModel.setProperty(i, name, value);
+    }
+
     // Update or add a media layer
     function setMediaLayer(tabId, mediaType, path, brightness, playing, zOrder) {
-        console.log("OutputWindow.setMediaLayer: tabId=" + tabId + ", type=" + mediaType + ", path=" + path + ", brightness=" + brightness + ", playing=" + playing + ", zOrder=" + zOrder);
-
-        for (var i = 0; i < mediaLayersModel.count; i++) {
-            if (mediaLayersModel.get(i).tabId === tabId) {
-                mediaLayersModel.setProperty(i, "mediaType", mediaType);
-                mediaLayersModel.setProperty(i, "path", path);
-                mediaLayersModel.setProperty(i, "brightness", brightness);
-                mediaLayersModel.setProperty(i, "playing", playing);
-                if (zOrder !== undefined) {
-                    mediaLayersModel.setProperty(i, "zOrder", zOrder);
-                }
-                return;
-            }
+        var i = indexOfLayer(tabId);
+        if (i >= 0) {
+            mediaLayersModel.setProperty(i, "mediaType", mediaType);
+            mediaLayersModel.setProperty(i, "path", path);
+            mediaLayersModel.setProperty(i, "brightness", brightness);
+            mediaLayersModel.setProperty(i, "playing", playing);
+            if (zOrder !== undefined)
+                mediaLayersModel.setProperty(i, "zOrder", zOrder);
+            return;
         }
 
-        // Add new layer
         mediaLayersModel.append({
             tabId: tabId,
             mediaType: mediaType,
@@ -45,29 +56,13 @@ Window {
             zOrder: zOrder !== undefined ? zOrder : mediaLayersModel.count,
             seekPosition: -1
         });
-        console.log("OutputWindow: added media layer " + tabId + ", total: " + mediaLayersModel.count);
-    }
-
-    function setVideoLayerVolume(tabId, volume) {
-        for (var i = 0; i < mediaLayersModel.count; i++) {
-            if (mediaLayersModel.get(i).tabId === tabId) {
-                mediaLayersModel.setProperty(i, "volume", volume);
-                console.log("OutputWindow: set volume for layer " + tabId + " to " + volume);
-                return;
-            }
-        }
     }
 
     function setVideoLayer(tabId, path, brightness, playing, zOrder) {
         var finalZOrder = zOrder;
         if (finalZOrder === undefined) {
-            finalZOrder = 0;
-            for (var i = 0; i < mediaLayersModel.count; i++) {
-                if (mediaLayersModel.get(i).tabId === tabId) {
-                    finalZOrder = mediaLayersModel.get(i).zOrder || 0;
-                    break;
-                }
-            }
+            var i = indexOfLayer(tabId);
+            finalZOrder = i >= 0 ? (mediaLayersModel.get(i).zOrder || 0) : 0;
         }
         setMediaLayer(tabId, "video", path, brightness, playing, finalZOrder);
     }
@@ -76,63 +71,34 @@ Window {
         setMediaLayer(tabId, "slideshow", path, brightness, false, zOrder);
     }
 
+    function setVideoLayerVolume(tabId, volume) {
+        setLayerProperty(tabId, "volume", volume);
+    }
+
     function setMediaLayerZOrder(tabId, zOrder) {
-        for (var i = 0; i < mediaLayersModel.count; i++) {
-            if (mediaLayersModel.get(i).tabId === tabId) {
-                mediaLayersModel.setProperty(i, "zOrder", zOrder);
-                return;
-            }
-        }
-    }
-
-    function setVideoLayerZOrder(tabId, zOrder) {
-        setMediaLayerZOrder(tabId, zOrder);
-    }
-
-    function removeMediaLayer(tabId) {
-        for (var i = 0; i < mediaLayersModel.count; i++) {
-            if (mediaLayersModel.get(i).tabId === tabId) {
-                mediaLayersModel.remove(i);
-                console.log("OutputWindow: removed layer " + tabId);
-                return;
-            }
-        }
-    }
-
-    function stopMediaLayer(tabId) {
-        for (var i = 0; i < mediaLayersModel.count; i++) {
-            if (mediaLayersModel.get(i).tabId === tabId) {
-                mediaLayersModel.setProperty(i, "playing", false);
-                mediaLayersModel.setProperty(i, "path", "");
-                console.log("OutputWindow: stopped and cleared layer " + tabId);
-                return;
-            }
-        }
-    }
-
-    function seekVideoLayer(tabId, position) {
-        console.log("OutputWindow.seekVideoLayer: tabId=" + tabId + ", position=" + position);
-        for (var i = 0; i < mediaLayersModel.count; i++) {
-            if (mediaLayersModel.get(i).tabId === tabId) {
-                mediaLayersModel.setProperty(i, "seekPosition", position);
-                return;
-            }
-        }
-    }
-
-    function removeVideoLayer(tabId) {
-        removeMediaLayer(tabId);
+        setLayerProperty(tabId, "zOrder", zOrder);
     }
 
     function setMediaLayerBrightness(tabId, brightness) {
-        console.log("OutputWindow.setMediaLayerBrightness: tabId=" + tabId + ", brightness=" + brightness);
-        for (var i = 0; i < mediaLayersModel.count; i++) {
-            if (mediaLayersModel.get(i).tabId === tabId) {
-                mediaLayersModel.setProperty(i, "brightness", brightness);
-                return;
-            }
+        setLayerProperty(tabId, "brightness", brightness);
+    }
+
+    function seekVideoLayer(tabId, position) {
+        setLayerProperty(tabId, "seekPosition", position);
+    }
+
+    function removeMediaLayer(tabId) {
+        var i = indexOfLayer(tabId);
+        if (i >= 0)
+            mediaLayersModel.remove(i);
+    }
+
+    function stopMediaLayer(tabId) {
+        var i = indexOfLayer(tabId);
+        if (i >= 0) {
+            mediaLayersModel.setProperty(i, "playing", false);
+            mediaLayersModel.setProperty(i, "path", "");
         }
-        console.log("OutputWindow: layer " + tabId + " not found for brightness update");
     }
 
     // Unified media layers container

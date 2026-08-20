@@ -7,25 +7,12 @@ import "../components" as Components
 // outputWindow is a global QML context property.
 Item {
     id: previewContainer
-
-    property color accentColor: "#78909C"
-    property color borderColor: "#333333"
     property var mediaTabsModel: null
     property bool autoPlayNextVideo: true
     property bool loopVideos: true
 
     // Use 16:9 aspect ratio as default (common for presentations)
     property real outputAspect: 16 / 9
-
-    function imageUrlForPath(p) {
-        if (!p)
-            return "";
-        if (p.indexOf(":/") !== -1)
-            return p;
-        if (p.startsWith("/"))
-            return "image://exif/" + encodeURIComponent(p);
-        return p;
-    }
 
 Rectangle {
     id: previewFrame
@@ -38,7 +25,7 @@ Rectangle {
     height: Math.max(50, isHeightLimited ? previewContainer.height : previewContainer.width / previewContainer.outputAspect)
     radius: Components.Theme.borderRadius
     color: "#000000"
-    border.color: borderColor
+    border.color: Components.Theme.borderColor
     clip: true
 
     // Unified media layers from all tabs (both slideshow and video)
@@ -68,7 +55,6 @@ Rectangle {
             // Handle seek requests
             onSeekPositionChanged: {
                 if (seekPosition >= 0 && mediaType === "video") {
-                    console.log("Preview seeking to: " + seekPosition);
                     previewMediaPlayer.seek(seekPosition);
                     // Reset the seekPosition to -1 after seeking
                     if (index >= 0 && index < mediaTabsModel.count) {
@@ -83,18 +69,17 @@ Rectangle {
                 anchors.fill: parent
                 fillMode: Image.PreserveAspectFit
                 visible: previewMediaItem.mediaType === "slideshow" && previewMediaItem.mediaPath !== ""
-                source: previewMediaItem.mediaType === "slideshow" && previewMediaItem.mediaPath !== "" ? previewContainer.imageUrlForPath(previewMediaItem.mediaPath) : ""
+                source: previewMediaItem.mediaType === "slideshow" && previewMediaItem.mediaPath !== "" ? Components.Utils.imageUrlForPath(previewMediaItem.mediaPath) : ""
                 opacity: previewMediaItem.mediaBrightness
 
                 onSourceChanged: {
-                    console.log("Preview image source changed: " + source + ", visible=" + visible);
                 }
 
                 // Blue border around actual image content (indicates size in output)
                 Rectangle {
                     visible: previewImageItem.visible && previewImageItem.status === Image.Ready
                     color: "transparent"
-                    border.color: accentColor
+                    border.color: Components.Theme.accentColor
                     border.width: 2
                     radius: 2
                     z: 100
@@ -137,7 +122,6 @@ Rectangle {
                 }
 
                 onStatusChanged: {
-                    console.log("Preview MediaPlayer status changed: " + status + ", pendingAutoPlay=" + pendingAutoPlay);
                     if (status === MediaPlayer.Loaded) {
                         if (index >= 0 && index < mediaTabsModel.count) {
                             mediaTabsModel.setProperty(index, "videoDuration", duration);
@@ -154,7 +138,6 @@ Rectangle {
                             advanceToNextVideo(index);
                         } else {
                             // Stop playback - don't auto-advance
-                            console.log("Video ended, auto-play next disabled - stopping playback");
                             mediaTabsModel.setProperty(index, "isPlaying", false);
                             if (outputWindow) {
                                 var tab = mediaTabsModel.get(index);
@@ -168,7 +151,6 @@ Rectangle {
                 }
 
                 onSourceChanged: {
-                    console.log("Preview MediaPlayer source changed: " + source);
                     // When source changes while playing, mark for auto-play when loaded
                     if (source !== "" && previewMediaItem.mediaPlaying) {
                         pendingAutoPlay = true;
@@ -198,7 +180,6 @@ Rectangle {
                         nextIdx = 0;  // Loop back to beginning
                     } else {
                         // Stop playback - don't loop
-                        console.log("Video list ended, looping disabled - stopping playback");
                         mediaTabsModel.setProperty(tabIndex, "isPlaying", false);
                         if (outputWindow) {
                             var stopZOrder = tab.zOrder !== undefined ? tab.zOrder : tabIndex;
@@ -210,7 +191,6 @@ Rectangle {
 
                 var nextItem = mediaModel.get(nextIdx);
                 if (nextItem && nextItem.path) {
-                    console.log("Advancing to next video: index=" + nextIdx + ", path=" + nextItem.path);
 
                     // Update the model
                     mediaTabsModel.setProperty(tabIndex, "currentPath", nextItem.path);
@@ -234,14 +214,13 @@ Rectangle {
                 visible: previewMediaItem.mediaType === "video" && previewMediaItem.mediaPath !== ""
 
                 onVisibleChanged: {
-                    console.log("Preview video visible changed: " + visible + ", path=" + previewMediaItem.mediaPath + ", type=" + previewMediaItem.mediaType);
                 }
 
                 // Blue border around actual video content (indicates size in output)
                 Rectangle {
                     visible: previewVideoOutput.visible && previewMediaPlayer.status >= MediaPlayer.Loaded
                     color: "transparent"
-                    border.color: accentColor
+                    border.color: Components.Theme.accentColor
                     border.width: 2
                     radius: 2
                     z: 100
@@ -260,7 +239,6 @@ Rectangle {
             }
 
             onMediaPlayingChanged: {
-                console.log("Preview mediaPlaying changed: " + mediaPlaying + ", type=" + mediaType + ", path=" + mediaPath);
                 if (mediaType === "video") {
                     if (mediaPlaying && mediaPath !== "") {
                         previewMediaPlayer.play();
@@ -271,18 +249,15 @@ Rectangle {
             }
 
             onMediaPathChanged: {
-                console.log("Preview mediaPath changed: " + mediaPath + ", type=" + mediaType + ", brightness=" + mediaBrightness);
                 if (mediaType === "video" && mediaPath !== "" && mediaPlaying) {
                     previewMediaPlayer.play();
                 }
             }
 
             onMediaBrightnessChanged: {
-                console.log("Preview mediaBrightness changed: " + mediaBrightness + ", type=" + mediaType);
             }
 
             Component.onCompleted: {
-                console.log("Preview media item created: type=" + mediaType + ", path=" + mediaPath + ", brightness=" + mediaBrightness + ", playing=" + mediaPlaying);
                 if (mediaType === "video" && mediaPlaying && mediaPath !== "") {
                     previewMediaPlayer.play();
                 }

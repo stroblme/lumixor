@@ -1,13 +1,13 @@
 import QtQuick 2.12
 import QtQuick.Controls 2.12
 import QtQuick.Layouts 1.12
-import "../components" as Components
+import "." as Components
 
 Rectangle {
     id: root
 
     property var spectrumData: []
-    property color barColor: "#78909C"
+    property color barColor: Components.Theme.accentColor
     property color barGlowColor: Qt.lighter(barColor, 1.5)
     property color bgColor: "#000000"
     property bool active: false

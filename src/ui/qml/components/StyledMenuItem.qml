@@ -6,8 +6,8 @@ MenuItem {
     id: control
 
     // Theme colors
-    property color panelCol: typeof panelColor !== "undefined" ? panelColor : "#1E1E1E"
-    property color txtColor: typeof textColor !== "undefined" ? textColor : "#E0E0E0"
+    property color panelCol: Components.Theme.panelColor
+    property color txtColor: Components.Theme.textColor
 
     background: Rectangle {
         implicitWidth: 200

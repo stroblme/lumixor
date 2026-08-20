@@ -6,7 +6,9 @@
     <file>components/qmldir</file>
     <file>components/ColorPicker.qml</file>
     <file>components/DragHandle.qml</file>
+    <file>components/DraggableTabButton.qml</file>
     <file>components/IconButton.qml</file>
+    <file>components/LabeledVSlider.qml</file>
     <file>components/MediaLayer.qml</file>
     <file>components/MediaListItem.qml</file>
     <file>components/StyledButton.qml</file>
@@ -16,14 +18,24 @@
     <file>components/StyledSpinBox.qml</file>
     <file>components/StyledSwitch.qml</file>
     <file>components/StyledTabButton.qml</file>
+    <file>components/Panel.qml</file>
+    <file>components/SectionLabel.qml</file>
     <file>components/Theme.qml</file>
     <file>components/Utils.qml</file>
+    <file>components/VerticalSplitter.qml</file>
     <file>components/Spectrometer.qml</file>
     <file>panels/qmldir</file>
     <file>panels/HomePanel.qml</file>
     <file>panels/PreferencesPanel.qml</file>
     <file>panels/MediaTabContent.qml</file>
     <file>panels/PreviewPanel.qml</file>
+    <file>panels/SlideshowTransport.qml</file>
+    <file>panels/VideoTransport.qml</file>
+    <file>panels/SpectrometerPanel.qml</file>
+    <file>panels/BlackoutPanel.qml</file>
     <file>components/Fonts.qml</file>
+    <file>components/Font Awesome 7 Free-Regular-400.otf</file>
+    <file>components/Font Awesome 7 Free-Solid-900.otf</file>
+    <file>components/Font Awesome 7 Brands-Regular-400.otf</file>
   </qresource>
 </RCC>

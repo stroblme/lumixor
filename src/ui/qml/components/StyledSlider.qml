@@ -6,9 +6,9 @@ Slider {
     id: control
 
     // Theme colors
-    property color bgColor: typeof panelColor !== "undefined" ? panelColor : "#1E1E1E"
-    property color accentCol: typeof accentColor !== "undefined" ? accentColor : "#78909C"
-    property color borderCol: typeof borderColor !== "undefined" ? borderColor : "#333333"
+    property color bgColor: Components.Theme.panelColor
+    property color accentCol: Components.Theme.accentColor
+    property color borderCol: Components.Theme.borderColor
 
     property int handleSize: Components.Theme.sliderHandleSize
     property int trackHeight: Components.Theme.sliderTrackHeight

@@ -11,12 +11,12 @@ Rectangle {
     property string filePath: ""
     property bool isSelected: false
 
-    // Theme colors - support both naming conventions
-    property color itemColor: typeof listItemColor !== "undefined" ? listItemColor : "#232323"
-    property color highlightColor: typeof listItemHighlight !== "undefined" ? listItemHighlight : "#29434E"
-    property color txtColor: typeof textColor !== "undefined" ? textColor : "#E0E0E0"
-    property color subtleTxtColor: typeof subtleTextColor !== "undefined" ? subtleTextColor : "#9E9E9E"
-    property color borderCol: typeof borderColor !== "undefined" ? borderColor : "#333333"
+    // Theme colors, overridable per instance
+    property color itemColor: Components.Theme.listItemColor
+    property color highlightColor: Components.Theme.listItemHighlight
+    property color txtColor: Components.Theme.textColor
+    property color subtleTxtColor: Components.Theme.subtleTextColor
+    property color borderCol: Components.Theme.borderColor
 
     signal clicked
     signal deleteClicked
@@ -27,7 +27,7 @@ Rectangle {
     border.color: borderCol
 
     // Display name: prefer fileName, fall back to extracting from filePath
-    readonly property string displayName: fileName !== "" ? fileName : fileNameFromPath(filePath)
+    readonly property string displayName: fileName !== "" ? fileName : Components.Utils.fileNameFromPath(filePath)
 
     Text {
         anchors.verticalCenter: parent.verticalCenter
@@ -74,11 +74,4 @@ Rectangle {
         onClicked: control.clicked()
     }
 
-    function fileNameFromPath(p) {
-        if (!p)
-            return "";
-        var s = String(p);
-        var parts = s.split("/");
-        return parts.length > 0 ? parts[parts.length - 1] : s;
-    }
 }

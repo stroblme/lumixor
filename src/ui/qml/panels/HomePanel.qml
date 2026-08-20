@@ -8,13 +8,6 @@ import "../components" as Components
 Item {
     id: root
 
-    // Theme colors - passed from parent
-    property color panelColor: "#1E1E1E"
-    property color accentColor: "#78909C"
-    property color textColor: "#E0E0E0"
-    property color subtleTextColor: "#9E9E9E"
-    property color borderColor: "#333333"
-
     signal addFilesClicked
     signal addFolderClicked
 
@@ -29,7 +22,7 @@ Item {
         }
         Label {
             text: qsTr("Welcome to Lumixor")
-            color: root.textColor
+            color: Components.Theme.textColor
             font.bold: true
             font.pixelSize: Components.Theme.fontSizeLarge
             Layout.alignment: Qt.AlignHCenter
@@ -37,7 +30,7 @@ Item {
 
         Label {
             text: qsTr("Add media files to get started")
-            color: root.subtleTextColor
+            color: Components.Theme.subtleTextColor
             Layout.alignment: Qt.AlignHCenter
         }
 
@@ -54,10 +47,6 @@ Item {
                 text: qsTr("Add Files")
                 Layout.preferredWidth: 140
                 Layout.preferredHeight: 48
-                bgColor: root.panelColor
-                pressedColor: root.accentColor
-                txtColor: root.textColor
-                borderCol: root.borderColor
                 onClicked: root.addFilesClicked()
                 ToolTip.visible: hovered
                 ToolTip.text: qsTr("Add images or videos - creates new tabs automatically")
@@ -67,10 +56,6 @@ Item {
                 text: qsTr("Add Folder")
                 Layout.preferredWidth: 140
                 Layout.preferredHeight: 48
-                bgColor: root.panelColor
-                pressedColor: root.accentColor
-                txtColor: root.textColor
-                borderCol: root.borderColor
                 onClicked: root.addFolderClicked()
                 ToolTip.visible: hovered
                 ToolTip.text: qsTr("Recursively scan a folder - creates new tabs automatically")

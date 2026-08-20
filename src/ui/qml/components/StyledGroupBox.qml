@@ -5,9 +5,9 @@ import "." as Components
 GroupBox {
     id: control
 
-    property color panelCol: typeof panelColor !== "undefined" ? panelColor : "#1E1E1E"
-    property color txtColor: typeof textColor !== "undefined" ? textColor : "#E0E0E0"
-    property color borderCol: typeof borderColor !== "undefined" ? borderColor : "#333333"
+    property color panelCol: Components.Theme.panelColor
+    property color txtColor: Components.Theme.textColor
+    property color borderCol: Components.Theme.borderColor
 
     label: Label {
         x: control.leftPadding

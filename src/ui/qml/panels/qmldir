@@ -3,3 +3,7 @@ PreferencesPanel 1.0 PreferencesPanel.qml
 HomePanel 1.0 HomePanel.qml
 MediaTabContent 1.0 MediaTabContent.qml
 PreviewPanel 1.0 PreviewPanel.qml
+SpectrometerPanel 1.0 SpectrometerPanel.qml
+BlackoutPanel 1.0 BlackoutPanel.qml
+SlideshowTransport 1.0 SlideshowTransport.qml
+VideoTransport 1.0 VideoTransport.qml

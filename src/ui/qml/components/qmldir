@@ -1,16 +1,22 @@
 module components
 singleton Theme 1.0 Theme.qml
 singleton Fonts 1.0 Fonts.qml
+singleton Utils 1.0 Utils.qml
 StyledButton 1.0 StyledButton.qml
 IconButton 1.0 IconButton.qml
 StyledSlider 1.0 StyledSlider.qml
+LabeledVSlider 1.0 LabeledVSlider.qml
 StyledSpinBox 1.0 StyledSpinBox.qml
 StyledSwitch 1.0 StyledSwitch.qml
 StyledTabButton 1.0 StyledTabButton.qml
 StyledGroupBox 1.0 StyledGroupBox.qml
+Panel 1.0 Panel.qml
+SectionLabel 1.0 SectionLabel.qml
 StyledMenuItem 1.0 StyledMenuItem.qml
 MediaListItem 1.0 MediaListItem.qml
 MediaLayer 1.0 MediaLayer.qml
 DragHandle 1.0 DragHandle.qml
+DraggableTabButton 1.0 DraggableTabButton.qml
 ColorPicker 1.0 ColorPicker.qml
 Spectrometer 1.0 Spectrometer.qml
+VerticalSplitter 1.0 VerticalSplitter.qml

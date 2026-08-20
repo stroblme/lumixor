@@ -2,7 +2,7 @@ pragma Singleton
 
 import QtQuick 2.12
 
-Item {
+QtObject {
     id: fonts
 
     readonly property FontLoader fontAwesomeRegular: FontLoader {
@@ -16,5 +16,6 @@ Item {
     }
 
     readonly property string icons: fonts.fontAwesomeRegular.name
+    readonly property string solidIcons: fonts.fontAwesomeSolid.name
     readonly property string brands: fonts.fontAwesomeBrands.name
 }

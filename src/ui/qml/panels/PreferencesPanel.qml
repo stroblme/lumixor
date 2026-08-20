@@ -6,32 +6,9 @@ import "../components" as Components
 Item {
     id: root
 
-    // Theme colors - passed from parent
-    property color backgroundColor: "#121212"
-    property color panelColor: "#1E1E1E"
-    property color accentColor: "#78909C"
-    property color textColor: "#E0E0E0"
-    property color subtleTextColor: "#9E9E9E"
-    property color borderColor: "#333333"
-
-    // Settings values - passed from parent
-    property int slideshowDelaySeconds: 5
-    property int transitionDurationMs: 200
-    property int outputScreenIndex: 1
-    property bool loopSlideshows: true
-    property bool loopVideos: true
-    property bool autoPlayNextVideo: true
-    property int screenCount: 1
-    property string prefAccentColor: "#78909C"
-
-    // Signals to notify parent of changes (use unique names to avoid conflicts with auto-generated property change signals)
-    signal slideshowDelayUpdated(int value)
-    signal transitionDurationUpdated(int value)
-    signal outputScreenIndexUpdated(int value)
-    signal loopSlideshowsUpdated(bool enabled)
-    signal loopVideosUpdated(bool enabled)
-    signal autoPlayNextVideoUpdated(bool enabled)
-    signal accentColorUpdated(string color)
+    // Settings are read from and written to PreferencesController directly, so there
+    // is no second copy of any value or default in the UI layer.
+    readonly property int screenCount: outputWindow ? outputWindow.screenCount : 1
 
     ColumnLayout {
         anchors.fill: parent
@@ -42,9 +19,6 @@ Item {
             Layout.fillWidth: true
             Layout.preferredHeight: 200
             title: qsTr("Slideshow")
-            panelCol: root.panelColor
-            txtColor: root.textColor
-            borderCol: root.borderColor
 
             GridLayout {
                 anchors.fill: parent
@@ -55,7 +29,7 @@ Item {
 
                 Label {
                     text: qsTr("Delay (seconds):")
-                    color: root.textColor
+                    color: Components.Theme.textColor
                     font.pixelSize: Components.Theme.fontSize
                     horizontalAlignment: Text.AlignLeft
                     Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
@@ -64,24 +38,18 @@ Item {
                     id: spinSlideshowDelay
                     from: 1
                     to: 60
-                    value: root.slideshowDelaySeconds
+                    value: preferences.slideshowIntervalSeconds
                     Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
                     Layout.preferredWidth: 120
                     Layout.maximumWidth: 120
-                    bgColor: root.backgroundColor
-                    panelCol: root.panelColor
-                    accentCol: root.accentColor
-                    txtColor: root.textColor
-                    subtleTxtColor: root.subtleTextColor
-                    borderCol: root.borderColor
-                    onValueChanged: root.slideshowDelayUpdated(value)
+                    onValueChanged: preferences.slideshowIntervalSeconds = value
                     ToolTip.visible: hovered
                     ToolTip.text: qsTr("Time to display each image before advancing")
                 }
 
                 Label {
                     text: qsTr("Transition (ms):")
-                    color: root.textColor
+                    color: Components.Theme.textColor
                     font.pixelSize: Components.Theme.fontSize
                     horizontalAlignment: Text.AlignLeft
                     Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
@@ -91,37 +59,28 @@ Item {
                     from: 0
                     to: 2000
                     stepSize: 50
-                    value: root.transitionDurationMs
+                    value: preferences.transitionDurationMs
                     Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
                     Layout.preferredWidth: 120
                     Layout.maximumWidth: 120
-                    bgColor: root.backgroundColor
-                    panelCol: root.panelColor
-                    accentCol: root.accentColor
-                    txtColor: root.textColor
-                    subtleTxtColor: root.subtleTextColor
-                    borderCol: root.borderColor
-                    onValueChanged: root.transitionDurationUpdated(value)
+                    onValueChanged: preferences.transitionDurationMs = value
                     ToolTip.visible: hovered
                     ToolTip.text: qsTr("Duration of crossfade between images")
                 }
 
                 Label {
                     text: qsTr("Loop slideshow:")
-                    color: root.textColor
+                    color: Components.Theme.textColor
                     font.pixelSize: Components.Theme.fontSize
                     horizontalAlignment: Text.AlignLeft
                     Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
                 }
                 Components.StyledSwitch {
                     id: switchLoopSlideshows
-                    checked: root.loopSlideshows
+                    checked: preferences.loopSlideshows
                     Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
                     Layout.bottomMargin: 8
-                    panelCol: root.panelColor
-                    accentCol: root.accentColor
-                    borderCol: root.borderColor
-                    onCheckedChanged: root.loopSlideshowsUpdated(checked)
+                    onCheckedChanged: preferences.loopSlideshows = checked
                     ToolTip.visible: hovered
                     ToolTip.text: qsTr("When enabled, slideshow continues from first image after the last one")
                 }
@@ -132,9 +91,6 @@ Item {
             Layout.fillWidth: true
             Layout.preferredHeight: 140
             title: qsTr("Video")
-            panelCol: root.panelColor
-            txtColor: root.textColor
-            borderCol: root.borderColor
 
             GridLayout {
                 anchors.fill: parent
@@ -145,39 +101,33 @@ Item {
 
                 Label {
                     text: qsTr("Loop video list:")
-                    color: root.textColor
+                    color: Components.Theme.textColor
                     font.pixelSize: Components.Theme.fontSize
                     horizontalAlignment: Text.AlignLeft
                     Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
                 }
                 Components.StyledSwitch {
                     id: switchLoopVideos
-                    checked: root.loopVideos
+                    checked: preferences.loopVideos
                     Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
-                    panelCol: root.panelColor
-                    accentCol: root.accentColor
-                    borderCol: root.borderColor
-                    onCheckedChanged: root.loopVideosUpdated(checked)
+                    onCheckedChanged: preferences.loopVideos = checked
                     ToolTip.visible: hovered
                     ToolTip.text: qsTr("When enabled, video playback continues from first video after the last one")
                 }
 
                 Label {
                     text: qsTr("Autoplay next video:")
-                    color: root.textColor
+                    color: Components.Theme.textColor
                     font.pixelSize: Components.Theme.fontSize
                     horizontalAlignment: Text.AlignLeft
                     Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
                 }
                 Components.StyledSwitch {
                     id: switchAutoPlayNextVideo
-                    checked: root.autoPlayNextVideo
+                    checked: preferences.autoPlayNextVideo
                     Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
                     Layout.bottomMargin: 8
-                    panelCol: root.panelColor
-                    accentCol: root.accentColor
-                    borderCol: root.borderColor
-                    onCheckedChanged: root.autoPlayNextVideoUpdated(checked)
+                    onCheckedChanged: preferences.autoPlayNextVideo = checked
                     ToolTip.visible: hovered
                     ToolTip.text: qsTr("When enabled, the next video in the list will automatically start playing after the current video")
                 }
@@ -188,9 +138,6 @@ Item {
             Layout.fillWidth: true
             Layout.preferredHeight: 140
             title: qsTr("Output")
-            panelCol: root.panelColor
-            txtColor: root.textColor
-            borderCol: root.borderColor
 
             GridLayout {
                 anchors.fill: parent
@@ -201,7 +148,7 @@ Item {
 
                 Label {
                     text: qsTr("Screen index:")
-                    color: root.textColor
+                    color: Components.Theme.textColor
                     font.pixelSize: Components.Theme.fontSize
                     horizontalAlignment: Text.AlignLeft
                     Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
@@ -210,22 +157,16 @@ Item {
                     id: spinScreenIndex
                     from: 0
                     to: Math.max(0, root.screenCount - 1)
-                    value: root.outputScreenIndex
+                    value: preferences.outputScreenIndex
                     Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
                     Layout.preferredWidth: 120
                     Layout.maximumWidth: 120
-                    bgColor: root.backgroundColor
-                    panelCol: root.panelColor
-                    accentCol: root.accentColor
-                    txtColor: root.textColor
-                    subtleTxtColor: root.subtleTextColor
-                    borderCol: root.borderColor
-                    onValueChanged: root.outputScreenIndexUpdated(value)
+                    onValueChanged: preferences.outputScreenIndex = value
                 }
 
                 Label {
                     text: qsTr("Available screens: %1").arg(root.screenCount)
-                    color: root.subtleTextColor
+                    color: Components.Theme.subtleTextColor
                     font.pixelSize: Components.Theme.fontSize
                     Layout.columnSpan: 2
                     Layout.alignment: Qt.AlignRight
@@ -238,9 +179,6 @@ Item {
             Layout.fillWidth: true
             Layout.preferredHeight: 100
             title: qsTr("Appearance")
-            panelCol: root.panelColor
-            txtColor: root.textColor
-            borderCol: root.borderColor
 
             GridLayout {
                 anchors.fill: parent
@@ -251,20 +189,17 @@ Item {
 
                 Label {
                     text: qsTr("Accent Color:")
-                    color: root.textColor
+                    color: Components.Theme.textColor
                     font.pixelSize: Components.Theme.fontSize
                     horizontalAlignment: Text.AlignLeft
                     Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
                 }
                 Components.ColorPicker {
                     id: accentColorPicker
-                    selectedColor: root.prefAccentColor
-                    panelColor: root.panelColor
-                    textColor: root.textColor
-                    borderColor: root.borderColor
+                    selectedColor: preferences.accentColor
                     Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
                     Layout.preferredWidth: 280
-                    onColorChanged: root.accentColorUpdated(newColor.toString())
+                    onColorChanged: preferences.accentColor = newColor.toString()
                 }
             }
         }

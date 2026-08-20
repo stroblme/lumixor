@@ -1,26 +1,26 @@
 import QtQuick 2.12
+import "." as Components
 
 Rectangle {
     id: control
 
-    property color handleColor: typeof subtleTextColor !== "undefined" ? subtleTextColor : "#9E9E9E"
+    property color handleColor: Components.Theme.subtleTextColor
 
-    // UI scaling - access from preferences context property or use default
-    property real scale: typeof preferences !== "undefined" && preferences ? preferences.uiScale : 1.0
+    readonly property real handleScale: Components.Theme.scaleFactor
 
-    width: Math.round(8 * scale)
-    height: Math.round(16 * scale)
+    width: Math.round(8 * handleScale)
+    height: Math.round(16 * handleScale)
     color: "transparent"
 
     Column {
         anchors.centerIn: parent
-        spacing: Math.round(2 * control.scale)
+        spacing: Math.round(2 * control.handleScale)
 
         Repeater {
             model: 3
             Rectangle {
-                width: Math.round(8 * control.scale)
-                height: Math.round(2 * control.scale)
+                width: Math.round(8 * control.handleScale)
+                height: Math.round(2 * control.handleScale)
                 radius: 1
                 color: control.handleColor
             }

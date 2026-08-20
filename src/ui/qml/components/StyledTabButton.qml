@@ -5,12 +5,12 @@ import "." as Components
 TabButton {
     id: control
 
-    property color bgColor: typeof backgroundColor !== "undefined" ? backgroundColor : "#121212"
-    property color panelCol: typeof panelColor !== "undefined" ? panelColor : "#1E1E1E"
-    property color accentCol: typeof accentColor !== "undefined" ? accentColor : "#78909C"
-    property color txtColor: typeof textColor !== "undefined" ? textColor : "#E0E0E0"
-    property color subtleTxtColor: typeof subtleTextColor !== "undefined" ? subtleTextColor : "#9E9E9E"
-    property color borderCol: typeof borderColor !== "undefined" ? borderColor : "#333333"
+    property color bgColor: Components.Theme.backgroundColor
+    property color panelCol: Components.Theme.panelColor
+    property color accentCol: Components.Theme.accentColor
+    property color txtColor: Components.Theme.textColor
+    property color subtleTxtColor: Components.Theme.subtleTextColor
+    property color borderCol: Components.Theme.borderColor
 
     implicitWidth: Components.Theme.tabButtonMinWidth
     implicitHeight: Components.Theme.tabButtonHeight

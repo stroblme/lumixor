@@ -1,5 +1,6 @@
 import QtQuick 2.12
 import QtMultimedia 5.15
+import "." as Components
 
 Item {
     id: root
@@ -22,33 +23,11 @@ Item {
     signal durationChanged(int duration)
     signal mediaEnded
 
-    // URL helpers
-    function urlForPath(p) {
-        if (!p)
-            return "";
-        if (p.indexOf(":/") !== -1)
-            return p;
-        if (p.startsWith("/"))
-            return "file://" + p;
-        return p;
-    }
-
-    function imageUrlForPath(p) {
-        if (!p)
-            return "";
-        if (p.indexOf(":/") !== -1)
-            return p;
-        if (p.startsWith("/"))
-            return "image://exif/" + encodeURIComponent(p);
-        return p;
-    }
-
     visible: true
 
     // Handle seek requests
     onLayerSeekPositionChanged: {
         if (layerSeekPosition >= 0 && layerType === "video") {
-            console.log("MediaLayer[" + layerTabId + "] seeking to: " + layerSeekPosition);
             layerPlayer.seek(layerSeekPosition);
             root.seekComplete(layerIndex);
         }
@@ -60,11 +39,10 @@ Item {
         anchors.fill: parent
         fillMode: Image.PreserveAspectFit
         visible: root.layerType === "slideshow" && root.layerPath !== ""
-        source: root.layerType === "slideshow" && root.layerPath !== "" ? root.imageUrlForPath(root.layerPath) : ""
+        source: root.layerType === "slideshow" && root.layerPath !== "" ? Components.Utils.imageUrlForPath(root.layerPath) : ""
         opacity: root.layerBrightness
 
         onSourceChanged: {
-            console.log("MediaLayer image source: " + source + ", visible=" + visible + ", brightness=" + root.layerBrightness);
         }
     }
 
@@ -72,20 +50,18 @@ Item {
     MediaPlayer {
         id: layerPlayer
         autoPlay: false
-        source: root.layerType === "video" && root.layerPath !== "" ? root.urlForPath(root.layerPath) : ""
+        source: root.layerType === "video" && root.layerPath !== "" ? Components.Utils.urlForPath(root.layerPath) : ""
         volume: root.layerVolume
 
         property bool pendingAutoPlay: false
 
         onSourceChanged: {
-            console.log("MediaLayer MediaPlayer source changed: " + source + ", layerPlaying=" + root.layerPlaying);
             if (source !== "" && root.layerPlaying) {
                 pendingAutoPlay = true;
             }
         }
 
         onStatusChanged: {
-            console.log("MediaLayer MediaPlayer status changed: " + status + ", pendingAutoPlay=" + pendingAutoPlay);
             if (status === MediaPlayer.Loaded && pendingAutoPlay && root.layerPlaying) {
                 pendingAutoPlay = false;
                 layerPlayer.play();
@@ -108,13 +84,11 @@ Item {
         visible: root.layerType === "video" && root.layerPath !== ""
 
         onVisibleChanged: {
-            console.log("MediaLayer video visible: " + visible + ", path=" + root.layerPath);
         }
     }
 
     onLayerPlayingChanged: {
         if (layerType === "video") {
-            console.log("MediaLayer[" + layerTabId + "] playing changed: " + layerPlaying + ", path=" + layerPath);
             if (layerPlaying && layerPath !== "") {
                 layerPlayer.play();
             } else {
@@ -124,7 +98,6 @@ Item {
     }
 
     onLayerPathChanged: {
-        console.log("MediaLayer[" + layerTabId + "] path changed: " + layerPath + ", type=" + layerType);
         if (layerType === "video") {
             if (layerPath !== "" && layerPlaying) {
                 layerPlayer.play();
@@ -135,11 +108,9 @@ Item {
     }
 
     onLayerBrightnessChanged: {
-        console.log("MediaLayer[" + layerTabId + "] brightness changed: " + layerBrightness);
     }
 
     Component.onCompleted: {
-        console.log("MediaLayer[" + layerTabId + "] created: type=" + layerType + ", path=" + layerPath + ", brightness=" + layerBrightness);
         if (layerType === "video" && layerPlaying && layerPath !== "") {
             layerPlayer.play();
         }
