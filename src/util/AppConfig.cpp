@@ -3,29 +3,69 @@
 #include <QFile>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QSaveFile>
 
-static AppConfig fromJson(const QJsonObject &o)
+namespace
 {
-    AppConfig c;
-    if (o.contains("slideshowIntervalSeconds"))
-        c.slideshowIntervalSeconds = o.value("slideshowIntervalSeconds").toInt(c.slideshowIntervalSeconds);
-    if (o.contains("transitionDurationMs"))
-        c.transitionDurationMs = o.value("transitionDurationMs").toInt(c.transitionDurationMs);
-    if (o.contains("controlWidth"))
-        c.controlWidth = o.value("controlWidth").toInt(c.controlWidth);
-    if (o.contains("controlHeight"))
-        c.controlHeight = o.value("controlHeight").toInt(c.controlHeight);
-    if (o.contains("outputWidth"))
-        c.outputWidth = o.value("outputWidth").toInt(c.outputWidth);
-    if (o.contains("outputHeight"))
-        c.outputHeight = o.value("outputHeight").toInt(c.outputHeight);
-    if (o.contains("outputScreenIndex"))
-        c.outputScreenIndex = o.value("outputScreenIndex").toInt(c.outputScreenIndex);
-    if (o.contains("accentColor"))
-        c.accentColor = o.value("accentColor").toString(c.accentColor);
-    if (o.contains("autoPlayNextVideo"))
-        c.autoPlayNextVideo = o.value("autoPlayNextVideo").toBool(c.autoPlayNextVideo);
-    return c;
+
+// The one place a persisted field is named. Load and save both walk this list, so a
+// new setting cannot be added to one direction and forgotten in the other.
+template <typename Config, typename Visitor>
+void visitFields(Config &c, Visitor &&visit)
+{
+    visit("slideshowIntervalSeconds", c.slideshowIntervalSeconds);
+    visit("transitionDurationMs", c.transitionDurationMs);
+    visit("outputWidth", c.outputWidth);
+    visit("outputHeight", c.outputHeight);
+    visit("outputScreenIndex", c.outputScreenIndex);
+    visit("accentColor", c.accentColor);
+    visit("autoPlayNextVideo", c.autoPlayNextVideo);
+    visit("loopSlideshows", c.loopSlideshows);
+    visit("loopVideos", c.loopVideos);
+}
+
+struct JsonReader
+{
+    const QJsonObject &object;
+
+    void operator()(const char *key, int &value) const
+    {
+        if (object.contains(key))
+            value = object.value(key).toInt(value);
+    }
+    void operator()(const char *key, bool &value) const
+    {
+        if (object.contains(key))
+            value = object.value(key).toBool(value);
+    }
+    void operator()(const char *key, QString &value) const
+    {
+        if (object.contains(key))
+            value = object.value(key).toString(value);
+    }
+};
+
+struct JsonWriter
+{
+    QJsonObject &object;
+
+    void operator()(const char *key, int value) const { object[key] = value; }
+    void operator()(const char *key, bool value) const { object[key] = value; }
+    void operator()(const char *key, const QString &value) const { object[key] = value; }
+};
+
+// Keep values inside ranges the rest of the app can actually use. A zero interval
+// makes QTimer fire on every event loop pass and a zero output size or negative
+// screen index is unusable downstream.
+void clampToUsableRanges(AppConfig &c)
+{
+    c.slideshowIntervalSeconds = qBound(1, c.slideshowIntervalSeconds, 3600);
+    c.transitionDurationMs = qBound(0, c.transitionDurationMs, 10000);
+    c.outputWidth = qBound(1, c.outputWidth, 16384);
+    c.outputHeight = qBound(1, c.outputHeight, 16384);
+    c.outputScreenIndex = qMax(0, c.outputScreenIndex);
+}
+
 }
 
 AppConfig AppConfig::loadFromFile(const QString &filePath, bool *ok)
@@ -48,38 +88,43 @@ AppConfig AppConfig::loadFromFile(const QString &filePath, bool *ok)
     QJsonDocument doc = QJsonDocument::fromJson(data, &err);
     if (err.error != QJsonParseError::NoError || !doc.isObject())
     {
+        // Leave ok false: the caller must not treat an unreadable file as absent and
+        // overwrite it with defaults.
         return AppConfig();
     }
 
+    AppConfig c;
+    const QJsonObject object = doc.object();
+    visitFields(c, JsonReader{object});
+    clampToUsableRanges(c);
+
     if (ok)
         *ok = true;
-    return fromJson(doc.object());
+    return c;
 }
 
 bool AppConfig::saveToFile(const QString &filePath, QString *error) const
 {
     QJsonObject o;
-    o["slideshowIntervalSeconds"] = slideshowIntervalSeconds;
-    o["transitionDurationMs"] = transitionDurationMs;
-    o["controlWidth"] = controlWidth;
-    o["controlHeight"] = controlHeight;
-    o["outputWidth"] = outputWidth;
-    o["outputHeight"] = outputHeight;
-    o["outputScreenIndex"] = outputScreenIndex;
-    o["accentColor"] = accentColor;
-    o["autoPlayNextVideo"] = autoPlayNextVideo;
+    visitFields(*this, JsonWriter{o});
 
     QJsonDocument doc(o);
 
-    QFile f(filePath);
-    if (!f.open(QIODevice::WriteOnly | QIODevice::Truncate))
+    // QSaveFile writes to a temporary and renames on commit, so an interrupted write
+    // cannot leave a truncated config behind.
+    QSaveFile f(filePath);
+    if (!f.open(QIODevice::WriteOnly))
     {
         if (error)
             *error = QObject::tr("Failed to open %1 for writing").arg(filePath);
         return false;
     }
 
-    f.write(doc.toJson(QJsonDocument::Indented));
-    f.close();
+    if (f.write(doc.toJson(QJsonDocument::Indented)) < 0 || !f.commit())
+    {
+        if (error)
+            *error = QObject::tr("Failed to write %1: %2").arg(filePath, f.errorString());
+        return false;
+    }
     return true;
 }

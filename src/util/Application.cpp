@@ -2,7 +2,6 @@
 #include "Application.h"
 #include <QPalette>
 #include <QFile>
-#include <QTextStream>
 #include <QCommandLineParser>
 #include <QStandardPaths>
 #include <QDir>
@@ -32,9 +31,9 @@ void Application::loadDefaultConfig()
 
     // Ensure the config directory exists
     QDir dir(defaultConfigDir());
-    if (!dir.exists())
+    if (!dir.exists() && !dir.mkpath("."))
     {
-        dir.mkpath(".");
+        qWarning() << "Could not create config directory:" << defaultConfigDir();
     }
 
     bool ok = false;
@@ -47,9 +46,19 @@ void Application::loadDefaultConfig()
             qDebug() << "Loaded config from:" << defaultPath;
             return;
         }
+
+        // The file exists but could not be parsed. Falling through would keep
+        // m_configPath pointing at it and the next save would overwrite the user's
+        // settings with defaults, so move it aside first.
+        const QString backupPath = defaultPath + ".bak";
+        QFile::remove(backupPath);
+        if (QFile::rename(defaultPath, backupPath))
+            qWarning() << "Unreadable config moved to:" << backupPath;
+        else
+            qWarning() << "Unreadable config could not be backed up:" << defaultPath;
     }
 
-    // No config file exists yet, use defaults and set path for future saves
+    // No usable config file, use defaults and set path for future saves
     m_config = AppConfig();
     m_configPath = defaultPath;
     qDebug() << "Using default config, will save to:" << defaultPath;
@@ -96,9 +105,9 @@ bool Application::saveConfig()
 
     // Ensure directory exists
     QDir dir(QFileInfo(m_configPath).absolutePath());
-    if (!dir.exists())
+    if (!dir.exists() && !dir.mkpath("."))
     {
-        dir.mkpath(".");
+        qWarning() << "Could not create config directory:" << dir.absolutePath();
     }
 
     QString error;
@@ -112,6 +121,14 @@ bool Application::saveConfig()
         qDebug() << "Config saved to:" << m_configPath;
     }
     return ok;
+}
+
+bool Application::saveConfigAs(const QString &path)
+{
+    if (path.isEmpty())
+        return false;
+    m_configPath = path;
+    return saveConfig();
 }
 
 void Application::applyDarkTheme()
@@ -143,12 +160,4 @@ void Application::applyDarkTheme()
 
     setStyle("Fusion");
     setPalette(darkPalette);
-
-    // Load dark QSS
-    QFile f("src/ui/style/dark_theme.qss");
-    if (f.open(QIODevice::ReadOnly | QIODevice::Text))
-    {
-        QTextStream in(&f);
-        setStyleSheet(in.readAll());
-    }
 }

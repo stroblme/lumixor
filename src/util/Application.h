@@ -21,6 +21,9 @@ public:
     // Save config to file (auto-called or manual)
     bool saveConfig();
 
+    // Save to a new location and keep using it for later saves
+    bool saveConfigAs(const QString &path);
+
     // Get the default config directory path
     static QString defaultConfigDir();
     static QString defaultConfigPath();
