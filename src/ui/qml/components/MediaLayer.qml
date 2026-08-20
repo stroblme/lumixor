@@ -15,6 +15,20 @@ Item {
     property int layerSeekPosition: -1
     property int layerIndex: 0
 
+    // Rectangle actually covered by the image or video inside this layer, in layer
+    // coordinates. An overlay can use it to outline the real content instead of the
+    // full item, which is letterboxed by PreserveAspectFit.
+    readonly property rect contentRect: layerType === "slideshow"
+        ? Qt.rect((layerImage.width - layerImage.paintedWidth) / 2,
+                  (layerImage.height - layerImage.paintedHeight) / 2,
+                  layerImage.paintedWidth, layerImage.paintedHeight)
+        : layerVideoOutput.contentRect
+
+    // True once there is something painted for contentRect to describe.
+    readonly property bool contentReady: layerType === "slideshow"
+        ? (layerImage.visible && layerImage.status === Image.Ready)
+        : (layerVideoOutput.visible && layerPlayer.status >= MediaPlayer.Loaded)
+
     // Output signal for seek position reset
     signal seekComplete(int index)
 
@@ -41,9 +55,6 @@ Item {
         visible: root.layerType === "slideshow" && root.layerPath !== ""
         source: root.layerType === "slideshow" && root.layerPath !== "" ? Components.Utils.imageUrlForPath(root.layerPath) : ""
         opacity: root.layerBrightness
-
-        onSourceChanged: {
-        }
     }
 
     // Video display (for video type)
@@ -82,9 +93,6 @@ Item {
         fillMode: VideoOutput.PreserveAspectFit
         opacity: root.layerBrightness
         visible: root.layerType === "video" && root.layerPath !== ""
-
-        onVisibleChanged: {
-        }
     }
 
     onLayerPlayingChanged: {
@@ -105,9 +113,6 @@ Item {
                 layerPlayer.stop();
             }
         }
-    }
-
-    onLayerBrightnessChanged: {
     }
 
     Component.onCompleted: {

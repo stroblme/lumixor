@@ -123,8 +123,15 @@ Window {
                 layerSeekPosition: model.seekPosition !== undefined ? model.seekPosition : -1
                 layerIndex: index
 
-                onSeekComplete: {
-                    mediaLayersModel.setProperty(index, "seekPosition", -1);
+                onSeekComplete: mediaLayersModel.setProperty(index, "seekPosition", -1)
+
+                // The output is the authoritative player, so it reports progress and
+                // end-of-media back to the controls.
+                onPositionChanged: outputWindow.notifyMediaPosition(layerTabId, position)
+                onDurationChanged: outputWindow.notifyMediaDuration(layerTabId, duration)
+                onMediaEnded: {
+                    if (layerPlaying)
+                        outputWindow.notifyMediaEnded(layerTabId);
                 }
             }
         }

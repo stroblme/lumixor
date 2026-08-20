@@ -32,6 +32,19 @@ static void captureWarnings(QtMsgType type, const QMessageLogContext &context, c
         g_previousHandler(type, context, msg);
 }
 
+// The video tests use invented clip paths that the platform media backend cannot
+// open. Its complaints are a fixture artefact; anything else is a real problem.
+static QStringList warningsIgnoringMissingClips()
+{
+    QStringList real;
+    for (const QString &warning : g_warnings)
+    {
+        if (!warning.contains(QLatin1String("/clips/")))
+            real << warning;
+    }
+    return real;
+}
+
 class TestControlWindow : public QObject
 {
     Q_OBJECT
@@ -44,6 +57,7 @@ private:
     QQmlApplicationEngine m_engine;
     QObject *m_root = nullptr;
     QObject *m_outputRoot = nullptr;
+    OutputBridge *m_output = nullptr;
     QTemporaryDir m_mediaDir;
     QString m_imageA;
     QString m_imageB;
@@ -64,10 +78,16 @@ private:
     // reach components that are nested several layouts deep.
     QVariant findByProperty(const QString &marker, const QString &readProperty)
     {
+        return findWhere(QString("item.%1 !== undefined").arg(marker), readProperty);
+    }
+
+    // Same walk, but the caller supplies the predicate over `item`.
+    QVariant findWhere(const QString &condition, const QString &readProperty)
+    {
         return eval(QString("(function () {"
                             "  function walk(item) {"
                             "    if (!item) return null;"
-                            "    if (item.%1 !== undefined) return item;"
+                            "    if (%1) return item;"
                             "    var kids = item.children || [];"
                             "    for (var i = 0; i < kids.length; ++i) {"
                             "      var hit = walk(kids[i]);"
@@ -78,7 +98,7 @@ private:
                             "  var found = walk(controlRoot.contentItem);"
                             "  return found ? found.%2 : undefined;"
                             "})()")
-                       .arg(marker, readProperty));
+                       .arg(condition, readProperty));
     }
 
     QVariant evalIn(QObject *scope, const QString &expression)
@@ -102,6 +122,10 @@ private slots:
     void slideshowUpdatesCorrectRowAfterReorder();
     void removingRunningSlideshowTabClearsActiveId();
     void preferencesAreTheSingleSourceOfTruth();
+    void previewLayerReportsContentRect();
+    void outputDrivesVideoProgress();
+    void outputDrivesPlaylistAdvance();
+    void lastVideoStopsWhenLoopingIsOff();
 };
 
 void TestControlWindow::initTestCase()
@@ -117,6 +141,7 @@ void TestControlWindow::initTestCase()
     MediaManager *mediaManager = new MediaManager(this);
     PlaybackController *playback = new PlaybackController(this);
     OutputBridge *output = new OutputBridge(this);
+    m_output = output;
     SlideshowController *slideshow = new SlideshowController(mediaManager, this);
     ControlBridge *bridge = new ControlBridge(this);
     PreferencesController *preferences = new PreferencesController(m_app, this);
@@ -271,6 +296,130 @@ void TestControlWindow::preferencesAreTheSingleSourceOfTruth()
     QVERIFY2(g_warnings.isEmpty(), qPrintable(g_warnings.join("\n")));
 }
 
+void TestControlWindow::previewLayerReportsContentRect()
+{
+    // The preview now renders through the shared MediaLayer. Its contentRect drives
+    // the outline showing how the media sits inside the real output, so it must
+    // describe the painted area, not the whole letterboxed item.
+    const int row = eval("addMediaTab('slideshow')").toInt();
+    QVERIFY(row >= 0);
+    eval(QString("mediaTabsModel.setProperty(%1, 'currentPath', '%2')").arg(row).arg(m_imageA));
+
+    const QString isSlideshowLayer = "item.contentRect !== undefined && item.layerType === 'slideshow'";
+
+    QTRY_VERIFY2(findWhere(isSlideshowLayer, "contentReady").toBool(),
+                 "preview MediaLayer never finished loading the image");
+
+    const QRectF rect = findWhere(isSlideshowLayer, "contentRect").toRectF();
+    QVERIFY2(rect.width() > 0 && rect.height() > 0,
+             qPrintable(QString("contentRect was %1x%2").arg(rect.width()).arg(rect.height())));
+
+    // A square image inside the 16:9 preview frame is pillarboxed, so the painted
+    // area must be narrower than the layer and as tall as it.
+    const qreal layerWidth = findWhere(isSlideshowLayer, "width").toReal();
+    const qreal layerHeight = findWhere(isSlideshowLayer, "height").toReal();
+    QVERIFY2(rect.width() < layerWidth,
+             qPrintable(QString("expected pillarboxing: content %1 vs layer %2").arg(rect.width()).arg(layerWidth)));
+    QVERIFY2(qAbs(rect.height() - layerHeight) < 1.0,
+             qPrintable(QString("expected full height: content %1 vs layer %2").arg(rect.height()).arg(layerHeight)));
+
+    QVERIFY2(g_warnings.isEmpty(), qPrintable(g_warnings.join("\n")));
+}
+
+// Build a video tab with two clips, playing the first one. Returns its row.
+static const char *kVideoSetup =
+    "(function () {"
+    "  var row = addMediaTab('video');"
+    "  var tab = mediaTabsModel.get(row);"
+    "  tab.mediaModel.append({'path': '/clips/one.mp4'});"
+    "  tab.mediaModel.append({'path': '/clips/two.mp4'});"
+    "  mediaTabsModel.setProperty(row, 'currentPath', '/clips/one.mp4');"
+    "  mediaTabsModel.setProperty(row, 'currentIndex', 0);"
+    "  mediaTabsModel.setProperty(row, 'isPlaying', true);"
+    "  return row;"
+    "})()";
+
+void TestControlWindow::outputDrivesVideoProgress()
+{
+    const int row = eval(kVideoSetup).toInt();
+    const int tabId = eval(QString("mediaTabsModel.get(%1).tabId").arg(row)).toInt();
+
+    // Progress reported by the output window must reach the transport's model.
+    m_output->notifyMediaDuration(tabId, 5000);
+    m_output->notifyMediaPosition(tabId, 1234);
+    QCOMPARE(eval(QString("mediaTabsModel.get(%1).videoDuration").arg(row)).toInt(), 5000);
+    QCOMPARE(eval(QString("mediaTabsModel.get(%1).videoPosition").arg(row)).toInt(), 1234);
+
+    // While the user drags the seek slider the position must be left alone.
+    eval(QString("mediaTabsModel.setProperty(%1, 'isSeeking', true)").arg(row));
+    m_output->notifyMediaPosition(tabId, 4321);
+    QCOMPARE(eval(QString("mediaTabsModel.get(%1).videoPosition").arg(row)).toInt(), 1234);
+
+    eval(QString("mediaTabsModel.setProperty(%1, 'isSeeking', false)").arg(row));
+    m_output->notifyMediaPosition(tabId, 4321);
+    QCOMPARE(eval(QString("mediaTabsModel.get(%1).videoPosition").arg(row)).toInt(), 4321);
+
+    // An id that no longer has a tab must be ignored rather than throw.
+    m_output->notifyMediaPosition(9999, 10);
+    QVERIFY2(warningsIgnoringMissingClips().isEmpty(),
+             qPrintable(warningsIgnoringMissingClips().join("\n")));
+}
+
+void TestControlWindow::outputDrivesPlaylistAdvance()
+{
+    const int row = eval(kVideoSetup).toInt();
+    const int tabId = eval(QString("mediaTabsModel.get(%1).tabId").arg(row)).toInt();
+    eval("preferences.autoPlayNextVideo = true");
+
+    // End of the first clip advances to the second. This used to be driven by the
+    // preview panel, so it broke whenever the preview was not on screen.
+    m_output->notifyMediaEnded(tabId);
+    QCOMPARE(eval(QString("mediaTabsModel.get(%1).currentIndex").arg(row)).toInt(), 1);
+    QCOMPARE(eval(QString("mediaTabsModel.get(%1).currentPath").arg(row)).toString(), QString("/clips/two.mp4"));
+    QCOMPARE(eval(QString("mediaTabsModel.get(%1).videoPosition").arg(row)).toInt(), 0);
+    QVERIFY(eval(QString("mediaTabsModel.get(%1).isPlaying").arg(row)).toBool());
+
+    // Past the last clip it wraps, because looping is on.
+    eval("preferences.loopVideos = true");
+    m_output->notifyMediaEnded(tabId);
+    QCOMPARE(eval(QString("mediaTabsModel.get(%1).currentIndex").arg(row)).toInt(), 0);
+
+    // Exercise the same call the output window's QML makes, from the output window's
+    // own scope, so a renamed or missing invokable is caught here and not on stage.
+    evalIn(m_outputRoot, QString("outputWindow.notifyMediaDuration(%1, 7000)").arg(tabId));
+    evalIn(m_outputRoot, QString("outputWindow.notifyMediaPosition(%1, 250)").arg(tabId));
+    evalIn(m_outputRoot, QString("outputWindow.notifyMediaEnded(%1)").arg(tabId));
+    QCOMPARE(eval(QString("mediaTabsModel.get(%1).videoDuration").arg(row)).toInt(), 7000);
+    QCOMPARE(eval(QString("mediaTabsModel.get(%1).currentIndex").arg(row)).toInt(), 1);
+    QVERIFY2(warningsIgnoringMissingClips().isEmpty(),
+             qPrintable(warningsIgnoringMissingClips().join("\n")));
+}
+
+void TestControlWindow::lastVideoStopsWhenLoopingIsOff()
+{
+    const int row = eval(kVideoSetup).toInt();
+    const int tabId = eval(QString("mediaTabsModel.get(%1).tabId").arg(row)).toInt();
+    eval("preferences.autoPlayNextVideo = true");
+    eval("preferences.loopVideos = false");
+
+    m_output->notifyMediaEnded(tabId); // -> clip two
+    QCOMPARE(eval(QString("mediaTabsModel.get(%1).currentIndex").arg(row)).toInt(), 1);
+
+    m_output->notifyMediaEnded(tabId); // past the end, looping off
+    QCOMPARE(eval(QString("mediaTabsModel.get(%1).currentIndex").arg(row)).toInt(), 1);
+    QCOMPARE(eval(QString("mediaTabsModel.get(%1).isPlaying").arg(row)).toBool(), false);
+
+    // With auto-advance off the tab simply stops instead of moving on.
+    eval("preferences.autoPlayNextVideo = false");
+    eval(QString("mediaTabsModel.setProperty(%1, 'currentIndex', 0)").arg(row));
+    eval(QString("mediaTabsModel.setProperty(%1, 'isPlaying', true)").arg(row));
+    m_output->notifyMediaEnded(tabId);
+    QCOMPARE(eval(QString("mediaTabsModel.get(%1).currentIndex").arg(row)).toInt(), 0);
+    QCOMPARE(eval(QString("mediaTabsModel.get(%1).isPlaying").arg(row)).toBool(), false);
+    QVERIFY2(warningsIgnoringMissingClips().isEmpty(),
+             qPrintable(warningsIgnoringMissingClips().join("\n")));
+}
+
 int main(int argc, char *argv[])
 {
     // Keep the user's real config file out of reach of the test run.
@@ -284,7 +433,12 @@ int main(int argc, char *argv[])
 
     TestControlWindow tc(&app);
     const int result = QTest::qExec(&tc, argc, argv);
-    qInstallMessageHandler(g_previousHandler);
+
+    // Restore Qt's default handler, not the one captured in initTestCase: that one
+    // belongs to QTest, whose loggers are gone once qExec returns, and it asserts if
+    // anything logs during teardown.
+    qInstallMessageHandler(nullptr);
+    g_previousHandler = nullptr;
     return result;
 }
 

@@ -1,268 +1,75 @@
 import QtQuick 2.12
-import QtMultimedia 5.15
 import "../components" as Components
 
-// Output preview: renders every media tab's current image/video layer at the
-// output's aspect ratio, mirroring OutputWindow. Extracted from ControlWindow;
-// outputWindow is a global QML context property.
+// Output preview: renders every media tab's current image or video at the output's
+// aspect ratio, using the same MediaLayer the real output window uses so both stay
+// visually identical. This is a view only: playback progress and playlist
+// advancement are driven by the output window, not from here.
 Item {
     id: previewContainer
+
     property var mediaTabsModel: null
-    property bool autoPlayNextVideo: true
-    property bool loopVideos: true
 
     // Use 16:9 aspect ratio as default (common for presentations)
     property real outputAspect: 16 / 9
 
-Rectangle {
-    id: previewFrame
-    anchors.centerIn: parent
-    // Fit within container while maintaining aspect ratio
-    property real containerAspect: previewContainer.width / Math.max(1, previewContainer.height)
-    property bool isHeightLimited: containerAspect > previewContainer.outputAspect
+    Rectangle {
+        id: previewFrame
+        anchors.centerIn: parent
 
-    width: Math.max(50, isHeightLimited ? previewContainer.height * previewContainer.outputAspect : previewContainer.width)
-    height: Math.max(50, isHeightLimited ? previewContainer.height : previewContainer.width / previewContainer.outputAspect)
-    radius: Components.Theme.borderRadius
-    color: "#000000"
-    border.color: Components.Theme.borderColor
-    clip: true
+        // Fit within container while maintaining aspect ratio
+        property real containerAspect: previewContainer.width / Math.max(1, previewContainer.height)
+        property bool isHeightLimited: containerAspect > previewContainer.outputAspect
 
-    // Unified media layers from all tabs (both slideshow and video)
-    Repeater {
-        model: mediaTabsModel
+        width: Math.max(50, isHeightLimited ? previewContainer.height * previewContainer.outputAspect : previewContainer.width)
+        height: Math.max(50, isHeightLimited ? previewContainer.height : previewContainer.width / previewContainer.outputAspect)
+        radius: Components.Theme.borderRadius
+        color: "#000000"
+        border.color: Components.Theme.borderColor
+        clip: true
 
-        Item {
-            id: previewMediaItem
-            anchors.fill: parent
-            z: model.zOrder !== undefined ? model.zOrder : index
+        // Unified media layers from all tabs (both slideshow and video)
+        Repeater {
+            model: previewContainer.mediaTabsModel
 
-            // Use direct model access for better reactivity
-            property string mediaPath: model.currentPath ? model.currentPath : ""
-            property real mediaBrightness: model.brightness !== undefined ? model.brightness : 1.0
-            // property real mediaVolume: model.volume !== undefined ? model.volume : 1.0
-            property real mediaVolume: 0
-            property bool mediaPlaying: model.isPlaying ? model.isPlaying : false
-            property string mediaType: model.tabType ? model.tabType : "video"
-            property int seekPosition: model.seekPosition !== undefined ? model.seekPosition : -1
-            property bool isSeeking: model.isSeeking ? model.isSeeking : false
-
-            // Determine if this layer has active content (for border)
-            property bool hasActiveContent: mediaPath !== ""
-
-            visible: true  // Always visible, let children handle visibility
-
-            // Handle seek requests
-            onSeekPositionChanged: {
-                if (seekPosition >= 0 && mediaType === "video") {
-                    previewMediaPlayer.seek(seekPosition);
-                    // Reset the seekPosition to -1 after seeking
-                    if (index >= 0 && index < mediaTabsModel.count) {
-                        mediaTabsModel.setProperty(index, "seekPosition", -1);
-                    }
-                }
-            }
-
-            // Image display (for slideshow type)
-            Image {
-                id: previewImageItem
+            Item {
                 anchors.fill: parent
-                fillMode: Image.PreserveAspectFit
-                visible: previewMediaItem.mediaType === "slideshow" && previewMediaItem.mediaPath !== ""
-                source: previewMediaItem.mediaType === "slideshow" && previewMediaItem.mediaPath !== "" ? Components.Utils.imageUrlForPath(previewMediaItem.mediaPath) : ""
-                opacity: previewMediaItem.mediaBrightness
+                z: model.zOrder !== undefined ? model.zOrder : index
 
-                onSourceChanged: {
+                Components.MediaLayer {
+                    id: previewLayer
+                    anchors.fill: parent
+
+                    layerPath: model.currentPath ? model.currentPath : ""
+                    layerBrightness: model.brightness !== undefined ? model.brightness : 1.0
+                    layerPlaying: model.isPlaying ? model.isPlaying : false
+                    layerTabId: model.tabId !== undefined ? model.tabId : -1
+                    layerType: model.tabType ? model.tabType : "video"
+                    layerSeekPosition: model.seekPosition !== undefined ? model.seekPosition : -1
+                    layerIndex: index
+
+                    // The preview is silent; only the output window carries audio.
+                    layerVolume: 0
+
+                    // Keeping the preview in step with a seek is a view concern; the
+                    // model's seek request is cleared once it has been applied.
+                    onSeekComplete: previewContainer.mediaTabsModel.setProperty(index, "seekPosition", -1)
                 }
 
-                // Blue border around actual image content (indicates size in output)
+                // Outline of the real content, which is letterboxed inside the layer.
                 Rectangle {
-                    visible: previewImageItem.visible && previewImageItem.status === Image.Ready
+                    visible: previewLayer.contentReady
+                    x: previewLayer.contentRect.x
+                    y: previewLayer.contentRect.y
+                    width: previewLayer.contentRect.width > 0 ? previewLayer.contentRect.width : parent.width
+                    height: previewLayer.contentRect.height > 0 ? previewLayer.contentRect.height : parent.height
                     color: "transparent"
                     border.color: Components.Theme.accentColor
                     border.width: 2
                     radius: 2
                     z: 100
-
-                    // Calculate position and size based on image's painted area
-                    property real imgRatio: previewImageItem.sourceSize.width > 0 ? previewImageItem.sourceSize.height / previewImageItem.sourceSize.width : 1
-                    property real containerRatio: previewImageItem.height / Math.max(1, previewImageItem.width)
-                    property real paintedWidth: containerRatio > imgRatio ? previewImageItem.width : previewImageItem.height / imgRatio
-                    property real paintedHeight: containerRatio > imgRatio ? previewImageItem.width * imgRatio : previewImageItem.height
-
-                    x: (previewImageItem.width - paintedWidth) / 2
-                    y: (previewImageItem.height - paintedHeight) / 2
-                    width: paintedWidth
-                    height: paintedHeight
-                }
-            }
-
-            // Video display (for video type)
-            MediaPlayer {
-                id: previewMediaPlayer
-                autoPlay: false
-                source: previewMediaItem.mediaType === "video" && previewMediaItem.mediaPath !== "" ? "file://" + previewMediaItem.mediaPath : ""
-                volume: previewMediaItem.mediaVolume
-
-                // Track if we're auto-advancing to play on load
-                property bool pendingAutoPlay: false
-
-                onPositionChanged: {
-                    // Only update position in model if not seeking (to prevent slider jumping back)
-                    if (previewMediaItem.mediaType === "video" && !previewMediaItem.isSeeking && index >= 0 && index < mediaTabsModel.count) {
-                        mediaTabsModel.setProperty(index, "videoPosition", position);
-                    }
-                }
-
-                onDurationChanged: {
-                    // Update duration in model for the progress slider
-                    if (previewMediaItem.mediaType === "video" && index >= 0 && index < mediaTabsModel.count) {
-                        mediaTabsModel.setProperty(index, "videoDuration", duration);
-                    }
-                }
-
-                onStatusChanged: {
-                    if (status === MediaPlayer.Loaded) {
-                        if (index >= 0 && index < mediaTabsModel.count) {
-                            mediaTabsModel.setProperty(index, "videoDuration", duration);
-                        }
-                        // Auto-play if we were advancing to next video
-                        if (pendingAutoPlay && previewMediaItem.mediaPlaying) {
-                            pendingAutoPlay = false;
-                            previewMediaPlayer.play();
-                        }
-                    }
-                    // Detect when video reaches the end
-                    if (status === MediaPlayer.EndOfMedia && previewMediaItem.mediaPlaying) {
-                        if (autoPlayNextVideo) {
-                            advanceToNextVideo(index);
-                        } else {
-                            // Stop playback - don't auto-advance
-                            mediaTabsModel.setProperty(index, "isPlaying", false);
-                            if (outputWindow) {
-                                var tab = mediaTabsModel.get(index);
-                                if (tab) {
-                                    var zOrder = tab.zOrder !== undefined ? tab.zOrder : index;
-                                    outputWindow.setVideoLayer(tab.tabId, tab.currentPath, tab.brightness, false, zOrder);
-                                }
-                            }
-                        }
-                    }
-                }
-
-                onSourceChanged: {
-                    // When source changes while playing, mark for auto-play when loaded
-                    if (source !== "" && previewMediaItem.mediaPlaying) {
-                        pendingAutoPlay = true;
-                    }
-                }
-            }
-
-            // Function to advance to next video in the list
-            function advanceToNextVideo(tabIndex) {
-                if (tabIndex < 0 || tabIndex >= mediaTabsModel.count)
-                    return;
-
-                var tab = mediaTabsModel.get(tabIndex);
-                if (!tab || tab.tabType !== "video")
-                    return;
-
-                var mediaModel = tab.mediaModel;
-                if (!mediaModel || mediaModel.count === 0)
-                    return;
-
-                var currentIdx = tab.currentIndex;
-                var nextIdx = currentIdx + 1;
-
-                // If at end of list, check if looping is enabled
-                if (nextIdx >= mediaModel.count) {
-                    if (loopVideos) {
-                        nextIdx = 0;  // Loop back to beginning
-                    } else {
-                        // Stop playback - don't loop
-                        mediaTabsModel.setProperty(tabIndex, "isPlaying", false);
-                        if (outputWindow) {
-                            var stopZOrder = tab.zOrder !== undefined ? tab.zOrder : tabIndex;
-                            outputWindow.setVideoLayer(tab.tabId, tab.currentPath, tab.brightness, false, stopZOrder);
-                        }
-                        return;
-                    }
-                }
-
-                var nextItem = mediaModel.get(nextIdx);
-                if (nextItem && nextItem.path) {
-
-                    // Update the model
-                    mediaTabsModel.setProperty(tabIndex, "currentPath", nextItem.path);
-                    mediaTabsModel.setProperty(tabIndex, "currentIndex", nextIdx);
-                    mediaTabsModel.setProperty(tabIndex, "videoPosition", 0);
-
-                    // Update OutputWindow
-                    if (outputWindow) {
-                        var zOrder = tab.zOrder !== undefined ? tab.zOrder : tabIndex;
-                        outputWindow.setVideoLayer(tab.tabId, nextItem.path, tab.brightness, true, zOrder);
-                    }
-                }
-            }
-
-            VideoOutput {
-                id: previewVideoOutput
-                anchors.fill: parent
-                source: previewMediaPlayer
-                fillMode: VideoOutput.PreserveAspectFit
-                opacity: previewMediaItem.mediaBrightness
-                visible: previewMediaItem.mediaType === "video" && previewMediaItem.mediaPath !== ""
-
-                onVisibleChanged: {
-                }
-
-                // Blue border around actual video content (indicates size in output)
-                Rectangle {
-                    visible: previewVideoOutput.visible && previewMediaPlayer.status >= MediaPlayer.Loaded
-                    color: "transparent"
-                    border.color: Components.Theme.accentColor
-                    border.width: 2
-                    radius: 2
-                    z: 100
-
-                    // Calculate position and size based on video's content rect
-                    property real vidWidth: previewVideoOutput.contentRect.width
-                    property real vidHeight: previewVideoOutput.contentRect.height
-                    property real vidX: previewVideoOutput.contentRect.x
-                    property real vidY: previewVideoOutput.contentRect.y
-
-                    x: vidX
-                    y: vidY
-                    width: vidWidth > 0 ? vidWidth : parent.width
-                    height: vidHeight > 0 ? vidHeight : parent.height
-                }
-            }
-
-            onMediaPlayingChanged: {
-                if (mediaType === "video") {
-                    if (mediaPlaying && mediaPath !== "") {
-                        previewMediaPlayer.play();
-                    } else {
-                        previewMediaPlayer.pause();
-                    }
-                }
-            }
-
-            onMediaPathChanged: {
-                if (mediaType === "video" && mediaPath !== "" && mediaPlaying) {
-                    previewMediaPlayer.play();
-                }
-            }
-
-            onMediaBrightnessChanged: {
-            }
-
-            Component.onCompleted: {
-                if (mediaType === "video" && mediaPlaying && mediaPath !== "") {
-                    previewMediaPlayer.play();
                 }
             }
         }
     }
-}
 }

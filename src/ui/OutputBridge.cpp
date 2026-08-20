@@ -65,6 +65,21 @@ int OutputBridge::screenCount() const
     return qApp->screens().size();
 }
 
+void OutputBridge::notifyMediaPosition(int tabId, int position)
+{
+    emit mediaPositionChanged(tabId, position);
+}
+
+void OutputBridge::notifyMediaDuration(int tabId, int duration)
+{
+    emit mediaDurationChanged(tabId, duration);
+}
+
+void OutputBridge::notifyMediaEnded(int tabId)
+{
+    emit mediaEnded(tabId);
+}
+
 void OutputBridge::setBrightness(double level)
 {
     if (!m_root)

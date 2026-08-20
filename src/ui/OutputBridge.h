@@ -22,7 +22,19 @@ public:
 signals:
     void screenCountChanged();
 
+    // Playback progress of the output's own media layers. The controls follow these
+    // rather than the preview, so the numbers describe what the audience sees and
+    // remain correct even if no preview is on screen.
+    void mediaPositionChanged(int tabId, int position);
+    void mediaDurationChanged(int tabId, int duration);
+    void mediaEnded(int tabId);
+
 public slots:
+    // Called from OutputWindow.qml, which cannot emit a C++ signal directly.
+    Q_INVOKABLE void notifyMediaPosition(int tabId, int position);
+    Q_INVOKABLE void notifyMediaDuration(int tabId, int duration);
+    Q_INVOKABLE void notifyMediaEnded(int tabId);
+
     Q_INVOKABLE void setBrightness(double level);
     Q_INVOKABLE void setVideoLayer(int tabId, const QString &path, double brightness, bool playing, int zOrder = -1);
     Q_INVOKABLE void setImageLayer(int tabId, const QString &path, double brightness, int zOrder);

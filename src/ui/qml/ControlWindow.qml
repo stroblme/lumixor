@@ -122,6 +122,54 @@ Window {
         return mediaTabsModel.count - 1;
     }
 
+    // Stop a video tab and tell the output to hold the current frame.
+    function stopVideoTab(row) {
+        var tab = mediaTabsModel.get(row);
+        if (!tab)
+            return;
+        mediaTabsModel.setProperty(row, "isPlaying", false);
+        if (outputWindow) {
+            var zOrder = tab.zOrder !== undefined ? tab.zOrder : row;
+            outputWindow.setVideoLayer(tab.tabId, tab.currentPath, tab.brightness, false, zOrder);
+        }
+    }
+
+    // Move a video tab to the next clip, honouring the loop setting.
+    function advanceVideo(row) {
+        if (row < 0 || row >= mediaTabsModel.count)
+            return;
+
+        var tab = mediaTabsModel.get(row);
+        if (!tab || tab.tabType !== "video")
+            return;
+
+        var mediaModel = tab.mediaModel;
+        if (!mediaModel || mediaModel.count === 0)
+            return;
+
+        var nextIdx = tab.currentIndex + 1;
+        if (nextIdx >= mediaModel.count) {
+            if (!loopVideos) {
+                stopVideoTab(row);
+                return;
+            }
+            nextIdx = 0;
+        }
+
+        var nextItem = mediaModel.get(nextIdx);
+        if (!nextItem || !nextItem.path)
+            return;
+
+        mediaTabsModel.setProperty(row, "currentPath", nextItem.path);
+        mediaTabsModel.setProperty(row, "currentIndex", nextIdx);
+        mediaTabsModel.setProperty(row, "videoPosition", 0);
+
+        if (outputWindow) {
+            var zOrder = tab.zOrder !== undefined ? tab.zOrder : row;
+            outputWindow.setVideoLayer(tab.tabId, nextItem.path, tab.brightness, true, zOrder);
+        }
+    }
+
     // Create a tab per media kind and fill it. Used by both import paths.
     function importIntoTabs(images, videos) {
         if (images.length > 0) {
@@ -459,8 +507,6 @@ Window {
                             Layout.fillHeight: true
 
                             mediaTabsModel: controlRoot.mediaTabs
-                            autoPlayNextVideo: controlRoot.autoPlayNextVideo
-                            loopVideos: controlRoot.loopVideos
                         }
                     }
                 }
@@ -506,6 +552,37 @@ Window {
         // Sync loop setting to slideshow controller
         if (slideshow) {
             slideshow.loopEnabled = loopSlideshows;
+        }
+    }
+
+    // Playback progress comes from the output window's own players, so the transport
+    // reflects what the audience sees and keeps working with no preview on screen.
+    Connections {
+        target: outputWindow
+
+        function onMediaPositionChanged(tabId, position) {
+            var row = indexOfTab(tabId);
+            if (row < 0)
+                return;
+            // Skip while the user drags the seek slider, or it snaps back.
+            if (!mediaTabsModel.get(row).isSeeking)
+                mediaTabsModel.setProperty(row, "videoPosition", position);
+        }
+
+        function onMediaDurationChanged(tabId, duration) {
+            var row = indexOfTab(tabId);
+            if (row >= 0)
+                mediaTabsModel.setProperty(row, "videoDuration", duration);
+        }
+
+        function onMediaEnded(tabId) {
+            var row = indexOfTab(tabId);
+            if (row < 0)
+                return;
+            if (autoPlayNextVideo)
+                advanceVideo(row);
+            else
+                stopVideoTab(row);
         }
     }
 
