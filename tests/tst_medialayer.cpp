@@ -4,11 +4,14 @@
 // MediaLayer therefore decodes into an asynchronous back buffer and hands the result
 // to the visible Image, which must find it in the pixmap cache rather than decode it
 // a second time.
+//
+// The layer is built without a Window on purpose: an Image loads from the engine, not
+// from a scene graph, so the test needs no OpenGL and runs on a headless machine.
 #include <QtTest>
-#include <QQmlApplicationEngine>
+#include <QQmlComponent>
+#include <QQmlEngine>
 #include <QQuickImageProvider>
 #include <QQuickItem>
-#include <QQuickWindow>
 #include <QThread>
 
 static QThread *s_guiThread = nullptr;
@@ -53,48 +56,42 @@ void TestMediaLayer::slideshowDecodesOffGuiThreadAndKeepsPreviousImage()
     s_lastRequestedSize = QSize();
     s_decodedOnGuiThread = false;
 
-    QQmlApplicationEngine engine;
+    QQmlEngine engine;
     engine.addImageProvider(QStringLiteral("exif"), new SpyImageProvider());
 
-    const QByteArray qml =
+    QQmlComponent component(&engine);
+    component.setData(
         "import QtQuick 2.12\n"
-        "import QtQuick.Window 2.12\n"
         "import \"components\" as Components\n"
-        "Window { visible: true; width: 400; height: 300; color: \"black\"\n"
-        "  Components.MediaLayer { objectName: \"layer\"; anchors.fill: parent;\n"
-        "    layerType: \"slideshow\"; layerPath: \"/one.jpg\" } }\n";
-    engine.loadData(qml, QUrl::fromLocalFile(QStringLiteral(SOURCE_QML_DIR) + "/tst_medialayer.qml"));
-    QVERIFY2(!engine.rootObjects().isEmpty(), "MediaLayer.qml failed to load");
+        "Components.MediaLayer { width: 400; height: 300;\n"
+        "  layerType: \"slideshow\"; layerPath: \"/one.jpg\" }\n",
+        QUrl::fromLocalFile(QStringLiteral(SOURCE_QML_DIR) + "/tst_medialayer.qml"));
+    QVERIFY2(!component.isError(), qPrintable(component.errorString()));
 
-    QWindow *window = qobject_cast<QWindow *>(engine.rootObjects().first());
-    QVERIFY(window);
-    QQuickWindow *quickWindow = qobject_cast<QQuickWindow *>(window);
-    QVERIFY(quickWindow);
-    QQuickItem *layer = quickWindow->findChild<QQuickItem *>(QStringLiteral("layer"));
+    QScopedPointer<QObject> object(component.create());
+    QVERIFY(object);
+    QQuickItem *layer = qobject_cast<QQuickItem *>(object.data());
     QVERIFY(layer);
 
-    // grabWindow() crashes on a window that has never rendered.
-    QVERIFY(QTest::qWaitForWindowExposed(quickWindow));
-
-    QTRY_COMPARE(quickWindow->grabWindow().pixelColor(200, 150), QColor(Qt::red));
+    QTRY_VERIFY(layer->property("contentReady").toBool());
     QVERIFY2(!s_decodedOnGuiThread, "the first slideshow image decoded on the GUI thread, which stalls video playback");
 
     layer->setProperty("layerPath", "/two.jpg");
 
-    // While the next image decodes, the previous one has to stay on screen. Dropping
-    // it would replace the video stall with a black flash on the output.
+    // While the next image decodes, the layer has to keep showing the previous one.
+    // Dropping it would replace the video stall with a black flash on the output.
     for (int elapsed = 0; elapsed < 180; elapsed += 60)
     {
         QTest::qWait(60);
-        QVERIFY2(quickWindow->grabWindow().pixelColor(200, 150) == QColor(Qt::red),
+        QVERIFY2(layer->property("contentReady").toBool(),
                  "the previous slideshow image was dropped before the next one was ready, "
                  "which flashes black on the output");
     }
 
-    QTRY_COMPARE(quickWindow->grabWindow().pixelColor(200, 150), QColor(Qt::green));
+    QTRY_COMPARE(s_requests.count(QStringLiteral("/two.jpg")), 1);
+    QTRY_VERIFY(layer->property("contentReady").toBool());
 
     QVERIFY2(!s_decodedOnGuiThread, "a slideshow image decoded on the GUI thread, which stalls video playback");
-
     // One decode per image. A second decode means the visible Image missed the pixmap
     // cache, which happens when its cache key stops matching the back buffer's.
     QCOMPARE(s_requests.count(QStringLiteral("/one.jpg")), 1);

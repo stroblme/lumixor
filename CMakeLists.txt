@@ -142,5 +142,8 @@ if(BUILD_TESTS)
         Qt5::QuickControls2
     )
     add_test(NAME controlwindow COMMAND tst_controlwindow)
-    set_tests_properties(controlwindow PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+    # The runner has no GPU, so Qt Quick has to render with QPainter instead of
+    # asking for an OpenGL context it cannot get.
+    set_tests_properties(controlwindow PROPERTIES ENVIRONMENT
+        "QT_QPA_PLATFORM=offscreen;QT_QUICK_BACKEND=software")
 endif()

@@ -24,9 +24,18 @@ static QtMessageHandler g_previousHandler = nullptr;
 
 // QTest installs its own handler inside qExec(), so this one has to be layered on top
 // from initTestCase() and must forward, or the test output disappears.
+// A machine with no Qt media backend installed, which is the normal state of a CI
+// runner, warns once per MediaPlayer that no service was found. Every MediaLayer holds
+// one, so the whole suite would fail on an absent package rather than on the QML it is
+// meant to guard.
+static bool isMissingMediaBackend(const QString &msg)
+{
+    return msg.contains(QLatin1String("no service found for"));
+}
+
 static void captureWarnings(QtMsgType type, const QMessageLogContext &context, const QString &msg)
 {
-    if (type == QtWarningMsg || type == QtCriticalMsg || type == QtFatalMsg)
+    if ((type == QtWarningMsg || type == QtCriticalMsg || type == QtFatalMsg) && !isMissingMediaBackend(msg))
         g_warnings << msg;
     if (g_previousHandler)
         g_previousHandler(type, context, msg);
