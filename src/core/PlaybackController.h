@@ -15,7 +15,6 @@ public:
     QString currentMediaPath() const { return m_currentMediaPath; }
 
     Q_INVOKABLE void loadMediaPath(const QString &path);
-    Q_INVOKABLE void loadMedia(const MediaItem &item) { loadMediaPath(item.path); }
     Q_INVOKABLE void play();
     Q_INVOKABLE void pause();
     Q_INVOKABLE void stop();

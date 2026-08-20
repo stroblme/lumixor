@@ -29,5 +29,6 @@ signals:
 
 private:
     void scanFolderRecursively(const QString &folderPath, QStringList &files);
+    bool appendItem(const QString &path); // append without notifying
     QVector<MediaItem> m_items;
 };

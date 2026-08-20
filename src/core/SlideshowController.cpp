@@ -1,14 +1,13 @@
 #include "SlideshowController.h"
+#include "MediaTypes.h"
 #include <QDebug>
 #include <QQmlListReference>
 #include <QAbstractListModel>
 
 SlideshowController::SlideshowController(MediaManager *mediaManager,
-                                         OutputWindow *outputWindow,
                                          QObject *parent)
     : QObject(parent),
-      m_mediaManager(mediaManager),
-      m_outputWindow(outputWindow)
+      m_mediaManager(mediaManager)
 {
     connect(&m_timer, &QTimer::timeout,
             this, &SlideshowController::advance);
@@ -60,70 +59,88 @@ void SlideshowController::setImageList(QVariant listModel)
     qDebug() << "SlideshowController: setImageList with" << m_customImageList.size() << "images";
 }
 
+int SlideshowController::count() const
+{
+    if (m_useCustomList)
+        return m_customImageList.size();
+    return m_mediaManager ? m_mediaManager->items().size() : 0;
+}
+
+QString SlideshowController::pathAt(int index) const
+{
+    if (index < 0 || index >= count())
+        return QString();
+    if (m_useCustomList)
+        return m_customImageList.at(index);
+    return m_mediaManager->items().at(index).path;
+}
+
+bool SlideshowController::isImageAt(int index) const
+{
+    if (index < 0 || index >= count())
+        return false;
+    if (m_useCustomList)
+        return MediaTypes::typeFor(m_customImageList.at(index)) == MediaType::Image;
+    return m_mediaManager->items().at(index).type == MediaType::Image;
+}
+
+void SlideshowController::stopTimer()
+{
+    if (!m_timer.isActive())
+        return;
+    m_timer.stop();
+    emit runningChanged();
+}
+
+// Publish the image at index, emitting only on an actual change of path.
+void SlideshowController::showIndex(int index)
+{
+    const QString imagePath = pathAt(index);
+    if (imagePath.isEmpty())
+        return;
+    m_currentIndex = index;
+    if (imagePath == m_currentImagePath)
+        return;
+    m_currentImagePath = imagePath;
+    emit currentImagePathChanged();
+}
+
 void SlideshowController::start(int intervalMs)
 {
-    int itemCount = 0;
+    // A zero or negative interval makes QTimer fire on every event loop pass, which
+    // pins a CPU core and starves the UI.
+    intervalMs = qBound(100, intervalMs, 3600 * 1000);
 
-    if (m_useCustomList)
-    {
-        itemCount = m_customImageList.size();
-    }
-    else if (m_mediaManager)
-    {
-        const auto &items = m_mediaManager->items();
-        itemCount = items.size();
-    }
-
-    if (itemCount == 0)
+    if (count() == 0)
         return;
 
-    qDebug() << "Slideshow start:" << intervalMs << "ms, items:" << itemCount << "currentIndex:" << m_currentIndex << "useCustomList:" << m_useCustomList;
+    qDebug() << "Slideshow start:" << intervalMs << "ms, items:" << count() << "currentIndex:" << m_currentIndex;
 
     // Resume from last image if paused, otherwise start from first image
-    if (m_currentIndex < 0 || m_currentIndex >= itemCount)
+    if (m_currentIndex < 0 || m_currentIndex >= count())
     {
         m_currentIndex = findNextImageIndex(-1);
     }
 
     // Show current image if not already shown
     if (m_currentIndex >= 0)
-    {
-        QString imagePath;
-        if (m_useCustomList)
-        {
-            imagePath = m_customImageList[m_currentIndex];
-        }
-        else
-        {
-            const auto &items = m_mediaManager->items();
-            if (m_currentIndex < items.size())
-            {
-                imagePath = items[m_currentIndex].path;
-            }
-        }
+        showIndex(m_currentIndex);
 
-        if (!imagePath.isEmpty())
-        {
-            qDebug() << "Slideshow showing image index" << m_currentIndex << ":" << imagePath;
-            m_currentImagePath = imagePath;
-            emit currentImagePathChanged();
-        }
-    }
-
+    const bool wasRunning = m_timer.isActive();
     m_timer.start(intervalMs);
     emit started();
+    if (!wasRunning)
+        emit runningChanged();
 }
 
 void SlideshowController::stop()
 {
-    qDebug() << "Slideshow stop";
-    m_timer.stop();
+    stopTimer();
 }
 
 void SlideshowController::reset()
 {
-    qDebug() << "Slideshow reset";
-    m_timer.stop();
+    stopTimer();
     m_currentIndex = -1;
     m_currentImagePath.clear();
     emit currentImagePathChanged();
@@ -131,59 +148,24 @@ void SlideshowController::reset()
 
 void SlideshowController::pause()
 {
-    qDebug() << "Slideshow pause";
-    m_timer.stop();
+    // Same effect as stop(); kept separate because QML pauses and resumes without
+    // discarding the current position, which reset() does discard.
+    stopTimer();
 }
 
 void SlideshowController::setCurrentIndex(int index)
 {
-    int itemCount = 0;
-
-    if (m_useCustomList)
+    if (index < 0 || index >= count())
     {
-        itemCount = m_customImageList.size();
-    }
-    else if (m_mediaManager)
-    {
-        itemCount = m_mediaManager->items().size();
-    }
-
-    if (index < 0 || index >= itemCount)
-    {
-        qDebug() << "SlideshowController::setCurrentIndex: invalid index" << index << ", itemCount=" << itemCount;
+        qDebug() << "SlideshowController::setCurrentIndex: invalid index" << index;
         return;
     }
 
-    m_currentIndex = index;
+    showIndex(index);
 
-    // Update the current image path
-    QString imagePath;
-    if (m_useCustomList)
-    {
-        imagePath = m_customImageList[m_currentIndex];
-    }
-    else
-    {
-        const auto &items = m_mediaManager->items();
-        if (m_currentIndex < items.size())
-        {
-            imagePath = items[m_currentIndex].path;
-        }
-    }
-
-    if (!imagePath.isEmpty() && imagePath != m_currentImagePath)
-    {
-        m_currentImagePath = imagePath;
-        emit currentImagePathChanged();
-        qDebug() << "SlideshowController::setCurrentIndex: jumped to index" << index << "path=" << imagePath;
-    }
-
-    // If the slideshow is running, restart the timer to give full interval for the new image
+    // If the slideshow is running, restart the timer to give the new image a full interval
     if (m_timer.isActive())
-    {
-        int interval = m_timer.interval();
-        m_timer.start(interval);
-    }
+        m_timer.start(m_timer.interval());
 }
 
 void SlideshowController::setLoopEnabled(bool enabled)
@@ -198,119 +180,43 @@ void SlideshowController::setLoopEnabled(bool enabled)
 
 void SlideshowController::advance()
 {
-    int itemCount = 0;
-
-    if (m_useCustomList)
-    {
-        itemCount = m_customImageList.size();
-    }
-    else if (m_mediaManager)
-    {
-        itemCount = m_mediaManager->items().size();
-    }
-
-    if (itemCount == 0)
+    if (count() == 0)
         return;
 
-    int nextIndex = findNextImageIndex(m_currentIndex);
-
-    // Check if we've reached the end (findNextImageIndex returns -1 when looping is disabled and at end)
+    const int nextIndex = findNextImageIndex(m_currentIndex);
     if (nextIndex < 0)
     {
-        qDebug() << "Slideshow reached end, looping disabled - stopping";
-        m_timer.stop();
+        // No further image and looping is off.
+        stopTimer();
         emit slideshowEnded();
         return;
     }
 
-    m_currentIndex = nextIndex;
-
-    QString imagePath;
-    if (m_useCustomList)
-    {
-        imagePath = m_customImageList[m_currentIndex];
-    }
-    else
-    {
-        const auto &items = m_mediaManager->items();
-        if (m_currentIndex < items.size())
-        {
-            imagePath = items[m_currentIndex].path;
-        }
-    }
-
-    if (!imagePath.isEmpty())
-    {
-        qDebug() << "Slideshow advance to" << m_currentIndex << ":" << imagePath;
-        m_currentImagePath = imagePath;
-        emit currentImagePathChanged();
-    }
+    showIndex(nextIndex);
 }
 
 int SlideshowController::findNextImageIndex(int from) const
 {
-    int count = 0;
-
-    if (m_useCustomList)
-    {
-        count = m_customImageList.size();
-        if (count == 0)
-            return -1;
-
-        int nextIdx = from + 1;
-
-        // Check if we've reached the end
-        if (nextIdx >= count)
-        {
-            if (m_loopEnabled)
-            {
-                return 0; // Loop back to beginning
-            }
-            else
-            {
-                return -1; // No more images, don't loop
-            }
-        }
-
-        return nextIdx;
-    }
-
-    // Fall back to MediaManager
-    if (!m_mediaManager)
+    const int total = count();
+    if (total == 0)
         return -1;
 
-    const auto &items = m_mediaManager->items();
-    if (items.isEmpty())
-        return -1;
+    // Both backends are searched the same way, so a custom list no longer treats
+    // every entry as an image while the MediaManager list filters by type.
+    if (from < -1)
+        from = -1;
 
-    count = items.size();
-    int idx = from;
-    int startIdx = from;
-
-    // iterate through list looking for next image
-    for (int i = 0; i < count; ++i)
+    for (int step = 1; step <= total; ++step)
     {
-        idx = idx + 1;
-
-        // Check if we've gone past the end
-        if (idx >= count)
+        int idx = from + step;
+        if (idx >= total)
         {
-            if (m_loopEnabled)
-            {
-                idx = 0; // Wrap around
-            }
-            else
-            {
-                return -1; // No more images, don't loop
-            }
+            if (!m_loopEnabled)
+                return -1;
+            idx %= total;
         }
-
-        // Don't loop back to where we started if we've wrapped
-        if (idx == startIdx && !m_loopEnabled)
-            return -1;
-
-        if (items[idx].type == MediaType::Image)
+        if (isImageAt(idx))
             return idx;
     }
-    return -1; // no images
+    return -1;
 }
