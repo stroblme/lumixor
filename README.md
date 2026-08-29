@@ -99,3 +99,11 @@ The content of the output window is identical to what you can see in the preview
 6. Timeline/cue automation + snapshot save/load.
 7. Projection mapping tools and multi-output layout editor.
 8. Better video backend (GStreamer/FFmpeg) & NDI / virtual output.
+
+## License
+
+Lumixor is released under the MIT License; see [LICENSE](LICENSE).
+
+Icons use [Font Awesome](https://fontawesome.com) Free 7.1.0 by Fonticons, Inc.
+The bundled font files are licensed under SIL OFL 1.1; the full license text is
+in [THIRD_PARTY_LICENSES.txt](THIRD_PARTY_LICENSES.txt).
