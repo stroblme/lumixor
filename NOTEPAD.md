@@ -1,1 +1,0 @@
-- BUG the spectrometer should normalize on the volume; i.e. changing the system volume should not affect the spectrum
